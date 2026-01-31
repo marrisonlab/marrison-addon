@@ -140,6 +140,11 @@ class Marrison_Addon_Admin {
 				'title' => esc_html__( 'Preloader', 'marrison-addon' ),
 				'desc' => esc_html__( 'Aggiungi una schermata di caricamento con logo personalizzato e spinner.', 'marrison-addon' ),
 			],
+			[
+				'id' => 'fast_logout',
+				'title' => esc_html__( 'Fast Logout', 'marrison-addon' ),
+				'desc' => esc_html__( 'Reindirizza automaticamente alla home page dopo il logout.', 'marrison-addon' ),
+			],
 		];
 		?>
 		<div class="wrap">

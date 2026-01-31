@@ -6,11 +6,11 @@
 *   **Plugin URI:** https://github.com/marrisonlab/marrison-addon
 *   **Author:** Angelo Marra
 *   **Author URI:** https://marrisonlab.com
-*   **Tags:** elementor, container, link, wrapper, ticker, cursor, preloader, marrison
+*   **Tags:** elementor, container, link, wrapper, ticker, cursor, preloader, logout, marrison
 *   **Requires at least:** 6.0
 *   **Tested up to:** 6.9
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.1.2
+*   **Stable tag:** 1.1.3
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -46,6 +46,9 @@
     *   Define custom image sizes for your theme directly from the dashboard.
     *   Control cropping and dimensions without editing code.
 
+6.  **Fast Logout:**
+    *   Automatically redirects users to the home page after logging out, bypassing the default WordPress login screen.
+
 ## Installation
 
 1.  Upload the `marrison-addon` folder to the `/wp-content/plugins/` directory of your site.
@@ -54,6 +57,10 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.1.3
+*   **New Module:** Fast Logout - Added a module to automatically redirect users to the home page after logout.
+*   **Update:** Updated plugin description and metadata.
 
 ### 1.1.2
 *   **Fix:** Admin Menu - Resolved a slug conflict with the Marrison Installer plugin.
