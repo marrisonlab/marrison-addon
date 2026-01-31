@@ -50,9 +50,11 @@ jQuery(document).ready(function($) {
     // Force Update Handler
     $('.marrison-force-update').on('click', function() {
         var $btn = $(this);
+        var $status = $('.marrison-update-status');
         var originalText = $btn.text();
         
-        $btn.prop('disabled', true).text('Verifica in corso...');
+        $btn.addClass('marrison-btn-loading').prop('disabled', true);
+        $status.removeClass('success error').text('');
         
         $.ajax({
             url: marrison_global.ajax_url,
@@ -62,17 +64,27 @@ jQuery(document).ready(function($) {
                 nonce: marrison_global.nonce
             },
             success: function(response) {
+                $btn.removeClass('marrison-btn-loading').prop('disabled', false);
+                
                 if (response.success) {
-                    alert(response.data.message);
-                    window.location.reload();
+                    var isFound = response.data.found;
+                    $status.addClass(isFound ? 'success' : 'success').text(response.data.message);
+                    
+                    if (isFound) {
+                        // Optionally redirect to plugins page after a delay
+                        setTimeout(function() {
+                            if(confirm('Aggiornamento trovato! Vuoi andare alla pagina dei plugin per installarlo?')) {
+                                window.location.href = 'plugins.php';
+                            }
+                        }, 500);
+                    }
                 } else {
-                    alert('Errore: ' + (response.data.message || 'Sconosciuto'));
-                    $btn.prop('disabled', false).text(originalText);
+                    $status.addClass('error').text('Errore: ' + (response.data.message || 'Sconosciuto'));
                 }
             },
             error: function() {
-                alert(marrison_global.connection_error || 'Errore di connessione');
-                $btn.prop('disabled', false).text(originalText);
+                $btn.removeClass('marrison-btn-loading').prop('disabled', false);
+                $status.addClass('error').text(marrison_global.connection_error || 'Errore di connessione');
             }
         });
     });

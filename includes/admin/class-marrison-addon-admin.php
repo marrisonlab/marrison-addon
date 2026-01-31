@@ -85,10 +85,26 @@ class Marrison_Addon_Admin {
 			wp_send_json_error( [ 'message' => 'Permission denied' ] );
 		}
 
+		// Force check
 		delete_site_transient( 'update_plugins' );
 		wp_update_plugins();
-
-		wp_send_json_success( [ 'message' => __( 'Ricerca aggiornamenti avviata. Ricarica la pagina per vedere i risultati.', 'marrison-addon' ) ] );
+		
+		// Get results
+		$update_plugins = get_site_transient( 'update_plugins' );
+		$plugin_slug = plugin_basename( dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php' );
+		
+		if ( isset( $update_plugins->response[ $plugin_slug ] ) ) {
+			$update = $update_plugins->response[ $plugin_slug ];
+			wp_send_json_success( [ 
+				'message' => sprintf( __( 'Trovata nuova versione: %s', 'marrison-addon' ), $update->new_version ),
+				'found' => true
+			] );
+		} else {
+			wp_send_json_success( [ 
+				'message' => __( 'Nessun aggiornamento trovato. Il plugin è aggiornato.', 'marrison-addon' ),
+				'found' => false
+			] );
+		}
 	}
 
 	public function add_admin_menu() {
@@ -173,23 +189,17 @@ class Marrison_Addon_Admin {
 				<?php endforeach; ?>
 			</div>
 
-			<div class="marrison-settings-section" style="margin-top: 30px; background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
-				<h2><?php esc_html_e( 'Aggiornamenti', 'marrison-addon' ); ?></h2>
-				<table class="form-table">
-					<tr>
-						<th scope="row">
-							<label><?php esc_html_e( 'Ricerca Aggiornamenti', 'marrison-addon' ); ?></label>
-						</th>
-						<td>
-							<button type="button" class="button button-secondary marrison-force-update">
-								<?php esc_html_e( 'Cerca Nuova Versione', 'marrison-addon' ); ?>
-							</button>
-							<p class="description">
-								<?php esc_html_e( 'Forza la ricerca di una nuova versione su GitHub.', 'marrison-addon' ); ?>
-							</p>
-						</td>
-					</tr>
-				</table>
+			<div class="marrison-update-section">
+				<div class="marrison-update-info">
+					<h2><?php esc_html_e( 'Aggiornamenti', 'marrison-addon' ); ?></h2>
+					<p><?php esc_html_e( 'Cerca manualmente nuove versioni del plugin su GitHub.', 'marrison-addon' ); ?></p>
+				</div>
+				<div class="marrison-update-actions">
+					<span class="marrison-update-status"></span>
+					<button type="button" class="button button-primary marrison-force-update">
+						<?php esc_html_e( 'Cerca Aggiornamenti', 'marrison-addon' ); ?>
+					</button>
+				</div>
 			</div>
 		</div>
 		<?php

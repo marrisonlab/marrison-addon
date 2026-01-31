@@ -90,3 +90,57 @@ input:checked + .marrison-slider:before {
     -ms-transform: translateX(18px);
     transform: translateX(18px);
 }
+
+/* Button Loading State */
+.marrison-btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+.marrison-btn-loading:after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin: -8px 0 0 -8px;
+    border: 2px solid #2271b1;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: marrison-spin 1s linear infinite;
+}
+@keyframes marrison-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Update Section */
+.marrison-update-section {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.marrison-update-info h2 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+}
+.marrison-update-info p {
+    margin: 0;
+    color: #646970;
+}
+.marrison-update-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.marrison-update-status {
+    font-weight: 500;
+    font-size: 13px;
+}
+.marrison-update-status.success { color: #00a32a; }
+.marrison-update-status.error { color: #d63638; }
