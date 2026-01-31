@@ -11,6 +11,7 @@ class Marrison_Addon_Admin {
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_styles' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'wp_ajax_marrison_save_option', [ $this, 'ajax_save_option' ] );
+		add_action( 'wp_ajax_marrison_force_update_check', [ $this, 'ajax_force_update_check' ] );
 	}
 
 	public function enqueue_styles( $hook ) {
@@ -75,6 +76,19 @@ class Marrison_Addon_Admin {
 		}
 
 		wp_send_json_success( [ 'message' => 'Settings saved' ] );
+	}
+
+	public function ajax_force_update_check() {
+		check_ajax_referer( 'marrison_save_option_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'update_plugins' ) ) {
+			wp_send_json_error( [ 'message' => 'Permission denied' ] );
+		}
+
+		delete_site_transient( 'update_plugins' );
+		wp_update_plugins();
+
+		wp_send_json_success( [ 'message' => __( 'Ricerca aggiornamenti avviata. Ricarica la pagina per vedere i risultati.', 'marrison-addon' ) ] );
 	}
 
 	public function add_admin_menu() {
@@ -155,26 +169,18 @@ class Marrison_Addon_Admin {
 			</div>
 
 			<div class="marrison-settings-section" style="margin-top: 30px; background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
-				<h2><?php esc_html_e( 'Settings', 'marrison-addon' ); ?></h2>
+				<h2><?php esc_html_e( 'Aggiornamenti', 'marrison-addon' ); ?></h2>
 				<table class="form-table">
 					<tr>
 						<th scope="row">
-							<label for="marrison_github_token"><?php esc_html_e( 'GitHub Token', 'marrison-addon' ); ?></label>
+							<label><?php esc_html_e( 'Ricerca Aggiornamenti', 'marrison-addon' ); ?></label>
 						</th>
 						<td>
-							<?php 
-								$settings = get_option( 'marrison_addon_settings', [] );
-								$token = isset( $settings['github_token'] ) ? $settings['github_token'] : '';
-							?>
-							<input type="password" 
-								   id="marrison_github_token" 
-								   class="regular-text marrison-ajax-input" 
-								   data-option="marrison_addon_settings" 
-								   data-key="github_token"
-								   value="<?php echo esc_attr( $token ); ?>"
-							>
+							<button type="button" class="button button-secondary marrison-force-update">
+								<?php esc_html_e( 'Cerca Nuova Versione', 'marrison-addon' ); ?>
+							</button>
 							<p class="description">
-								<?php esc_html_e( 'Enter your GitHub Personal Access Token if using a private repository or to avoid API rate limits.', 'marrison-addon' ); ?>
+								<?php esc_html_e( 'Forza la ricerca di una nuova versione su GitHub.', 'marrison-addon' ); ?>
 							</p>
 						</td>
 					</tr>

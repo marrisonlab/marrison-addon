@@ -47,6 +47,36 @@ jQuery(document).ready(function($) {
         });
     });
 
+    // Force Update Handler
+    $('.marrison-force-update').on('click', function() {
+        var $btn = $(this);
+        var originalText = $btn.text();
+        
+        $btn.prop('disabled', true).text('Verifica in corso...');
+        
+        $.ajax({
+            url: marrison_global.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'marrison_force_update_check',
+                nonce: marrison_global.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert(response.data.message);
+                    window.location.reload();
+                } else {
+                    alert('Errore: ' + (response.data.message || 'Sconosciuto'));
+                    $btn.prop('disabled', false).text(originalText);
+                }
+            },
+            error: function() {
+                alert(marrison_global.connection_error || 'Errore di connessione');
+                $btn.prop('disabled', false).text(originalText);
+            }
+        });
+    });
+
     function saveOption(optionName, key, value, callback) {
         $.ajax({
             url: marrison_global.ajax_url,

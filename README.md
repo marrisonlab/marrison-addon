@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 6.9
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.1.1
+*   **Stable tag:** 1.1.2
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -54,6 +54,10 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.1.2
+*   **Fix:** Admin Menu - Resolved a slug conflict with the Marrison Installer plugin.
+*   **Fix:** Plugin List - Corrected the "Settings" link to point to the correct Marrison Addon dashboard.
 
 ### 1.1.1
 *   **New Feature:** GitHub Updater - Implemented automatic updates directly from GitHub.
