@@ -76,10 +76,12 @@ final class Marrison_Addon {
 	}
 
 	public function on_plugins_loaded() {
+		// Init Updater (Global for Cron/WP-CLI support)
+		new Marrison_Addon_Updater( __FILE__, 'marrisonlab', 'marrison-addon' );
+
 		// Admin Panel Init
 		if ( is_admin() ) {
 			new Marrison_Addon_Admin();
-			new Marrison_Addon_Updater( __FILE__, 'marrisonlab', 'marrison-addon' );
 		}
 
 		// Initialize enabled modules
