@@ -9,15 +9,72 @@ class Marrison_Addon_Admin {
 		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
 		add_action( 'admin_init', [ $this, 'register_settings' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_styles' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_ajax_marrison_save_option', [ $this, 'ajax_save_option' ] );
 	}
 
 	public function enqueue_styles( $hook ) {
-		if ( 'toplevel_page_marrison_addon_panel' !== $hook ) {
+		// Enqueue styles on all plugin pages
+		if ( strpos( $hook, 'marrison_addon' ) === false ) {
 			return;
 		}
 		// Point to the root plugin file to get the correct base URL
 		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_style( 'marrison-admin-css', plugins_url( 'assets/css/admin.css', $plugin_root_file ), [], '1.0.0' );
+		wp_enqueue_style( 'marrison-admin-css', plugins_url( 'assets/css/admin.css', $plugin_root_file ), [], Marrison_Addon::VERSION );
+	}
+
+	public function enqueue_scripts( $hook ) {
+		// Enqueue scripts on all plugin pages
+		if ( strpos( $hook, 'marrison_addon' ) === false ) {
+			return;
+		}
+		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
+		wp_enqueue_script( 'marrison-admin-global', plugins_url( 'assets/js/admin-global.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::VERSION, true );
+		
+		wp_localize_script( 'marrison-admin-global', 'marrison_global', [
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'nonce'    => wp_create_nonce( 'marrison_save_option_nonce' ),
+			'error_saving' => __( 'Errore durante il salvataggio delle impostazioni', 'marrison-addon' ),
+			'connection_error' => __( 'Errore di connessione', 'marrison-addon' ),
+		] );
+	}
+
+	public function ajax_save_option() {
+		check_ajax_referer( 'marrison_save_option_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => 'Permission denied' ] );
+		}
+
+		$option_name = isset( $_POST['option_name'] ) ? sanitize_text_field( $_POST['option_name'] ) : '';
+		$value       = isset( $_POST['value'] ) ? $_POST['value'] : null;
+
+		if ( empty( $option_name ) ) {
+			wp_send_json_error( [ 'message' => 'Missing option name' ] );
+		}
+
+		// Handle array updates if key is provided
+		$key = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : null;
+		
+		if ( $key !== null ) {
+			$current_value = get_option( $option_name, [] );
+			if ( ! is_array( $current_value ) ) {
+				$current_value = [];
+			}
+			
+			// Boolean handling for checkboxes/switches
+			if ( $value === 'true' || $value === '1' ) {
+				$current_value[ $key ] = 1;
+			} else {
+				$current_value[ $key ] = 0; // Or unset if preferred, but 0 is safer for checkboxes
+			}
+			
+			update_option( $option_name, $current_value );
+		} else {
+			update_option( $option_name, $value );
+		}
+
+		wp_send_json_success( [ 'message' => 'Settings saved' ] );
 	}
 
 	public function add_admin_menu() {
@@ -47,49 +104,82 @@ class Marrison_Addon_Admin {
 			[
 				'id' => 'wrapped_link',
 				'title' => esc_html__( 'Wrapped Link', 'marrison-addon' ),
-				'desc' => esc_html__( 'Add links to any Elementor container.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Aggiungi link a qualsiasi contenitore Elementor.', 'marrison-addon' ),
 			],
 			[
 				'id' => 'ticker',
 				'title' => esc_html__( 'Ticker', 'marrison-addon' ),
-				'desc' => esc_html__( 'News ticker widget with JetEngine support.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Widget ticker notizie con supporto JetEngine.', 'marrison-addon' ),
 			],
 			[
 				'id' => 'image_sizes',
-				'title' => esc_html__( 'Image Sizes', 'marrison-addon' ),
-				'desc' => esc_html__( 'Register custom image sizes and add them to media selector.', 'marrison-addon' ),
+				'title' => esc_html__( 'Dimensioni Immagini', 'marrison-addon' ),
+				'desc' => esc_html__( 'Registra dimensioni immagine personalizzate e aggiungile al selettore media.', 'marrison-addon' ),
+			],
+			[
+				'id' => 'cursor',
+				'title' => esc_html__( 'Cursore Animato', 'marrison-addon' ),
+				'desc' => esc_html__( 'Sostituisce il cursore predefinito con un puntatore animato personalizzabile.', 'marrison-addon' ),
+			],
+			[
+				'id' => 'preloader',
+				'title' => esc_html__( 'Preloader', 'marrison-addon' ),
+				'desc' => esc_html__( 'Aggiungi una schermata di caricamento con logo personalizzato e spinner.', 'marrison-addon' ),
 			],
 		];
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html__( 'Marrison Addon', 'marrison-addon' ); ?></h1>
-			<p><?php echo esc_html__( 'Welcome to Marrison Addon. Manage your modules below.', 'marrison-addon' ); ?></p>
+			<p><?php echo esc_html__( 'Benvenuto in Marrison Addon. Gestisci i tuoi moduli qui sotto.', 'marrison-addon' ); ?></p>
 			
-			<form action="options.php" method="post">
-				<?php
-				settings_fields( 'marrison_addon_settings' );
+			<div class="marrison-modules-grid">
+				<?php foreach ( $available_modules as $module ) : 
+					$id = $module['id'];
+					$checked = isset( $modules[ $id ] ) && $modules[ $id ] ? 'checked' : '';
 				?>
-				<div class="marrison-modules-grid">
-					<?php foreach ( $available_modules as $module ) : 
-						$id = $module['id'];
-						$checked = isset( $modules[ $id ] ) && $modules[ $id ] ? 'checked' : '';
-					?>
-					<div class="marrison-module-card">
-						<div class="marrison-card-header">
-							<h3 class="marrison-card-title"><?php echo $module['title']; ?></h3>
-							<label class="marrison-switch">
-								<input type="checkbox" name="marrison_addon_modules[<?php echo esc_attr( $id ); ?>]" value="1" <?php echo $checked; ?>>
-								<span class="marrison-slider"></span>
-							</label>
-						</div>
-						<p class="marrison-card-desc"><?php echo $module['desc']; ?></p>
+				<div class="marrison-module-card">
+					<div class="marrison-card-header">
+						<h3 class="marrison-card-title"><?php echo $module['title']; ?></h3>
+						<label class="marrison-switch">
+							<input type="checkbox" 
+								   class="marrison-ajax-toggle" 
+								   data-option="marrison_addon_modules" 
+								   data-key="<?php echo esc_attr( $id ); ?>" 
+								   <?php echo $checked; ?>>
+							<span class="marrison-slider"></span>
+						</label>
 					</div>
-					<?php endforeach; ?>
+					<p class="marrison-card-desc"><?php echo $module['desc']; ?></p>
 				</div>
-				<?php
-				submit_button( esc_html__( 'Save Settings', 'marrison-addon' ) );
-				?>
-			</form>
+				<?php endforeach; ?>
+			</div>
+
+			<div class="marrison-settings-section" style="margin-top: 30px; background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
+				<h2><?php esc_html_e( 'Settings', 'marrison-addon' ); ?></h2>
+				<table class="form-table">
+					<tr>
+						<th scope="row">
+							<label for="marrison_github_token"><?php esc_html_e( 'GitHub Token', 'marrison-addon' ); ?></label>
+						</th>
+						<td>
+							<?php 
+								$settings = get_option( 'marrison_addon_settings', [] );
+								$token = isset( $settings['github_token'] ) ? $settings['github_token'] : '';
+							?>
+							<input type="password" 
+								   id="marrison_github_token" 
+								   class="regular-text marrison-ajax-input" 
+								   data-option="marrison_addon_settings" 
+								   data-key="github_token"
+								   value="<?php echo esc_attr( $token ); ?>"
+							>
+							<p class="description">
+								<?php esc_html_e( 'Enter your GitHub Personal Access Token if using a private repository or to avoid API rate limits.', 'marrison-addon' ); ?>
+							</p>
+						</td>
+					</tr>
+				</table>
+			</div>
 		</div>
 		<?php
 	}

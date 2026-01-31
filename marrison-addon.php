@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
- * Description: Adds a wrapped link functionality to Elementor Containers.
- * Version: 1.0.0
+ * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Content Ticker, Custom Image Sizes, Custom Cursor, and a highly customizable Preloader.
+ * Version: 1.1.1
  * Author: Angelo Marra
  * Author URI:  https://marrisonlab.com
  * Text Domain: marrison-addon
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.0.0';
+	const VERSION = '1.1.1';
 
 	public function __construct() {
 		$this->includes();
@@ -26,6 +26,7 @@ final class Marrison_Addon {
 
 	private function includes() {
 		require_once plugin_dir_path( __FILE__ ) . 'includes/admin/class-marrison-addon-admin.php';
+		require_once plugin_dir_path( __FILE__ ) . 'includes/class-marrison-addon-updater.php';
 		
 		// Load Modules conditionally
 		$modules = get_option( 'marrison_addon_modules', [] );
@@ -34,6 +35,8 @@ final class Marrison_Addon {
 		$wrapped_link_enabled = isset( $modules['wrapped_link'] ) && $modules['wrapped_link'];
 		$ticker_enabled = isset( $modules['ticker'] ) && $modules['ticker'];
 		$image_sizes_enabled = isset( $modules['image_sizes'] ) && $modules['image_sizes'];
+		$cursor_enabled = isset( $modules['cursor'] ) && $modules['cursor'];
+		$preloader_enabled = isset( $modules['preloader'] ) && $modules['preloader'];
 
 		if ( $wrapped_link_enabled ) {
 			require_once plugin_dir_path( __FILE__ ) . 'includes/modules/class-marrison-addon-wrapped-link.php';
@@ -46,11 +49,18 @@ final class Marrison_Addon {
 		if ( $image_sizes_enabled ) {
 			require_once plugin_dir_path( __FILE__ ) . 'includes/modules/class-marrison-addon-image-sizes.php';
 		}
+
+		if ( $cursor_enabled ) {
+			require_once plugin_dir_path( __FILE__ ) . 'includes/modules/class-marrison-addon-cursor.php';
+		}
+
+		if ( $preloader_enabled ) {
+			require_once plugin_dir_path( __FILE__ ) . 'includes/modules/class-marrison-addon-preloader.php';
+		}
 	}
 
 	private function init_hooks() {
 		$this->on_plugins_loaded();
-		add_action( 'init', [ $this, 'init' ] );
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ $this, 'plugin_action_links' ] );
 	}
 
@@ -64,16 +74,17 @@ final class Marrison_Addon {
 		// Admin Panel Init
 		if ( is_admin() ) {
 			new Marrison_Addon_Admin();
+			new Marrison_Addon_Updater( __FILE__, 'marrisonlab', 'marrison-addon' );
 		}
-	}
 
-	public function init() {
 		// Initialize enabled modules
 		$modules = get_option( 'marrison_addon_modules', [] );
 
 		$wrapped_link_enabled = isset( $modules['wrapped_link'] ) && $modules['wrapped_link'];
 		$ticker_enabled = isset( $modules['ticker'] ) && $modules['ticker'];
 		$image_sizes_enabled = isset( $modules['image_sizes'] ) && $modules['image_sizes'];
+		$cursor_enabled = isset( $modules['cursor'] ) && $modules['cursor'];
+		$preloader_enabled = isset( $modules['preloader'] ) && $modules['preloader'];
 
 		if ( $wrapped_link_enabled && class_exists( 'Marrison_Addon_Wrapped_Link' ) ) {
 			new Marrison_Addon_Wrapped_Link();
@@ -85,6 +96,14 @@ final class Marrison_Addon {
 
 		if ( $image_sizes_enabled && class_exists( 'Marrison_Addon_Image_Sizes' ) ) {
 			new Marrison_Addon_Image_Sizes();
+		}
+
+		if ( $cursor_enabled && class_exists( 'Marrison_Addon_Cursor' ) ) {
+			new Marrison_Addon_Cursor();
+		}
+
+		if ( $preloader_enabled && class_exists( 'Marrison_Addon_Preloader' ) ) {
+			new Marrison_Addon_Preloader();
 		}
 	}
 }
