@@ -1,11 +1,11 @@
 jQuery(document).ready(function($) {
-    $(document).on('click', '[data-marrison-link]', function(e) {
+    $(document).on('click', '[data-marrison-addon]', function(e) {
         // Check if the clicked element is an interactive element or inside one
         if ($(e.target).closest('a, button, input, select, textarea').length) {
             return;
         }
 
-        var linkData = $(this).data('marrison-link');
+        var linkData = $(this).data('marrison-addon');
         
         if (!linkData || !linkData.url) {
             return;

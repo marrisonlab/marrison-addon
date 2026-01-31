@@ -1,0 +1,92 @@
+.marrison-modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.marrison-module-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #dcdcde;
+    display: flex;
+    flex-direction: column;
+}
+
+.marrison-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.marrison-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1d2327;
+    margin: 0;
+}
+
+.marrison-card-desc {
+    font-size: 13px;
+    color: #646970;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Switch Toggle */
+.marrison-switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.marrison-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.marrison-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #a7aaad;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.marrison-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .marrison-slider {
+    background-color: #2271b1;
+}
+
+input:focus + .marrison-slider {
+    box-shadow: 0 0 1px #2271b1;
+}
+
+input:checked + .marrison-slider:before {
+    -webkit-transform: translateX(18px);
+    -ms-transform: translateX(18px);
+    transform: translateX(18px);
+}
