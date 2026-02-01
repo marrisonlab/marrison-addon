@@ -7,6 +7,7 @@ jQuery(document).ready(function($) {
         var optionName = $input.data('option');
         var key = $input.data('key');
         var isInverse = $input.data('inverse') === true;
+        var shouldReload = $input.data('reload') === true;
         
         // Determine value to send
         var valueToSend;
@@ -27,6 +28,9 @@ jQuery(document).ready(function($) {
             $input.closest('.marrison-switch').css('opacity', '1');
             if (!success) {
                 $input.prop('checked', !isChecked);
+            } else if (shouldReload) {
+                // Reload page if required by the module (to show/hide menu items)
+                window.location.reload();
             }
         });
     });

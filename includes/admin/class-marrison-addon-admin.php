@@ -135,31 +135,37 @@ class Marrison_Addon_Admin {
 				'id' => 'wrapped_link',
 				'title' => esc_html__( 'Wrapped Link', 'marrison-addon' ),
 				'desc' => esc_html__( 'Aggiungi link a qualsiasi contenitore Elementor.', 'marrison-addon' ),
+				'reload' => false,
 			],
 			[
 				'id' => 'ticker',
 				'title' => esc_html__( 'Ticker', 'marrison-addon' ),
 				'desc' => esc_html__( 'Widget ticker notizie con supporto JetEngine.', 'marrison-addon' ),
+				'reload' => false,
 			],
 			[
 				'id' => 'image_sizes',
 				'title' => esc_html__( 'Dimensioni Immagini', 'marrison-addon' ),
 				'desc' => esc_html__( 'Registra dimensioni immagine personalizzate e aggiungile al selettore media.', 'marrison-addon' ),
+				'reload' => true,
 			],
 			[
 				'id' => 'cursor',
 				'title' => esc_html__( 'Cursore Animato', 'marrison-addon' ),
 				'desc' => esc_html__( 'Sostituisce il cursore predefinito con un puntatore animato personalizzabile.', 'marrison-addon' ),
+				'reload' => true,
 			],
 			[
 				'id' => 'preloader',
 				'title' => esc_html__( 'Preloader', 'marrison-addon' ),
 				'desc' => esc_html__( 'Aggiungi una schermata di caricamento con logo personalizzato e spinner.', 'marrison-addon' ),
+				'reload' => true,
 			],
 			[
 				'id' => 'fast_logout',
 				'title' => esc_html__( 'Fast Logout', 'marrison-addon' ),
 				'desc' => esc_html__( 'Reindirizza automaticamente alla home page dopo il logout.', 'marrison-addon' ),
+				'reload' => false,
 			],
 		];
 		?>
@@ -171,6 +177,7 @@ class Marrison_Addon_Admin {
 				<?php foreach ( $available_modules as $module ) : 
 					$id = $module['id'];
 					$checked = isset( $modules[ $id ] ) && $modules[ $id ] ? 'checked' : '';
+					$reload = isset( $module['reload'] ) && $module['reload'] ? 'true' : 'false';
 				?>
 				<div class="marrison-module-card">
 					<div class="marrison-card-header">
@@ -180,6 +187,7 @@ class Marrison_Addon_Admin {
 								   class="marrison-ajax-toggle" 
 								   data-option="marrison_addon_modules" 
 								   data-key="<?php echo esc_attr( $id ); ?>" 
+								   data-reload="<?php echo esc_attr( $reload ); ?>"
 								   <?php echo $checked; ?>>
 							<span class="marrison-slider"></span>
 						</label>
