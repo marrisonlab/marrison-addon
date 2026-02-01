@@ -1,19 +1,37 @@
 jQuery(document).ready(function($) {
+    // Wrapped Link Handler
     $(document).on('click', '[data-marrison-addon]', function(e) {
-        // Check if the clicked element is an interactive element or inside one
+        // 1. Ignore clicks on interactive elements
         if ($(e.target).closest('a, button, input, select, textarea').length) {
             return;
         }
 
-        var linkData = $(this).data('marrison-addon');
+        var $wrapper = $(this);
         
-        if (!linkData || !linkData.url) {
+        // 2. Get data explicitly from attribute to avoid jQuery parsing issues/caching
+        var rawData = $wrapper.attr('data-marrison-addon');
+        
+        if (!rawData) {
             return;
         }
 
-        var url = linkData.url;
-        var target = linkData.is_external === 'on' ? '_blank' : '_self';
+        // 3. Parse JSON manually
+        var settings = {};
+        try {
+            settings = JSON.parse(rawData);
+        } catch (error) {
+            console.error('Marrison Addon: Failed to parse wrapped link data', error);
+            return;
+        }
 
+        if (!settings.url) {
+            return;
+        }
+
+        var url = settings.url;
+        var target = settings.is_external === 'on' ? '_blank' : '_self';
+
+        // 4. Navigate
         if (target === '_blank') {
             window.open(url, target);
         } else {

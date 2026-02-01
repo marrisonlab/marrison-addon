@@ -116,7 +116,7 @@ class Marrison_Addon_Admin {
 			'marrison_addon_panel',
 			[ $this, 'dashboard_page_html' ],
 			'dashicons-plus',
-			30
+			61
 		);
 	}
 

@@ -45,6 +45,7 @@ class Marrison_Addon_Wrapped_Link {
 	}
 
 	public function enqueue_scripts() {
-		wp_enqueue_script( 'marrison-addon', plugin_dir_url( dirname( dirname( __DIR__ ) ) ) . 'assets/js/marrison-addon.js', [ 'jquery' ], Marrison_Addon::VERSION, true );
+		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
+		wp_enqueue_script( 'marrison-addon', plugins_url( 'assets/js/marrison-addon.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::VERSION, true );
 	}
 }
