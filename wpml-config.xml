@@ -1,0 +1,12 @@
+<wpml-config>
+    <elementor-widgets>
+        <widget name="ticker">
+            <fields>
+                <field type="repeater" key="ticker_items">
+                    <field key="item_text">Item Text</field>
+                    <field key="item_link" type="link">Item Link</field>
+                </field>
+            </fields>
+        </widget>
+    </elementor-widgets>
+</wpml-config>

@@ -58,6 +58,9 @@
 
 ## Changelog
 
+### 1.1.4
+*   **Enhancement:** Content Ticker - Added WPML compatibility support.
+
 ### 1.1.3
 *   **New Module:** Fast Logout - Added a module to automatically redirect users to the home page after logout.
 *   **Update:** Updated plugin description and metadata.
