@@ -58,6 +58,10 @@
 
 ## Changelog
 
+### 1.1.5
+*   **Fix:** Updater - Removed unnecessary GitHub Token requirement for public repositories.
+*   **Improvement:** Updater - Added support for 'v' prefix in version tags (e.g., v1.1.5).
+
 ### 1.1.4
 *   **Enhancement:** Content Ticker - Added WPML compatibility support.
 

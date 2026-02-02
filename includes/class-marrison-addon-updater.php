@@ -11,13 +11,11 @@ class Marrison_Addon_Updater {
 	private $repo; // GitHub repo name
 	private $plugin_file; // __FILE__ of our plugin
 	private $github_response; // contains the JSON response from GitHub
-	private $access_token; // GitHub private repo token
 
-	public function __construct( $plugin_file, $github_username, $github_repo, $access_token = '' ) {
+	public function __construct( $plugin_file, $github_username, $github_repo ) {
 		$this->plugin_file = $plugin_file;
 		$this->username = $github_username;
 		$this->repo = $github_repo;
-		$this->access_token = $access_token;
 		$this->slug = plugin_basename( $this->plugin_file );
 
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this, 'check_update' ] );
@@ -33,24 +31,11 @@ class Marrison_Addon_Updater {
 		// Query the GitHub API
 		$url = "https://api.github.com/repos/{$this->username}/{$this->repo}/releases/latest";
 
-		// Get the access token from options if not passed in constructor
-		// This allows users to save their token in the settings page
-		if ( empty( $this->access_token ) ) {
-			$options = get_option( 'marrison_addon_settings' ); // We might need to create this setting
-			$this->access_token = isset( $options['github_token'] ) ? $options['github_token'] : '';
-		}
-
-		$args = [];
-		if ( ! empty( $this->access_token ) ) {
-			$args['headers'] = [
-				'Authorization' => "token {$this->access_token}",
+		$args = [
+			'headers' => [
 				'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ),
-			];
-		} else {
-			$args['headers'] = [
-				'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ),
-			];
-		}
+			],
+		];
 
 		$response = wp_remote_get( $url, $args );
 
@@ -116,10 +101,16 @@ class Marrison_Addon_Updater {
 		$obj->name = $this->github_response['name'];
 		$obj->plugin_name = $this->github_response['name'];
 		$obj->sections = [
-			'description' => $this->github_response['name'] . ' - ' . $this->github_response['body'], // Using release body as description
+			'description' => $this->github_response['name'], // Using release name
 			'changelog' => $this->github_response['body'],
 		];
-		$obj->version = $this->github_response['tag_name'];
+		
+		$remote_version = $this->github_response['tag_name'];
+		if ( substr( $remote_version, 0, 1 ) === 'v' ) {
+			$remote_version = substr( $remote_version, 1 );
+		}
+		
+		$obj->version = $remote_version;
 		$obj->author = '<a href="' . $this->github_response['author']['html_url'] . '">' . $this->github_response['author']['login'] . '</a>';
 		$obj->homepage = $this->github_response['html_url'];
 		
