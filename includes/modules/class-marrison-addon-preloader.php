@@ -73,7 +73,7 @@ class Marrison_Addon_Preloader {
 				background-color: ' . esc_attr( $bg_color ) . ';
 			}
 			#marrison-preloader .marrison-preloader-logo {
-				max-width: ' . esc_attr( $logo_width ) . 'px;
+				width: ' . esc_attr( $logo_width ) . 'px;
 			}
 			#marrison-preloader .marrison-spinner-circle {
 				border-top-color: ' . esc_attr( $spinner_color ) . ';

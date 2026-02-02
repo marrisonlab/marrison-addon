@@ -58,6 +58,11 @@
 
 ## Changelog
 
+### 1.1.6
+*   **Fix:** Preloader - Fixed logo size issue (switched from max-width to width) to ensure correct display dimensions.
+*   **Fix:** Preloader - Added responsive safety for logo on mobile devices.
+*   **Fix:** WPML - Corrected configuration syntax for Ticker widget translation.
+
 ### 1.1.5
 *   **Fix:** Updater - Removed unnecessary GitHub Token requirement for public repositories.
 *   **Improvement:** Updater - Added support for 'v' prefix in version tags (e.g., v1.1.5).

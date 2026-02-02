@@ -37,6 +37,7 @@
     height: auto;
     display: block;
     backface-visibility: hidden;
+    max-width: 100%;
 }
 
 /* Pulse Animation for Logo */

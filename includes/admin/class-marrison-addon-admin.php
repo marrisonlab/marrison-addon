@@ -110,12 +110,12 @@ class Marrison_Addon_Admin {
 	public function add_admin_menu() {
 		// Main Menu - Dashboard
 		add_menu_page(
-			esc_html__( 'Marrison Addon', 'marrison-addon' ),
-			esc_html__( 'Marrison Addon', 'marrison-addon' ),
+			esc_html__( 'AM Addon', 'marrison-addon' ),
+			esc_html__( 'AM Addon', 'marrison-addon' ),
 			'manage_options',
 			'marrison_addon_panel',
 			[ $this, 'dashboard_page_html' ],
-			'dashicons-plus',
+			'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyNS4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcghsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgdmlld0JveD0iMCAwIDEzMDAgMTMwMCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTMwMCAxMzAwOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8Zz4NCgk8cGF0aCBkPSJNNjUwLDExLjFDMjk3LjEsMTEuMSwxMS4xLDI5Ny4xLDExLjEsNjUwczI4Ni4xLDYzOC45LDYzOC45LDYzOC45czYzOC45LTI4Ni4xLDYzOC45LTYzOC45UzEwMDIuOSwxMS4xLDY1MCwxMS4xeg0KCQkgTTQ0OC43LDg1My4zbC0yNS44LTkzLjlIMjkzbC0yMy40LDkzLjlIMTQ0LjJMMjc0LDM4OS43aDE3MS45bDEzNS43LDQ2My41SDQ0OC43eiBNOTk2LjIsODUzLjNWNzAzLjJjMC03MS45LDEuNC0xNzAuMywzLjQtMjI1LjINCgkJaC00LjNjLTE3LjUsMTAwLjMtNTAuMiwyNTQuOS04MC4yLDM3NS4zSDgxMi40Yy0yMy4yLTExNC45LTU0LjktMjczLjEtNzEuMS0zNzUuMmgtNC41YzMuNiw1NC4yLDUuOSwxNDguOSw1LjksMjI4Ljh2MTQ2LjRINjI4LjYNCgkJVjM4OS43aDE4My45YzIxLDgzLjcsNDguNSwyMjcuMSw1Ny44LDI5NC42aDIuM2MxMC42LTcyLjcsNDIuOC0xOTkuMyw2Ny41LTI5NC42aDE3OC41djQ2My41SDk5Ni4yeiIvPg0KCTxwYXRoIGQ9Ik0zNTUuNCw0NzUuNWMtOS40LDUxLTI1LjIsMTE4LjItNDIuNSwxODQuM2g4OWMtMTguOC02OS43LTM0LjktMTM2LjYtNDQuNS0xODQuM0gzNTUuNHoiLz4NCjwvZz4NCjwvc3ZnPg0K',
 			61
 		);
 	}
@@ -170,8 +170,8 @@ class Marrison_Addon_Admin {
 		];
 		?>
 		<div class="wrap">
-			<h1><?php echo esc_html__( 'Marrison Addon', 'marrison-addon' ); ?></h1>
-			<p><?php echo esc_html__( 'Benvenuto in Marrison Addon. Gestisci i tuoi moduli qui sotto.', 'marrison-addon' ); ?></p>
+			<h1><?php echo esc_html__( 'AM Addon', 'marrison-addon' ); ?></h1>
+			<p><?php echo esc_html__( 'Benvenuto in AM Addon. Gestisci i tuoi moduli qui sotto.', 'marrison-addon' ); ?></p>
 			
 			<div class="marrison-modules-grid">
 				<?php foreach ( $available_modules as $module ) : 
