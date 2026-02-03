@@ -5,12 +5,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Marrison_Addon_Updater {
 
-	private $slug; // plugin slug
-	private $plugin_data; // plugin data
-	private $username; // GitHub username
-	private $repo; // GitHub repo name
+	private $slug; // plugin slug (e.g., marrison-addon/marrison-addon.php)
 	private $plugin_file; // __FILE__ of our plugin
-	private $github_response; // contains the JSON response from GitHub
+	private $username;
+	private $repo;
 
 	public function __construct( $plugin_file, $github_username, $github_repo ) {
 		$this->plugin_file = $plugin_file;
@@ -18,121 +16,195 @@ class Marrison_Addon_Updater {
 		$this->repo = $github_repo;
 		$this->slug = plugin_basename( $this->plugin_file );
 
-		add_filter( 'pre_set_site_transient_update_plugins', [ $this, 'check_update' ] );
-		add_filter( 'plugins_api', [ $this, 'check_info' ], 10, 3 );
-		add_filter( 'upgrader_post_install', [ $this, 'post_install' ], 10, 3 );
+		// Use site_transient_update_plugins to inject updates in real-time
+		add_filter( 'site_transient_update_plugins', [ $this, 'check_update' ], 999 );
+		add_filter( 'plugins_api', [ $this, 'plugin_info' ], 20, 3 );
+		
+		// Cache cleaning hooks
+		add_action( 'upgrader_process_complete', [ $this, 'clean_cache' ], 10, 2 );
+		add_action( 'delete_site_transient_update_plugins', [ $this, 'clean_cache' ] );
 	}
 
-	private function get_repository_info() {
-		if ( ! empty( $this->github_response ) ) {
-			return;
+	public function clean_cache() {
+		delete_transient( 'marrison_addon_github_version' );
+		delete_transient( 'marrison_addon_github_info' );
+	}
+
+	private function get_github_version() {
+		$cached = get_transient( 'marrison_addon_github_version' );
+		if ( $cached !== false ) {
+			return $cached;
 		}
 
-		// Query the GitHub API
 		$url = "https://api.github.com/repos/{$this->username}/{$this->repo}/releases/latest";
 
-		$args = [
+		$response = wp_remote_get( $url, [
+			'timeout' => 10,
 			'headers' => [
-				'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ),
-			],
-		];
+				'Accept'     => 'application/vnd.github.v3+json',
+				'User-Agent' => 'WordPress/MarrisonAddon'
+			]
+		] );
 
-		$response = wp_remote_get( $url, $args );
-
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			return;
+		if ( is_wp_error( $response ) ) {
+			return false;
 		}
 
-		$this->github_response = json_decode( wp_remote_retrieve_body( $response ), true );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+		if ( empty( $body['tag_name'] ) ) {
+			return false;
+		}
+
+		$version = str_replace( 'v', '', $body['tag_name'] );
+		set_transient( 'marrison_addon_github_version', $version, 6 * HOUR_IN_SECONDS );
+
+		return $version;
 	}
 
 	public function check_update( $transient ) {
-		if ( empty( $transient->checked ) ) {
+		if ( ! is_object( $transient ) ) {
+			$transient = new stdClass();
+		}
+
+		if ( ! isset( $transient->checked ) ) {
+			$transient->checked = [];
+		}
+
+		// Ensure arrays exist
+		if ( ! isset( $transient->response ) ) {
+			$transient->response = [];
+		}
+		if ( ! isset( $transient->no_update ) ) {
+			$transient->no_update = [];
+		}
+
+		// Get current version securely
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+		$plugins = get_plugins();
+
+		if ( ! isset( $plugins[ $this->slug ] ) ) {
 			return $transient;
 		}
 
-		$this->get_repository_info();
+		$current_version = $plugins[ $this->slug ]['Version'];
+		$remote_version  = $this->get_github_version();
 
-		if ( ! $this->github_response ) {
+		if ( ! $remote_version ) {
 			return $transient;
 		}
 
-		$do_update = version_compare( $this->github_response['tag_name'], $transient->checked[ $this->slug ], '>' );
+		// Build update item
+		$download_url = "https://github.com/{$this->username}/{$this->repo}/archive/refs/tags/v{$remote_version}.zip";
+		
+		$item = (object) [
+			'id'           => 'marrison-addon',
+			'slug'         => dirname( $this->slug ),
+			'plugin'       => $this->slug,
+			'new_version'  => $remote_version,
+			'url'          => "https://github.com/{$this->username}/{$this->repo}",
+			'package'      => $download_url,
+			'tested'       => '6.9', // Safe hardcoded value
+			'requires_php' => '7.4',
+			'icons'        => [
+				'default' => "https://raw.githubusercontent.com/{$this->username}/{$this->repo}/main/assets/icon-256x256.png"
+			],
+			'banners'      => [
+				'default' => "https://raw.githubusercontent.com/{$this->username}/{$this->repo}/main/assets/banner-772x250.png"
+			],
+			'compatibility' => new stdClass(),
+		];
 
-		if ( $do_update ) {
-			$package = $this->github_response['zipball_url'];
-
-			// If private, append token
-			if ( ! empty( $this->access_token ) ) {
-				$package = add_query_arg( [ 'access_token' => $this->access_token ], $package );
-			}
-
-			$obj = new stdClass();
-			$obj->slug = $this->slug;
-			$obj->new_version = $this->github_response['tag_name'];
-			$obj->url = $this->github_response['html_url'];
-			$obj->package = $package;
-			$obj->icons = [
-				'default' => 'https://raw.githubusercontent.com/' . $this->username . '/' . $this->repo . '/main/assets/icon-256x256.png'
-			];
-			$obj->banners = [
-				'default' => 'https://raw.githubusercontent.com/' . $this->username . '/' . $this->repo . '/main/assets/banner-772x250.png'
-			];
-
-			$transient->response[ $this->slug ] = $obj;
+		if ( version_compare( $current_version, $remote_version, '<' ) ) {
+			$transient->response[ $this->slug ] = $item;
+			unset( $transient->no_update[ $this->slug ] );
+		} else {
+			$transient->no_update[ $this->slug ] = $item;
+			unset( $transient->response[ $this->slug ] );
 		}
+
+		$transient->checked[ $this->slug ] = $current_version;
 
 		return $transient;
 	}
 
-	public function check_info( $false, $action, $arg ) {
-		if ( ! isset( $arg->slug ) || $arg->slug !== $this->slug ) {
-			return $false;
+	public function plugin_info( $res, $action, $args ) {
+		if ( $action !== 'plugin_information' ) {
+			return $res;
 		}
 
-		$this->get_repository_info();
-
-		if ( ! $this->github_response ) {
-			return $false;
+		// Check if it's our plugin (slug can be folder name or full path)
+		if ( $args->slug !== dirname( $this->slug ) && $args->slug !== $this->slug ) {
+			return $res;
 		}
 
-		$obj = new stdClass();
-		$obj->slug = $this->slug;
-		$obj->name = $this->github_response['name'];
-		$obj->plugin_name = $this->github_response['name'];
-		$obj->sections = [
-			'description' => $this->github_response['name'], // Using release name
-			'changelog' => $this->github_response['body'],
+		$remote_version = $this->get_github_version();
+		if ( ! $remote_version ) {
+			return $res;
+		}
+
+		// Fetch full release info for description/changelog
+		// We use a separate transient for this to avoid heavy API calls
+		$cache_key = 'marrison_addon_github_info';
+		$cached_info = get_transient( $cache_key );
+
+		if ( $cached_info !== false ) {
+			return $cached_info;
+		}
+
+		$url = "https://api.github.com/repos/{$this->username}/{$this->repo}/releases/latest";
+		$response = wp_remote_get( $url, [
+			'timeout' => 10,
+			'headers' => [
+				'Accept'     => 'application/vnd.github.v3+json',
+				'User-Agent' => 'WordPress/MarrisonAddon'
+			]
+		] );
+
+		if ( is_wp_error( $response ) ) {
+			return $res;
+		}
+
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+		if ( empty( $body ) ) {
+			return $res;
+		}
+
+		$res = new stdClass();
+		$res->name = 'Marrison Addon';
+		$res->slug = dirname( $this->slug );
+		$res->version = $remote_version;
+		$res->tested = '6.9';
+		$res->requires = '6.0';
+		$res->author = '<a href="https://marrisonlab.com">Angelo Marra</a>';
+		$res->author_profile = 'https://github.com/marrisonlab';
+		$res->download_link = "https://github.com/{$this->username}/{$this->repo}/archive/refs/tags/v{$remote_version}.zip";
+		$res->trunk = $res->download_link;
+		$res->requires_php = '7.4';
+		$res->last_updated = $body['published_at'];
+		$res->homepage = "https://github.com/{$this->username}/{$this->repo}";
+		
+		// Parse body for sections
+		$description = "A comprehensive addon for Elementor and WordPress sites.";
+		$changelog = isset( $body['body'] ) ? nl2br( $body['body'] ) : 'No changelog available';
+
+		// Basic markdown parsing for changelog if needed
+		// For now, nl2br is a simple start, but GitHub releases use Markdown.
+		// We can improve this if needed, but nl2br is safe.
+
+		$res->sections = [
+			'description' => $description,
+			'changelog'   => $changelog,
 		];
-		
-		$remote_version = $this->github_response['tag_name'];
-		if ( substr( $remote_version, 0, 1 ) === 'v' ) {
-			$remote_version = substr( $remote_version, 1 );
-		}
-		
-		$obj->version = $remote_version;
-		$obj->author = '<a href="' . $this->github_response['author']['html_url'] . '">' . $this->github_response['author']['login'] . '</a>';
-		$obj->homepage = $this->github_response['html_url'];
-		
-		// Download link
-		$package = $this->github_response['zipball_url'];
-		if ( ! empty( $this->access_token ) ) {
-			$package = add_query_arg( [ 'access_token' => $this->access_token ], $package );
-		}
-		$obj->download_link = $package;
 
-		return $obj;
-	}
+		$res->banners = [
+			'low' => "https://raw.githubusercontent.com/{$this->username}/{$this->repo}/main/assets/banner-772x250.png",
+			'high' => "https://raw.githubusercontent.com/{$this->username}/{$this->repo}/main/assets/banner-772x250.png"
+		];
 
-	public function post_install( $true, $hook_extra, $result ) {
-		// GitHub zipballs are extracted into a folder like 'user-repo-hash'
-		// We need to move files back to the correct plugin folder
-		
-		global $wp_filesystem;
-		$plugin_folder = WP_PLUGIN_DIR . '/' . dirname( $this->slug );
-		$wp_filesystem->move( $result['destination'], $plugin_folder );
-		$result['destination'] = $plugin_folder;
+		set_transient( $cache_key, $res, 12 * HOUR_IN_SECONDS );
 
-		return $result;
+		return $res;
 	}
 }
