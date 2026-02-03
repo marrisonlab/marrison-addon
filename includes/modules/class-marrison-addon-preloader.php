@@ -45,6 +45,11 @@ class Marrison_Addon_Preloader {
 	}
 
 	public function enqueue_scripts() {
+		// Prevent Preloader in Elementor Editor
+		if ( class_exists( '\Elementor\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+			return;
+		}
+
 		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
 		wp_enqueue_style( 'marrison-preloader', plugins_url( 'assets/css/marrison-preloader.css', $plugin_root_file ), [], Marrison_Addon::VERSION );
 		wp_enqueue_script( 'marrison-preloader', plugins_url( 'assets/js/marrison-preloader.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::VERSION, true );
@@ -56,6 +61,11 @@ class Marrison_Addon_Preloader {
 	}
 
 	public function render_preloader() {
+		// Prevent Preloader in Elementor Editor
+		if ( class_exists( '\Elementor\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+			return;
+		}
+
 		$settings = get_option( 'marrison_addon_preloader_settings', [] );
 		
 		$bg_color = isset( $settings['bg_color'] ) ? $settings['bg_color'] : '#ffffff';
