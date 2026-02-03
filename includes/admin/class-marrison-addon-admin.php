@@ -111,8 +111,8 @@ class Marrison_Addon_Admin {
 	public function add_admin_menu() {
 		// Main Menu - Dashboard
 		add_menu_page(
-			esc_html__( 'AM Addon', 'marrison-addon' ),
-			esc_html__( 'AM Addon', 'marrison-addon' ),
+			esc_html__( 'Marrison Addon', 'marrison-addon' ),
+			esc_html__( 'Marrison Addon', 'marrison-addon' ),
 			'manage_options',
 			'marrison_addon_panel',
 			[ $this, 'dashboard_page_html' ],
@@ -191,8 +191,8 @@ class Marrison_Addon_Admin {
 		];
 		?>
 		<div class="wrap">
-			<h1><?php echo esc_html__( 'AM Addon', 'marrison-addon' ); ?></h1>
-			<p><?php echo esc_html__( 'Benvenuto in AM Addon. Gestisci i tuoi moduli qui sotto.', 'marrison-addon' ); ?></p>
+			<h1><?php echo esc_html__( 'Marrison Addon', 'marrison-addon' ); ?></h1>
+			<p><?php echo esc_html__( 'Benvenuto in Marrison Addon. Gestisci i tuoi moduli qui sotto.', 'marrison-addon' ); ?></p>
 			
 			<div class="marrison-modules-grid">
 				<?php foreach ( $available_modules as $module ) : 

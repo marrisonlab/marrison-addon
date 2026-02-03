@@ -67,3 +67,55 @@ body.marrison-cursor-hover .marrison-cursor-circle {
     background-color: rgba(0, 0, 0, 0.1);
     border-color: transparent;
 }
+
+/* Disabled Zone (Admin Bar, Elementor UI) */
+body.marrison-cursor-disabled-zone .marrison-cursor-dot,
+body.marrison-cursor-disabled-zone .marrison-cursor-circle {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Restore default cursor behavior in disabled zones */
+body.marrison-cursor-disabled-zone {
+    cursor: default !important;
+}
+
+/* Override the 'none' cursor for interactive elements in disabled zones */
+body.marrison-cursor-disabled-zone a,
+body.marrison-cursor-disabled-zone button,
+body.marrison-cursor-disabled-zone input[type="submit"],
+body.marrison-cursor-disabled-zone input[type="button"],
+body.marrison-cursor-disabled-zone select,
+body.marrison-cursor-disabled-zone [role="button"],
+#wpadminbar a,
+#wpadminbar .ab-item,
+#elementor-panel a,
+#elementor-panel button,
+.elementor-editor-header a,
+.elementor-editor-header button {
+    cursor: pointer !important;
+}
+
+/* Text inputs should have text cursor */
+body.marrison-cursor-disabled-zone input[type="text"],
+body.marrison-cursor-disabled-zone input[type="email"],
+body.marrison-cursor-disabled-zone input[type="search"],
+body.marrison-cursor-disabled-zone input[type="password"],
+body.marrison-cursor-disabled-zone textarea {
+    cursor: text !important;
+}
+
+/* Containers should have default arrow cursor */
+#wpadminbar,
+#elementor-panel,
+.elementor-editor-header,
+.elementor-context-menu {
+    cursor: default !important;
+}
+
+/* Force children to inherit (unless they match above rules) or be default */
+#wpadminbar *:not(a):not(button):not(.ab-item):not(input):not(textarea),
+#elementor-panel *:not(a):not(button):not(input):not(textarea),
+.elementor-editor-header *:not(a):not(button):not(input):not(textarea) {
+    cursor: default !important;
+}

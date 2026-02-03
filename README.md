@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 6.9
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.1.3
+*   **Stable tag:** 1.1.7
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -57,6 +57,11 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.1.7
+*   **Fix:** Custom Cursor - Fixed visibility issues on Admin Bar and Elementor Editor.
+*   **Fix:** Custom Cursor - Restored pointer cursor for links in the Admin Bar.
+*   **Fix:** Admin Menu - Restored "Marrison Addon" name and updated menu icon style using mask-image.
 
 ### 1.1.6
 *   **Fix:** Preloader - Fixed logo size issue (switched from max-width to width) to ensure correct display dimensions.

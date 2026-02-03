@@ -49,6 +49,16 @@
             $(document).on('mousemove', function(e) {
                 self.mouseX = e.clientX;
                 self.mouseY = e.clientY;
+
+                // Check for admin bar or Elementor UI
+                const target = $(e.target);
+                const isUI = target.closest('#wpadminbar, #elementor-panel, .elementor-editor-header, .elementor-context-menu, #elementor-mode-switcher, .elementor-editor-active .elementor-element-overlay').length > 0;
+
+                if (isUI) {
+                    $('body').addClass('marrison-cursor-disabled-zone');
+                } else {
+                    $('body').removeClass('marrison-cursor-disabled-zone');
+                }
             });
 
             // Hover effects

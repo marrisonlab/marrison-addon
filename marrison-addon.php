@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: AM Addon
+ * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
  * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Content Ticker, Custom Image Sizes, Custom Cursor, Preloader, and Fast Logout.
- * Version: 1.1.6
+ * Version: 1.1.7
  * Author: Angelo Marra
  * Author URI:  https://marrisonlab.com
  * Text Domain: marrison-addon
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.1.6';
+	const VERSION = '1.1.7';
 
 	public function __construct() {
 		$this->includes();
