@@ -156,11 +156,6 @@ class Marrison_Addon_Preloader {
 			return false;
 		}
 
-		// 3. Restrict to Front Page ONLY (User Request: "SOLO frontpage")
-		if ( ! is_front_page() ) {
-			return false;
-		}
-
 		return true;
 	}
 

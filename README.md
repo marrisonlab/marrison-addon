@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 6.9
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.1.7
+*   **Stable tag:** 1.1.8
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -57,6 +57,12 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.1.8
+*   **Fix:** Updater - Fixed GitHub repository connection and version check issues.
+*   **Fix:** Updater - Resolved incorrect version display in the dashboard.
+*   **Fix:** Preloader - Disabled Preloader in Elementor Editor (Edit and Preview modes).
+*   **Enhancement:** Preloader - Enabled Preloader on all frontend pages (removed Front Page restriction).
 
 ### 1.1.7
 *   **Fix:** Custom Cursor - Fixed visibility issues on Admin Bar and Elementor Editor.
