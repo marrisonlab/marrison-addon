@@ -23,6 +23,34 @@ class Marrison_Addon_Updater {
 		// Cache cleaning hooks
 		add_action( 'upgrader_process_complete', [ $this, 'clean_cache' ], 10, 2 );
 		add_action( 'delete_site_transient_update_plugins', [ $this, 'clean_cache' ] );
+
+		// Fix GitHub folder name issue
+		add_filter( 'upgrader_source_selection', [ $this, 'fix_folder_name' ], 10, 4 );
+	}
+
+	public function fix_folder_name( $source, $remote_source, $upgrader, $hook_extra = null ) {
+		// Check if we are updating this plugin
+		if ( ! isset( $hook_extra['plugin'] ) || $hook_extra['plugin'] !== $this->slug ) {
+			return $source;
+		}
+
+		global $wp_filesystem;
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
+		// The source folder usually has the version number (e.g., marrison-addon-1.0.0)
+		// We want to rename it to the correct slug (e.g., marrison-addon)
+		$correct_slug = dirname( $this->slug );
+		$new_source   = trailingslashit( $remote_source ) . $correct_slug . '/';
+
+		if ( $source !== $new_source ) {
+			$wp_filesystem->move( $source, $new_source );
+			return $new_source;
+		}
+
+		return $source;
 	}
 
 	public function clean_cache() {

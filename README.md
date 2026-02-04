@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 6.9
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.1.8
+*   **Stable tag:** 1.1.9
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -57,6 +57,9 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.1.9
+*   **Fix:** Updater - Fixed issue where GitHub updates would create a duplicate plugin folder. Implemented automatic renaming of the source folder during installation to match the plugin slug.
 
 ### 1.1.8
 *   **Fix:** Updater - Fixed GitHub repository connection and version check issues.
