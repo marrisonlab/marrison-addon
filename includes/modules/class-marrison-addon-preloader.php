@@ -45,8 +45,7 @@ class Marrison_Addon_Preloader {
 	}
 
 	public function enqueue_scripts() {
-		// Prevent Preloader in Elementor Editor
-		if ( class_exists( '\Elementor\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+		if ( ! $this->should_display_preloader() ) {
 			return;
 		}
 
@@ -61,8 +60,7 @@ class Marrison_Addon_Preloader {
 	}
 
 	public function render_preloader() {
-		// Prevent Preloader in Elementor Editor
-		if ( class_exists( '\Elementor\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+		if ( ! $this->should_display_preloader() ) {
 			return;
 		}
 
@@ -142,6 +140,28 @@ class Marrison_Addon_Preloader {
 			</div>
 		</div>
 		<?php
+	}
+
+	private function should_display_preloader() {
+		// 1. Check if Elementor Editor is active (Edit Mode or Preview Mode)
+		if ( class_exists( '\Elementor\Plugin' ) ) {
+			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() || 
+				 \Elementor\Plugin::$instance->preview->is_preview_mode() ) {
+				return false;
+			}
+		}
+
+		// 2. Check for Elementor GET parameters (Preview/Editor)
+		if ( isset( $_GET['elementor-preview'] ) || ( isset( $_GET['action'] ) && 'elementor' === $_GET['action'] ) ) {
+			return false;
+		}
+
+		// 3. Restrict to Front Page ONLY (User Request: "SOLO frontpage")
+		if ( ! is_front_page() ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	public function render_admin_page() {
