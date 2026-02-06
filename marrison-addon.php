@@ -3,7 +3,7 @@
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
  * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Content Ticker, Custom Image Sizes, Custom Cursor, Preloader, and Fast Logout.
- * Version: 1.1.9
+ * Version: 1.2.0
  * Author: Angelo Marra
  * Author URI:  https://marrisonlab.com
  * Text Domain: marrison-addon
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.1.9';
+	const VERSION = '1.2.0';
 
 	public function __construct() {
 		$this->includes();
@@ -86,6 +86,7 @@ final class Marrison_Addon {
 
 		// Initialize enabled modules
 		$modules = get_option( 'marrison_addon_modules', [] );
+		$is_elementor_active = did_action( 'elementor/loaded' );
 
 		$wrapped_link_enabled = isset( $modules['wrapped_link'] ) && $modules['wrapped_link'];
 		$ticker_enabled = isset( $modules['ticker'] ) && $modules['ticker'];
@@ -94,14 +95,18 @@ final class Marrison_Addon {
 		$preloader_enabled = isset( $modules['preloader'] ) && $modules['preloader'];
 		$fast_logout_enabled = isset( $modules['fast_logout'] ) && $modules['fast_logout'];
 
-		if ( $wrapped_link_enabled && class_exists( 'Marrison_Addon_Wrapped_Link' ) ) {
-			new Marrison_Addon_Wrapped_Link();
+		// Elementor Dependent Modules
+		if ( $is_elementor_active ) {
+			if ( $wrapped_link_enabled && class_exists( 'Marrison_Addon_Wrapped_Link' ) ) {
+				new Marrison_Addon_Wrapped_Link();
+			}
+
+			if ( $ticker_enabled && class_exists( 'Marrison_Addon_Ticker' ) ) {
+				new Marrison_Addon_Ticker();
+			}
 		}
 
-		if ( $ticker_enabled && class_exists( 'Marrison_Addon_Ticker' ) ) {
-			new Marrison_Addon_Ticker();
-		}
-
+		// Independent Modules
 		if ( $image_sizes_enabled && class_exists( 'Marrison_Addon_Image_Sizes' ) ) {
 			new Marrison_Addon_Image_Sizes();
 		}
@@ -121,25 +126,6 @@ final class Marrison_Addon {
 }
 
 function marrison_addon_init() {
-	if ( ! did_action( 'elementor/loaded' ) ) {
-		add_action( 'admin_notices', 'marrison_addon_fail_load' );
-		return;
-	}
-
 	new Marrison_Addon();
 }
 add_action( 'plugins_loaded', 'marrison_addon_init' );
-
-function marrison_addon_fail_load() {
-	if ( ! current_user_can( 'update_plugins' ) ) {
-		return;
-	}
-
-	$message = sprintf(
-		/* translators: %s: Plugin Name */
-		esc_html__( '"%s" requires "Elementor" to be installed and activated.', 'marrison-addon' ),
-		'<strong>' . esc_html__( 'Marrison Addon', 'marrison-addon' ) . '</strong>'
-	);
-
-	echo '<div class="notice notice-error is-dismissible"><p>' . $message . '</p></div>';
-}

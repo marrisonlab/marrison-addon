@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 6.9
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.1.9
+*   **Stable tag:** 1.2.0
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -41,6 +41,7 @@
     *   Replace the default system cursor with a custom follower.
     *   Customizable colors, size, and hover effects (scale, magnetic).
     *   "Exclusion" blending mode for high visibility on any background.
+    *   **Frontend Only:** Does not affect the backend or Elementor Editor.
 
 5.  **Image Sizes:**
     *   Define custom image sizes for your theme directly from the dashboard.
@@ -57,6 +58,12 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.2.0
+*   **UI:** Admin Menu - Renamed menu item to "AM Addon" and repositioned it below "AM Updater" for better organization.
+*   **Fix:** Plugin Details - Fixed missing information in the "View Details" popup by fetching README data directly from GitHub.
+*   **Enhancement:** Preloader - Added customization options for progress bar width and height.
+*   **Fix:** Custom Cursor - Restricted custom cursor to frontend only (disabled in Backend and Elementor Editor).
 
 ### 1.1.9
 *   **Fix:** Updater - Fixed issue where GitHub updates would create a duplicate plugin folder. Implemented automatic renaming of the source folder during installation to match the plugin slug.

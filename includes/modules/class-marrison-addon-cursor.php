@@ -43,6 +43,10 @@ class Marrison_Addon_Cursor {
 	}
 
 	public function enqueue_scripts() {
+		if ( ! $this->should_load_cursor() ) {
+			return;
+		}
+
 		$settings = get_option( 'marrison_addon_cursor_settings', [] );
 		
 		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
@@ -141,5 +145,22 @@ class Marrison_Addon_Cursor {
 			</form>
 		</div>
 		<?php
+	}
+
+	private function should_load_cursor() {
+		// 1. Check if Elementor Editor is active (Edit Mode or Preview Mode)
+		if ( class_exists( '\Elementor\Plugin' ) ) {
+			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() || 
+				 \Elementor\Plugin::$instance->preview->is_preview_mode() ) {
+				return false;
+			}
+		}
+
+		// 2. Check if is admin (backend)
+		if ( is_admin() ) {
+			return false;
+		}
+
+		return true;
 	}
 }

@@ -112,12 +112,12 @@ class Marrison_Addon_Admin {
 		// Main Menu - Dashboard
 		add_menu_page(
 			esc_html__( 'Marrison Addon', 'marrison-addon' ),
-			esc_html__( 'Marrison Addon', 'marrison-addon' ),
+			esc_html__( 'AM Addon', 'marrison-addon' ),
 			'manage_options',
 			'marrison_addon_panel',
 			[ $this, 'dashboard_page_html' ],
 			'dashicons-admin-generic',
-			61
+			31
 		);
 	}
 
@@ -151,42 +151,50 @@ class Marrison_Addon_Admin {
 		}
 
 		$modules = get_option( 'marrison_addon_modules', [] );
+		$is_elementor_active = did_action( 'elementor/loaded' );
+
 		$available_modules = [
 			[
 				'id' => 'wrapped_link',
 				'title' => esc_html__( 'Wrapped Link', 'marrison-addon' ),
 				'desc' => esc_html__( 'Aggiungi link a qualsiasi contenitore Elementor.', 'marrison-addon' ),
 				'reload' => false,
+				'requires_elementor' => true,
 			],
 			[
 				'id' => 'ticker',
 				'title' => esc_html__( 'Ticker', 'marrison-addon' ),
 				'desc' => esc_html__( 'Widget ticker notizie con supporto JetEngine.', 'marrison-addon' ),
 				'reload' => false,
+				'requires_elementor' => true,
 			],
 			[
 				'id' => 'image_sizes',
 				'title' => esc_html__( 'Dimensioni Immagini', 'marrison-addon' ),
 				'desc' => esc_html__( 'Registra dimensioni immagine personalizzate e aggiungile al selettore media.', 'marrison-addon' ),
 				'reload' => true,
+				'requires_elementor' => false,
 			],
 			[
 				'id' => 'cursor',
 				'title' => esc_html__( 'Cursore Animato', 'marrison-addon' ),
 				'desc' => esc_html__( 'Sostituisce il cursore predefinito con un puntatore animato personalizzabile.', 'marrison-addon' ),
 				'reload' => true,
+				'requires_elementor' => false,
 			],
 			[
 				'id' => 'preloader',
 				'title' => esc_html__( 'Preloader', 'marrison-addon' ),
 				'desc' => esc_html__( 'Aggiungi una schermata di caricamento con logo personalizzato e spinner.', 'marrison-addon' ),
 				'reload' => true,
+				'requires_elementor' => false,
 			],
 			[
 				'id' => 'fast_logout',
 				'title' => esc_html__( 'Fast Logout', 'marrison-addon' ),
 				'desc' => esc_html__( 'Reindirizza automaticamente alla home page dopo il logout.', 'marrison-addon' ),
 				'reload' => false,
+				'requires_elementor' => false,
 			],
 		];
 		?>
@@ -199,8 +207,20 @@ class Marrison_Addon_Admin {
 					$id = $module['id'];
 					$checked = isset( $modules[ $id ] ) && $modules[ $id ] ? 'checked' : '';
 					$reload = isset( $module['reload'] ) && $module['reload'] ? 'true' : 'false';
+					
+					$is_disabled = false;
+					$disabled_attr = '';
+					$card_style = '';
+					$badge = '';
+
+					if ( isset( $module['requires_elementor'] ) && $module['requires_elementor'] && ! $is_elementor_active ) {
+						$is_disabled = true;
+						$disabled_attr = 'disabled';
+						$card_style = 'style="opacity: 0.6; filter: grayscale(100%); pointer-events: none;"';
+						$badge = '<span class="marrison-badge-error">' . esc_html__( 'Richiede Elementor', 'marrison-addon' ) . '</span>';
+					}
 				?>
-				<div class="marrison-module-card">
+				<div class="marrison-module-card" <?php echo $card_style; ?>>
 					<div class="marrison-card-header">
 						<h3 class="marrison-card-title"><?php echo $module['title']; ?></h3>
 						<label class="marrison-switch">
@@ -209,11 +229,15 @@ class Marrison_Addon_Admin {
 								   data-option="marrison_addon_modules" 
 								   data-key="<?php echo esc_attr( $id ); ?>" 
 								   data-reload="<?php echo esc_attr( $reload ); ?>"
-								   <?php echo $checked; ?>>
+								   <?php echo $checked; ?>
+								   <?php echo $disabled_attr; ?>>
 							<span class="marrison-slider"></span>
 						</label>
 					</div>
 					<p class="marrison-card-desc"><?php echo $module['desc']; ?></p>
+					<?php if ( ! empty( $badge ) ) : ?>
+						<div style="margin-top: 10px;"><?php echo $badge; ?></div>
+					<?php endif; ?>
 				</div>
 				<?php endforeach; ?>
 			</div>

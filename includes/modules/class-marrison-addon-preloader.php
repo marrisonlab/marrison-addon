@@ -74,6 +74,8 @@ class Marrison_Addon_Preloader {
 		$animation_type = isset( $settings['animation_type'] ) ? $settings['animation_type'] : 'fade';
 		$show_progress = isset( $settings['show_progress'] ) ? $settings['show_progress'] : false;
 		$progress_color = isset( $settings['progress_color'] ) ? $settings['progress_color'] : '#000000';
+		$progress_bar_width = isset( $settings['progress_bar_width'] ) ? $settings['progress_bar_width'] : '200';
+		$progress_bar_height = isset( $settings['progress_bar_height'] ) ? $settings['progress_bar_height'] : '2';
 		
 		// Inline styles for critical CSS
 		echo '<style>
@@ -95,8 +97,12 @@ class Marrison_Addon_Preloader {
 			#marrison-preloader .marrison-spinner-wave div {
 				background-color: ' . esc_attr( $spinner_color ) . ';
 			}
+			.marrison-preloader-progress-container {
+				width: ' . esc_attr( $progress_bar_width ) . 'px;
+			}
 			.marrison-preloader-progress-bar {
 				background-color: ' . esc_attr( $progress_color ) . ';
+				height: ' . esc_attr( $progress_bar_height ) . 'px;
 			}
 			.marrison-preloader-percentage {
 				color: ' . esc_attr( $progress_color ) . ';
@@ -174,6 +180,8 @@ class Marrison_Addon_Preloader {
 		$animation_type = isset( $settings['animation_type'] ) ? $settings['animation_type'] : 'fade';
 		$show_progress = isset( $settings['show_progress'] ) ? $settings['show_progress'] : false;
 		$progress_color = isset( $settings['progress_color'] ) ? $settings['progress_color'] : '#000000';
+		$progress_bar_width = isset( $settings['progress_bar_width'] ) ? $settings['progress_bar_width'] : '200';
+		$progress_bar_height = isset( $settings['progress_bar_height'] ) ? $settings['progress_bar_height'] : '2';
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html__( 'Impostazioni Preloader', 'marrison-addon' ); ?></h1>
@@ -268,6 +276,18 @@ class Marrison_Addon_Preloader {
 							<th scope="row"><?php echo esc_html__( 'Colore Progresso', 'marrison-addon' ); ?></th>
 							<td>
 								<input type="text" name="marrison_addon_preloader_settings[progress_color]" value="<?php echo esc_attr( $progress_color ); ?>" class="marrison-color-field" data-default-color="#000000">
+							</td>
+						</tr>
+						<tr valign="top">
+							<th scope="row"><?php echo esc_html__( 'Larghezza Barra (px)', 'marrison-addon' ); ?></th>
+							<td>
+								<input type="number" name="marrison_addon_preloader_settings[progress_bar_width]" value="<?php echo esc_attr( $progress_bar_width ); ?>" class="small-text"> px
+							</td>
+						</tr>
+						<tr valign="top">
+							<th scope="row"><?php echo esc_html__( 'Spessore Barra (px)', 'marrison-addon' ); ?></th>
+							<td>
+								<input type="number" name="marrison_addon_preloader_settings[progress_bar_height]" value="<?php echo esc_attr( $progress_bar_height ); ?>" class="small-text"> px
 							</td>
 						</tr>
 						<tr valign="top">
