@@ -200,6 +200,17 @@
     will-change: transform;
 }
 
+#marrison-preloader.marrison-anim-slide-up {
+    transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+    will-change: transform;
+}
+
+#marrison-preloader.marrison-anim-slide-up.marrison-enter {
+    transform: translateY(100%);
+    opacity: 1;
+    visibility: visible;
+}
+
 /* Slide Left Animation */
 #marrison-preloader.marrison-anim-slide-left.marrison-loaded {
     transform: translateX(-100%);
@@ -207,6 +218,17 @@
     visibility: visible;
     transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
     will-change: transform;
+}
+
+#marrison-preloader.marrison-anim-slide-left {
+    transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+    will-change: transform;
+}
+
+#marrison-preloader.marrison-anim-slide-left.marrison-enter {
+    transform: translateX(100%);
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Split (Curtain) Animation */
@@ -217,6 +239,14 @@
 #marrison-preloader.marrison-anim-split.marrison-loaded {
     opacity: 1;
     visibility: visible;
+}
+
+#marrison-preloader.marrison-anim-split.marrison-enter .marrison-preloader-curtain-top {
+    transform: translateY(-100%);
+}
+
+#marrison-preloader.marrison-anim-split.marrison-enter .marrison-preloader-curtain-bottom {
+    transform: translateY(100%);
 }
 
 .marrison-preloader-curtain-top,
@@ -253,6 +283,10 @@
 #marrison-preloader.marrison-anim-shutter-vert.marrison-loaded {
     opacity: 1;
     visibility: visible;
+}
+
+#marrison-preloader.marrison-anim-shutter-vert.marrison-enter .marrison-preloader-shutter-item {
+    transform: scaleY(0);
 }
 .marrison-preloader-shutter {
     position: absolute;

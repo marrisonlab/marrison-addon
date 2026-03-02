@@ -11,16 +11,13 @@
         
         // Progress Bar Simulation
         if (progressBar.length) {
-            // Random increment simulation
             interval = setInterval(function() {
-                // Slower increment as it gets closer to 90%
                 let increment = Math.random() * 10;
                 if (progress > 80) increment = Math.random() * 2;
                 if (progress > 95) increment = 0.5;
                 
                 progress += increment;
                 
-                // Cap at 99% until load event fires
                 if (progress >= 99) progress = 99;
                 
                 updateProgress(progress);
@@ -34,7 +31,6 @@
         }
 
         $(window).on('load', function() {
-            // Finish progress
             if (interval) clearInterval(interval);
             updateProgress(100);
 
@@ -43,33 +39,87 @@
                              : 500;
 
             if (preloader.length) {
-                // Short delay to let users see 100%
                 setTimeout(function() {
-                    
-                    // For fade animation, we can set transition duration dynamically
                     if (preloader.hasClass('marrison-anim-fade')) {
                         preloader.css('transition-duration', (duration / 1000) + 's');
                     }
                     
-                    // Add class to trigger exit animation
                     preloader.addClass('marrison-loaded');
-
-                    // Remove from DOM after transition completes
-                    // Duration might need to be longer for slide/split animations (CSS has 0.8s)
-                    let removeDelay = duration;
-                    if (preloader.hasClass('marrison-anim-slide-up') || preloader.hasClass('marrison-anim-slide-left') || preloader.hasClass('marrison-anim-split')) {
-                        removeDelay = 800; // Match CSS transition time
-                    } else if (preloader.hasClass('marrison-anim-shutter-vert')) {
-                        removeDelay = 900; // 0.3s delay + 0.6s transition
-                    }
-
-                    setTimeout(function() {
-                        preloader.remove();
-                    }, removeDelay + 100);
-
-                }, 500); // 500ms delay at 100%
+                }, 500);
             }
         });
+
+        // Exit transition on internal link click
+        if (preloader.length) {
+            $(document).on('click', 'a', function(e) {
+                const link = $(this);
+                const href = link.attr('href');
+
+                if (!href || href.charAt(0) === '#' || href.indexOf('mailto:') === 0 || href.indexOf('tel:') === 0) {
+                    return;
+                }
+
+                if (link.attr('target') === '_blank') {
+                    return;
+                }
+
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+                    return;
+                }
+
+                const url = new URL(href, window.location.href);
+                if (url.origin !== window.location.origin) {
+                    return;
+                }
+
+                if (link.data('noPreloader') === 1 || link.hasClass('no-preloader')) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                // Prepare entrance animation for exiting page
+                preloader.addClass('marrison-enter');
+                
+                // Detect animation type for timing
+                const isSlide = preloader.hasClass('marrison-anim-slide-up') || preloader.hasClass('marrison-anim-slide-left');
+                const isSplit = preloader.hasClass('marrison-anim-split');
+                const isShutter = preloader.hasClass('marrison-anim-shutter-vert');
+                
+                let enterDelay = 300; // fade default
+                if (isSlide || isSplit) enterDelay = 800;
+                if (isShutter) enterDelay = 900;
+
+                // Sequence: show overlay from hidden state, then animate to visible
+                requestAnimationFrame(function() {
+                    preloader.removeClass('marrison-loaded');
+                    // force reflow
+                    void preloader[0].offsetWidth;
+                    preloader.removeClass('marrison-enter');
+                });
+
+                if (progressBar.length) {
+                    progress = 0;
+                    updateProgress(0);
+                }
+
+                setTimeout(function() {
+                    window.location.href = href;
+                }, enterDelay);
+            });
+
+            // Global fallback: show preloader on any page unload/navigation
+            // Ensures exit animation appears even when navigation isn't triggered by a standard <a> click
+            window.addEventListener('beforeunload', function() {
+                // Prepare and show overlay
+                preloader.addClass('marrison-enter');
+                requestAnimationFrame(function() {
+                    preloader.removeClass('marrison-loaded');
+                    void preloader[0].offsetWidth;
+                    preloader.removeClass('marrison-enter');
+                });
+            });
+        }
     });
 
 })(jQuery);
