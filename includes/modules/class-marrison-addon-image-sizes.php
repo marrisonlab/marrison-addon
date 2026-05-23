@@ -12,6 +12,9 @@ class Marrison_Addon_Image_Sizes {
 		add_filter( 'image_size_names_choose', [ $this, 'remove_disabled_from_media_selector' ], 20 );
 		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'filter_intermediate_image_sizes' ] );
 		add_filter( 'intermediate_image_sizes', [ $this, 'filter_intermediate_image_sizes_list' ] );
+		add_filter( 'image_resize_dimensions', [ $this, 'enable_upscaling' ], 10, 6 );
+		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'force_upscale_sizes' ], 999 );
+		add_filter( 'image_downsize', [ $this, 'force_downsize_upscale' ], 10, 3 );
 
 		// Hooks for Admin UI
 		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
@@ -44,6 +47,19 @@ class Marrison_Addon_Image_Sizes {
 			'done_message' => __( 'Finito!', 'marrison-addon' ),
 			'process_stopped' => __( 'Processo interrotto dall\'utente.', 'marrison-addon' ),
 		] );
+		
+		// Add JavaScript for WebP quality toggle
+		wp_add_inline_script( 'marrison-admin-image-sizes', '
+			jQuery(document).ready(function($) {
+				$("input[name=\'size_webp\']").on("change", function() {
+					if ($(this).is(":checked")) {
+						$("#webp-quality-container").show();
+					} else {
+						$("#webp-quality-container").hide();
+					}
+				});
+			});
+		', 'after' );
 		
 		// Add some basic CSS for the progress bar
 		wp_add_inline_style( 'wp-admin', '
@@ -169,7 +185,8 @@ class Marrison_Addon_Image_Sizes {
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 		}
 
-		$metadata = wp_generate_attachment_metadata( $id, $fullsizepath );
+		// Generate metadata with upscaling support
+		$metadata = $this->generate_metadata_with_upscaling( $id, $fullsizepath );
 
 		if ( is_wp_error( $metadata ) ) {
 			wp_send_json_error( [ 'message' => sprintf( __( 'Errore generazione metadata per ID %d: %s', 'marrison-addon' ), $id, $metadata->get_error_message() ) ] );
@@ -186,6 +203,324 @@ class Marrison_Addon_Image_Sizes {
 		wp_send_json_success( [ 'message' => sprintf( __( 'Rigenerato: %s (ID: %d)', 'marrison-addon' ), $filename, $id ) ] );
 	}
 
+	/**
+	 * Generate attachment metadata with upscaling support.
+	 */
+	private function generate_metadata_with_upscaling( $attachment_id, $file ) {
+		$custom_sizes = get_option( 'marrison_addon_image_sizes', [] );
+		$upscale_sizes = [];
+		$webp_sizes = [];
+
+		// Collect sizes with upscaling and webp enabled
+		if ( ! empty( $custom_sizes ) && is_array( $custom_sizes ) ) {
+			foreach ( $custom_sizes as $size ) {
+				if ( ! empty( $size['slug'] ) ) {
+					$size_data = [
+						'width' => (int) $size['width'],
+						'height' => (int) $size['height'],
+						'crop' => isset( $size['crop'] ) && $size['crop'],
+						'webp_quality' => isset( $size['webp_quality'] ) ? (int) $size['webp_quality'] : 85,
+					];
+					
+					if ( isset( $size['upscale'] ) && $size['upscale'] ) {
+						$upscale_sizes[ $size['slug'] ] = $size_data;
+					}
+					
+					if ( isset( $size['webp'] ) && $size['webp'] ) {
+						$webp_sizes[ $size['slug'] ] = $size_data;
+					}
+				}
+			}
+		}
+
+		// Generate standard metadata first
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
+
+		if ( is_wp_error( $metadata ) || empty( $metadata ) ) {
+			return $metadata;
+		}
+
+		// Now manually generate upscale sizes if they don't exist
+		if ( ! empty( $upscale_sizes ) ) {
+			$editor = wp_get_image_editor( $file );
+
+			if ( ! is_wp_error( $editor ) ) {
+				$orig_size = $editor->get_size();
+				$orig_w = $orig_size['width'];
+				$orig_h = $orig_size['height'];
+
+				foreach ( $upscale_sizes as $slug => $size_data ) {
+					// Check if this size doesn't exist or needs regeneration
+					if ( ! isset( $metadata['sizes'][ $slug ] ) ) {
+						$dest_w = $size_data['width'];
+						$dest_h = $size_data['height'];
+						$crop = $size_data['crop'];
+
+						// Calculate dimensions with upscaling
+						if ( $crop ) {
+							// Hard crop: upscale to fill exactly
+							$ratio = max( $dest_w / $orig_w, $dest_h / $orig_h );
+							$new_w = round( $orig_w * $ratio );
+							$new_h = round( $orig_h * $ratio );
+						} else {
+							// Soft crop: upscale proportionally
+							$ratio = min( $dest_w / $orig_w, $dest_h / $orig_h );
+							$new_w = round( $orig_w * $ratio );
+							$new_h = round( $orig_h * $ratio );
+						}
+
+						// Use center-center crop position for hard crop
+						$crop_position = $crop ? ['center', 'center'] : false;
+
+						// Resize the image
+						$editor->resize( $new_w, $new_h, $crop_position );
+
+						// Save the resized image
+						$saved = $editor->save( $editor->generate_filename( $slug ) );
+
+						if ( ! is_wp_error( $saved ) ) {
+							// Add to metadata
+							$metadata['sizes'][ $slug ] = [
+								'file' => $saved['file'],
+								'width' => $saved['width'],
+								'height' => $saved['height'],
+								'mime-type' => $saved['mime-type'],
+							];
+						}
+					}
+				}
+			}
+		}
+
+		// Generate WebP versions for sizes with webp enabled
+		if ( ! empty( $webp_sizes ) ) {
+			foreach ( $webp_sizes as $slug => $size_data ) {
+				// Get the original or generated image file
+				if ( isset( $metadata['sizes'][ $slug ] ) ) {
+					$size_file = pathinfo( $metadata['sizes'][ $slug ]['file'], PATHINFO_BASENAME );
+					$size_path = dirname( $file ) . '/' . $size_file;
+				} else {
+					// If size doesn't exist, generate it first
+					$size_path = $this->generate_single_size( $file, $slug, $size_data );
+					if ( is_wp_error( $size_path ) ) {
+						continue;
+					}
+				}
+
+				if ( file_exists( $size_path ) ) {
+					// Convert to WebP with configured quality
+					$webp_quality = isset( $size_data['webp_quality'] ) ? $size_data['webp_quality'] : 85;
+					$webp_path = $this->convert_to_webp( $size_path, $webp_quality );
+					if ( ! is_wp_error( $webp_path ) && file_exists( $webp_path ) ) {
+						// Store WebP info in metadata
+						if ( ! isset( $metadata['sizes'][ $slug ]['sources'] ) ) {
+							$metadata['sizes'][ $slug ]['sources'] = [];
+						}
+						$metadata['sizes'][ $slug ]['sources'][] = [
+							'file' => basename( $webp_path ),
+							'mime_type' => 'image/webp',
+							'width' => $size_data['width'],
+							'height' => $size_data['height'],
+						];
+					}
+				}
+			}
+		}
+
+		return $metadata;
+	}
+
+	/**
+	 * Generate a single image size.
+	 */
+	private function generate_single_size( $file, $slug, $size_data ) {
+		$editor = wp_get_image_editor( $file );
+
+		if ( is_wp_error( $editor ) ) {
+			return $editor;
+		}
+
+		$orig_size = $editor->get_size();
+		$orig_w = $orig_size['width'];
+		$orig_h = $orig_size['height'];
+
+		$dest_w = $size_data['width'];
+		$dest_h = $size_data['height'];
+		$crop = $size_data['crop'];
+
+		// Calculate dimensions
+		if ( $crop ) {
+			$ratio = max( $dest_w / $orig_w, $dest_h / $orig_h );
+			$new_w = round( $orig_w * $ratio );
+			$new_h = round( $orig_h * $ratio );
+		} else {
+			$ratio = min( $dest_w / $orig_w, $dest_h / $orig_h );
+			$new_w = round( $orig_w * $ratio );
+			$new_h = round( $orig_h * $ratio );
+		}
+
+		// Use center-center crop position for hard crop
+		$crop_position = $crop ? ['center', 'center'] : false;
+		$editor->resize( $new_w, $new_h, $crop_position );
+		$saved = $editor->save( $editor->generate_filename( $slug ) );
+
+		if ( is_wp_error( $saved ) ) {
+			return $saved;
+		}
+
+		return dirname( $file ) . '/' . $saved['file'];
+	}
+
+	/**
+	 * Convert image to WebP format.
+	 */
+	private function convert_to_webp( $file_path, $quality = 85 ) {
+		// Check if WebP is supported
+		if ( ! function_exists( 'imagewebp' ) && ! function_exists( 'imagecreatefromwebp' ) ) {
+			return new WP_Error( 'webp_not_supported', __( 'WebP non è supportato su questo server.', 'marrison-addon' ) );
+		}
+
+		// Get image info
+		$image_info = getimagesize( $file_path );
+		if ( ! $image_info ) {
+			return new WP_Error( 'invalid_image', __( 'Impossibile leggere l\'immagine.', 'marrison-addon' ) );
+		}
+
+		$mime_type = $image_info['mime'];
+		$webp_path = preg_replace( '/\.(jpe?g|png|gif)$/i', '.webp', $file_path );
+
+		// Create image from source
+		switch ( $mime_type ) {
+			case 'image/jpeg':
+				$image = imagecreatefromjpeg( $file_path );
+				break;
+			case 'image/png':
+				$image = imagecreatefrompng( $file_path );
+				break;
+			case 'image/gif':
+				$image = imagecreatefromgif( $file_path );
+				break;
+			default:
+				return new WP_Error( 'unsupported_format', __( 'Formato immagine non supportato.', 'marrison-addon' ) );
+		}
+
+		if ( ! $image ) {
+			return new WP_Error( 'image_creation_failed', __( 'Impossibile creare l\'immagine.', 'marrison-addon' ) );
+		}
+
+		// Convert to WebP
+		if ( function_exists( 'imagewebp' ) ) {
+			$result = imagewebp( $image, $webp_path, $quality );
+			imagedestroy( $image );
+		} else {
+			// Fallback: use WordPress image editor
+			$editor = wp_get_image_editor( $file_path );
+			if ( is_wp_error( $editor ) ) {
+				return $editor;
+			}
+			$editor->set_quality( $quality );
+			$saved = $editor->save( $webp_path, 'image/webp' );
+			if ( is_wp_error( $saved ) ) {
+				return $saved;
+			}
+			$result = true;
+		}
+
+		if ( ! $result ) {
+			return new WP_Error( 'conversion_failed', __( 'Conversione WebP fallita.', 'marrison-addon' ) );
+		}
+
+		return $webp_path;
+	}
+
+
+	/**
+	 * Force generation of sizes with upscaling enabled.
+	 */
+	public function force_upscale_sizes( $sizes ) {
+		$custom_sizes = get_option( 'marrison_addon_image_sizes', [] );
+		
+		if ( ! empty( $custom_sizes ) && is_array( $custom_sizes ) ) {
+			foreach ( $custom_sizes as $size ) {
+				if ( isset( $size['upscale'] ) && $size['upscale'] && ! empty( $size['slug'] ) ) {
+					// Ensure this size is in the list to be generated
+					$sizes[ $size['slug'] ] = [
+						'width' => (int) $size['width'],
+						'height' => (int) $size['height'],
+						'crop' => isset( $size['crop'] ) && $size['crop'],
+					];
+				}
+			}
+		}
+		
+		return $sizes;
+	}
+
+	/**
+	 * Force image downsize to return false for sizes with upscaling, 
+	 * allowing WordPress to generate the upscaled version.
+	 */
+	public function force_downsize_upscale( $downsize, $id, $size ) {
+		// If size is a string (slug), check if it has upscaling enabled
+		if ( is_string( $size ) ) {
+			$custom_sizes = get_option( 'marrison_addon_image_sizes', [] );
+			
+			if ( ! empty( $custom_sizes ) && is_array( $custom_sizes ) ) {
+				foreach ( $custom_sizes as $custom_size ) {
+					if ( isset( $custom_size['slug'] ) && $custom_size['slug'] === $size && isset( $custom_size['upscale'] ) && $custom_size['upscale'] ) {
+						// Return false to force WordPress to generate the image
+						return false;
+					}
+				}
+			}
+		}
+		
+		return $downsize;
+	}
+
+	/**
+	 * Enable upscaling for images smaller than target dimensions.
+	 */
+	public function enable_upscaling( $payload, $orig_w, $orig_h, $dest_w, $dest_h, $crop ) {
+		// Check if any custom size has upscaling enabled
+		$sizes = get_option( 'marrison_addon_image_sizes', [] );
+		
+		if ( ! empty( $sizes ) && is_array( $sizes ) ) {
+			foreach ( $sizes as $size ) {
+				if ( isset( $size['upscale'] ) && $size['upscale'] ) {
+					// Check if this size matches the requested dimensions
+					$size_w = (int) $size['width'];
+					$size_h = (int) $size['height'];
+					$size_crop = isset( $size['crop'] ) && $size['crop'];
+					
+					// Match by dimensions and crop setting
+					if ( $size_w === $dest_w && $size_h === $dest_h && $size_crop === $crop ) {
+						// Check if original image is smaller than target
+						if ( $orig_w < $dest_w || $orig_h < $dest_h ) {
+							// Calculate dimensions with upscaling while maintaining aspect ratio
+							if ( $crop ) {
+								// Hard crop: upscale to fill exactly
+								$ratio = max( $dest_w / $orig_w, $dest_h / $orig_h );
+								$crop_w = round( $orig_w * $ratio );
+								$crop_h = round( $orig_h * $ratio );
+								$s_x = floor( ( $crop_w - $dest_w ) / 2 );
+								$s_y = floor( ( $crop_h - $dest_h ) / 2 );
+								return [ 0, 0, $s_x, $s_y, $dest_w, $dest_h, $crop_w, $crop_h ];
+							} else {
+								// Soft crop: upscale proportionally to fit within bounds
+								$ratio = min( $dest_w / $orig_w, $dest_h / $orig_h );
+								$new_w = round( $orig_w * $ratio );
+								$new_h = round( $orig_h * $ratio );
+								return [ 0, 0, 0, 0, $new_w, $new_h, $orig_w, $orig_h ];
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return $payload;
+	}
 
 	/**
 	 * Register custom image sizes.
@@ -401,6 +736,23 @@ class Marrison_Addon_Image_Sizes {
 						</p>
 						<p>
 							<label>
+								<input type="checkbox" name="size_upscale" value="1"> 
+								<?php echo esc_html__( 'Allarga se più piccolo (Upscaling)', 'marrison-addon' ); ?>
+							</label>
+						</p>
+						<p>
+							<label>
+								<input type="checkbox" name="size_webp" value="1"> 
+								<?php echo esc_html__( 'Converti in WebP', 'marrison-addon' ); ?>
+							</label>
+						</p>
+						<p id="webp-quality-container" style="display: none;">
+							<label for="size_webp_quality" style="font-weight: 600; display: block; margin-bottom: 5px;"><?php echo esc_html__( 'Qualità WebP (0-100)', 'marrison-addon' ); ?></label>
+							<input type="number" name="size_webp_quality" id="size_webp_quality" class="widefat" min="0" max="100" value="85">
+							<span class="description"><?php echo esc_html__( '85 è un buon equilibrio tra qualità e dimensione file.', 'marrison-addon' ); ?></span>
+						</p>
+						<p>
+							<label>
 								<input type="checkbox" name="size_show_in_media" value="1" checked> 
 								<?php echo esc_html__( 'Mostra nel Selettore Media', 'marrison-addon' ); ?>
 							</label>
@@ -424,6 +776,9 @@ class Marrison_Addon_Image_Sizes {
 									<th><?php echo esc_html__( 'Nome', 'marrison-addon' ); ?></th>
 									<th><?php echo esc_html__( 'Dimensioni', 'marrison-addon' ); ?></th>
 									<th><?php echo esc_html__( 'Ritaglia', 'marrison-addon' ); ?></th>
+									<th><?php echo esc_html__( 'Allarga', 'marrison-addon' ); ?></th>
+									<th><?php echo esc_html__( 'WebP', 'marrison-addon' ); ?></th>
+									<th><?php echo esc_html__( 'Qualità', 'marrison-addon' ); ?></th>
 									<th><?php echo esc_html__( 'Nei Media', 'marrison-addon' ); ?></th>
 									<th><?php echo esc_html__( 'Azioni', 'marrison-addon' ); ?></th>
 								</tr>
@@ -431,7 +786,7 @@ class Marrison_Addon_Image_Sizes {
 							<tbody>
 								<?php if ( empty( $sizes ) ) : ?>
 									<tr>
-										<td colspan="6"><?php echo esc_html__( 'Nessuna dimensione personalizzata registrata.', 'marrison-addon' ); ?></td>
+										<td colspan="9"><?php echo esc_html__( 'Nessuna dimensione personalizzata registrata.', 'marrison-addon' ); ?></td>
 									</tr>
 								<?php else : ?>
 									<?php foreach ( $sizes as $index => $size ) : ?>
@@ -440,6 +795,9 @@ class Marrison_Addon_Image_Sizes {
 											<td><?php echo esc_html( $size['name'] ); ?></td>
 											<td><?php echo esc_html( $size['width'] . ' x ' . $size['height'] ); ?> px</td>
 											<td><?php echo $size['crop'] ? esc_html__( 'Sì', 'marrison-addon' ) : esc_html__( 'No', 'marrison-addon' ); ?></td>
+											<td><?php echo isset( $size['upscale'] ) && $size['upscale'] ? esc_html__( 'Sì', 'marrison-addon' ) : esc_html__( 'No', 'marrison-addon' ); ?></td>
+											<td><?php echo isset( $size['webp'] ) && $size['webp'] ? esc_html__( 'Sì', 'marrison-addon' ) : esc_html__( 'No', 'marrison-addon' ); ?></td>
+											<td><?php echo isset( $size['webp_quality'] ) && $size['webp'] ? esc_html( $size['webp_quality'] ) : '-'; ?></td>
 											<td><?php echo isset( $size['show_in_media'] ) && $size['show_in_media'] ? esc_html__( 'Sì', 'marrison-addon' ) : esc_html__( 'No', 'marrison-addon' ); ?></td>
 											<td>
 												<form method="post" style="display:inline;">
@@ -503,12 +861,18 @@ class Marrison_Addon_Image_Sizes {
 
 		if ( 'add_size' === $action ) {
 			$name = sanitize_text_field( $_POST['size_name'] );
+			$webp_quality = isset( $_POST['size_webp_quality'] ) ? absint( $_POST['size_webp_quality'] ) : 85;
+			$webp_quality = max( 0, min( 100, $webp_quality ) ); // Clamp between 0 and 100
+			
 			$new_size = [
 				'slug' => sanitize_title( $name ),
 				'name' => $name,
 				'width' => absint( $_POST['size_width'] ),
 				'height' => absint( $_POST['size_height'] ),
 				'crop' => isset( $_POST['size_crop'] ) ? true : false,
+				'upscale' => isset( $_POST['size_upscale'] ) ? true : false,
+				'webp' => isset( $_POST['size_webp'] ) ? true : false,
+				'webp_quality' => isset( $_POST['size_webp'] ) ? $webp_quality : null,
 				'show_in_media' => isset( $_POST['size_show_in_media'] ) ? true : false,
 			];
 
