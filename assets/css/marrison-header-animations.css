@@ -1,0 +1,209 @@
+@keyframes marrisonLiftSoft {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 36px, 0);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+@keyframes marrisonDropSoft {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, -36px, 0);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+@keyframes marrisonSlideReveal {
+	0% {
+		opacity: 0;
+		clip-path: inset(0 100% 0 0);
+		transform: translate3d(-24px, 0, 0);
+	}
+
+	100% {
+		opacity: 1;
+		clip-path: inset(0 0 0 0);
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+@keyframes marrisonCurtainRight {
+	0% {
+		opacity: 0;
+		clip-path: inset(0 0 0 100%);
+		transform: translate3d(24px, 0, 0);
+	}
+
+	100% {
+		opacity: 1;
+		clip-path: inset(0 0 0 0);
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+@keyframes marrisonFocusIn {
+	0% {
+		opacity: 0;
+		filter: blur(14px);
+		transform: translate3d(0, 12px, 0) scale3d(0.98, 0.98, 1);
+	}
+
+	100% {
+		opacity: 1;
+		filter: blur(0);
+		transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+	}
+}
+
+@keyframes marrisonZoomSettle {
+	0% {
+		opacity: 0;
+		transform: scale3d(0.88, 0.88, 1);
+	}
+
+	70% {
+		opacity: 1;
+		transform: scale3d(1.025, 1.025, 1);
+	}
+
+	100% {
+		opacity: 1;
+		transform: scale3d(1, 1, 1);
+	}
+}
+
+@keyframes marrisonTiltRise {
+	0% {
+		opacity: 0;
+		transform: rotate3d(0, 0, 1, -5deg) translate3d(0, 24px, 0);
+		transform-origin: left bottom;
+	}
+
+	100% {
+		opacity: 1;
+		transform: rotate3d(0, 0, 1, 0) translate3d(0, 0, 0);
+		transform-origin: left bottom;
+	}
+}
+
+@keyframes marrisonSkewSweep {
+	0% {
+		opacity: 0;
+		clip-path: inset(0 100% 0 0);
+		transform: skewX(-10deg) translate3d(-18px, 0, 0);
+	}
+
+	100% {
+		opacity: 1;
+		clip-path: inset(0 0 0 0);
+		transform: skewX(0) translate3d(0, 0, 0);
+	}
+}
+
+@keyframes marrisonDriftLeft {
+	0% {
+		opacity: 0;
+		transform: translate3d(42px, 10px, 0);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+@keyframes marrisonElasticPop {
+	0% {
+		opacity: 0;
+		transform: scale3d(0.82, 0.82, 1) translate3d(0, 16px, 0);
+	}
+
+	55% {
+		opacity: 1;
+		transform: scale3d(1.08, 1.08, 1) translate3d(0, -3px, 0);
+	}
+
+	78% {
+		transform: scale3d(0.98, 0.98, 1) translate3d(0, 1px, 0);
+	}
+
+	100% {
+		opacity: 1;
+		transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
+	}
+}
+
+.marrisonLiftSoft,
+.marrisonDropSoft,
+.marrisonSlideReveal,
+.marrisonCurtainRight,
+.marrisonFocusIn,
+.marrisonZoomSettle,
+.marrisonTiltRise,
+.marrisonSkewSweep,
+.marrisonDriftLeft,
+.marrisonElasticPop {
+	animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+	will-change: opacity, transform;
+}
+
+.marrisonSlideReveal,
+.marrisonCurtainRight,
+.marrisonFocusIn,
+.marrisonSkewSweep {
+	will-change: opacity, transform, clip-path, filter;
+}
+
+.marrisonLiftSoft {
+	animation-name: marrisonLiftSoft;
+}
+
+.marrisonDropSoft {
+	animation-name: marrisonDropSoft;
+}
+
+.marrisonSlideReveal {
+	animation-name: marrisonSlideReveal;
+}
+
+.marrisonCurtainRight {
+	animation-name: marrisonCurtainRight;
+}
+
+.marrisonFocusIn {
+	animation-name: marrisonFocusIn;
+}
+
+.marrisonZoomSettle {
+	animation-name: marrisonZoomSettle;
+}
+
+.marrisonTiltRise {
+	animation-name: marrisonTiltRise;
+}
+
+.marrisonSkewSweep {
+	animation-name: marrisonSkewSweep;
+}
+
+.marrisonDriftLeft {
+	animation-name: marrisonDriftLeft;
+}
+
+.marrisonElasticPop {
+	animation-name: marrisonElasticPop;
+}
+
+.marrison-heading-animated {
+	animation-duration: 900ms;
+	animation-fill-mode: both;
+}

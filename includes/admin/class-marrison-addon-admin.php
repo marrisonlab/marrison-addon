@@ -55,6 +55,18 @@ class Marrison_Addon_Admin {
 			wp_send_json_error( [ 'message' => 'Missing option name' ] );
 		}
 
+		$allowed_options = apply_filters(
+			'marrison_addon/ajax_save_allowed_options',
+			[
+				'marrison_addon_modules',
+				'marrison_addon_disabled_sizes',
+			]
+		);
+
+		if ( ! in_array( $option_name, $allowed_options, true ) ) {
+			wp_send_json_error( [ 'message' => 'Invalid option name' ] );
+		}
+
 		// Handle array updates if key is provided
 		$key = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : null;
 		
@@ -165,6 +177,13 @@ class Marrison_Addon_Admin {
 				'id' => 'ticker',
 				'title' => esc_html__( 'Ticker', 'marrison-addon' ),
 				'desc' => esc_html__( 'Widget ticker notizie con supporto JetEngine.', 'marrison-addon' ),
+				'reload' => false,
+				'requires_elementor' => true,
+			],
+			[
+				'id' => 'header_animations',
+				'title' => esc_html__( 'Animazioni Header', 'marrison-addon' ),
+				'desc' => esc_html__( 'Aggiunge animazioni in ingresso extra solo al widget Heading di Elementor.', 'marrison-addon' ),
 				'reload' => false,
 				'requires_elementor' => true,
 			],

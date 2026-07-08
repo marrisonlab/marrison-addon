@@ -242,52 +242,56 @@ class Marrison_Addon_Image_Sizes {
 
 		// Now manually generate upscale sizes if they don't exist
 		if ( ! empty( $upscale_sizes ) ) {
-			$editor = wp_get_image_editor( $file );
+			foreach ( $upscale_sizes as $slug => $size_data ) {
+				// Check if this size doesn't exist or needs regeneration
+				if ( isset( $metadata['sizes'][ $slug ] ) ) {
+					continue;
+				}
 
-			if ( ! is_wp_error( $editor ) ) {
+				$editor = wp_get_image_editor( $file );
+
+				if ( is_wp_error( $editor ) ) {
+					continue;
+				}
+
 				$orig_size = $editor->get_size();
 				$orig_w = $orig_size['width'];
 				$orig_h = $orig_size['height'];
 
-				foreach ( $upscale_sizes as $slug => $size_data ) {
-					// Check if this size doesn't exist or needs regeneration
-					if ( ! isset( $metadata['sizes'][ $slug ] ) ) {
-						$dest_w = $size_data['width'];
-						$dest_h = $size_data['height'];
-						$crop = $size_data['crop'];
+				$dest_w = $size_data['width'];
+				$dest_h = $size_data['height'];
+				$crop = $size_data['crop'];
 
-						// Calculate dimensions with upscaling
-						if ( $crop ) {
-							// Hard crop: upscale to fill exactly
-							$ratio = max( $dest_w / $orig_w, $dest_h / $orig_h );
-							$new_w = round( $orig_w * $ratio );
-							$new_h = round( $orig_h * $ratio );
-						} else {
-							// Soft crop: upscale proportionally
-							$ratio = min( $dest_w / $orig_w, $dest_h / $orig_h );
-							$new_w = round( $orig_w * $ratio );
-							$new_h = round( $orig_h * $ratio );
-						}
+				// Calculate dimensions with upscaling
+				if ( $crop ) {
+					// Hard crop: upscale to fill exactly
+					$ratio = max( $dest_w / $orig_w, $dest_h / $orig_h );
+					$new_w = round( $orig_w * $ratio );
+					$new_h = round( $orig_h * $ratio );
+				} else {
+					// Soft crop: upscale proportionally
+					$ratio = min( $dest_w / $orig_w, $dest_h / $orig_h );
+					$new_w = round( $orig_w * $ratio );
+					$new_h = round( $orig_h * $ratio );
+				}
 
-						// Use center-center crop position for hard crop
-						$crop_position = $crop ? ['center', 'center'] : false;
+				// Use center-center crop position for hard crop
+				$crop_position = $crop ? ['center', 'center'] : false;
 
-						// Resize the image
-						$editor->resize( $new_w, $new_h, $crop_position );
+				// Resize the image
+				$editor->resize( $new_w, $new_h, $crop_position );
 
-						// Save the resized image
-						$saved = $editor->save( $editor->generate_filename( $slug ) );
+				// Save the resized image
+				$saved = $editor->save( $editor->generate_filename( $slug ) );
 
-						if ( ! is_wp_error( $saved ) ) {
-							// Add to metadata
-							$metadata['sizes'][ $slug ] = [
-								'file' => $saved['file'],
-								'width' => $saved['width'],
-								'height' => $saved['height'],
-								'mime-type' => $saved['mime-type'],
-							];
-						}
-					}
+				if ( ! is_wp_error( $saved ) ) {
+					// Add to metadata
+					$metadata['sizes'][ $slug ] = [
+						'file' => $saved['file'],
+						'width' => $saved['width'],
+						'height' => $saved['height'],
+						'mime-type' => $saved['mime-type'],
+					];
 				}
 			}
 		}

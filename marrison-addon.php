@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
- * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Content Ticker, Custom Image Sizes, Custom Cursor, Preloader, and Fast Logout.
- * Version: 1.2.0
+ * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Content Ticker, Header Animations, Custom Image Sizes, Custom Cursor, Preloader, and Fast Logout.
+ * Version: 1.2.5
  * Author: Angelo Marra
  * Author URI:  https://marrisonlab.com
  * Text Domain: marrison-addon
@@ -17,7 +17,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.2.0';
+	const VERSION = '1.2.5';
+
+	private $elementor_modules_initialized = false;
+	private $header_animations_initialized = false;
 
 	public function __construct() {
 		$this->includes();
@@ -34,6 +37,7 @@ final class Marrison_Addon {
 		// Modules are disabled by default
 		$wrapped_link_enabled = isset( $modules['wrapped_link'] ) && $modules['wrapped_link'];
 		$ticker_enabled = isset( $modules['ticker'] ) && $modules['ticker'];
+		$header_animations_enabled = isset( $modules['header_animations'] ) && $modules['header_animations'];
 		$image_sizes_enabled = isset( $modules['image_sizes'] ) && $modules['image_sizes'];
 		$cursor_enabled = isset( $modules['cursor'] ) && $modules['cursor'];
 		$preloader_enabled = isset( $modules['preloader'] ) && $modules['preloader'];
@@ -45,6 +49,10 @@ final class Marrison_Addon {
 
 		if ( $ticker_enabled ) {
 			require_once plugin_dir_path( __FILE__ ) . 'includes/modules/class-marrison-addon-ticker.php';
+		}
+
+		if ( $header_animations_enabled ) {
+			require_once plugin_dir_path( __FILE__ ) . 'includes/modules/class-marrison-addon-header-animations.php';
 		}
 
 		if ( $image_sizes_enabled ) {
@@ -66,6 +74,7 @@ final class Marrison_Addon {
 
 	private function init_hooks() {
 		$this->on_plugins_loaded();
+		add_action( 'elementor/loaded', [ $this, 'init_elementor_modules' ] );
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ $this, 'plugin_action_links' ] );
 	}
 
@@ -86,24 +95,18 @@ final class Marrison_Addon {
 
 		// Initialize enabled modules
 		$modules = get_option( 'marrison_addon_modules', [] );
-		$is_elementor_active = did_action( 'elementor/loaded' );
-
-		$wrapped_link_enabled = isset( $modules['wrapped_link'] ) && $modules['wrapped_link'];
-		$ticker_enabled = isset( $modules['ticker'] ) && $modules['ticker'];
+		$header_animations_enabled = isset( $modules['header_animations'] ) && $modules['header_animations'];
 		$image_sizes_enabled = isset( $modules['image_sizes'] ) && $modules['image_sizes'];
 		$cursor_enabled = isset( $modules['cursor'] ) && $modules['cursor'];
 		$preloader_enabled = isset( $modules['preloader'] ) && $modules['preloader'];
 		$fast_logout_enabled = isset( $modules['fast_logout'] ) && $modules['fast_logout'];
 
-		// Elementor Dependent Modules
-		if ( $is_elementor_active ) {
-			if ( $wrapped_link_enabled && class_exists( 'Marrison_Addon_Wrapped_Link' ) ) {
-				new Marrison_Addon_Wrapped_Link();
-			}
+		if ( $header_animations_enabled ) {
+			$this->init_header_animations_module();
+		}
 
-			if ( $ticker_enabled && class_exists( 'Marrison_Addon_Ticker' ) ) {
-				new Marrison_Addon_Ticker();
-			}
+		if ( did_action( 'elementor/loaded' ) ) {
+			$this->init_elementor_modules();
 		}
 
 		// Independent Modules
@@ -121,6 +124,43 @@ final class Marrison_Addon {
 
 		if ( $fast_logout_enabled && class_exists( 'Marrison_Addon_Fast_Logout' ) ) {
 			new Marrison_Addon_Fast_Logout();
+		}
+	}
+
+	public function init_elementor_modules() {
+		if ( $this->elementor_modules_initialized ) {
+			return;
+		}
+
+		$this->elementor_modules_initialized = true;
+
+		$modules = get_option( 'marrison_addon_modules', [] );
+
+		$wrapped_link_enabled = isset( $modules['wrapped_link'] ) && $modules['wrapped_link'];
+		$ticker_enabled = isset( $modules['ticker'] ) && $modules['ticker'];
+
+		if ( $wrapped_link_enabled && class_exists( 'Marrison_Addon_Wrapped_Link' ) ) {
+			new Marrison_Addon_Wrapped_Link();
+		}
+
+		if ( $ticker_enabled && class_exists( 'Marrison_Addon_Ticker' ) ) {
+			new Marrison_Addon_Ticker();
+		}
+
+		$this->init_header_animations_module();
+	}
+
+	private function init_header_animations_module() {
+		if ( $this->header_animations_initialized || ! class_exists( 'Marrison_Addon_Header_Animations' ) ) {
+			return;
+		}
+
+		$modules = get_option( 'marrison_addon_modules', [] );
+		$header_animations_enabled = isset( $modules['header_animations'] ) && $modules['header_animations'];
+
+		if ( $header_animations_enabled ) {
+			$this->header_animations_initialized = true;
+			new Marrison_Addon_Header_Animations();
 		}
 	}
 }

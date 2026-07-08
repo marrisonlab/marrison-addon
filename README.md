@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 6.9
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.2.0
+*   **Stable tag:** 1.2.5
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -30,24 +30,28 @@
     *   Customizable speed, direction, and styling.
     *   Pause on hover functionality.
 
-3.  **Preloader:**
+3.  **Header Animations (Elementor):**
+    *   Adds 10 custom entrance animations to Elementor's Heading widget only.
+    *   Uses Elementor's native entrance animation control and timing options.
+
+4.  **Preloader:**
     *   Add a professional loading screen to your site.
     *   **Animations:** Fade, Slide Up, Slide Left, Split (Curtain), Shutter (Vertical).
     *   **Spinners:** Circle, Dots, Double Ring, Wave, Pulse (Logo).
     *   **Customization:** Upload your logo, choose colors, and set transition duration.
     *   **Progress Bar:** Optional progress bar with percentage display.
 
-4.  **Custom Cursor:**
+5.  **Custom Cursor:**
     *   Replace the default system cursor with a custom follower.
     *   Customizable colors, size, and hover effects (scale, magnetic).
     *   "Exclusion" blending mode for high visibility on any background.
     *   **Frontend Only:** Does not affect the backend or Elementor Editor.
 
-5.  **Image Sizes:**
+6.  **Image Sizes:**
     *   Define custom image sizes for your theme directly from the dashboard.
     *   Control cropping and dimensions without editing code.
 
-6.  **Fast Logout:**
+7.  **Fast Logout:**
     *   Automatically redirects users to the home page after logging out, bypassing the default WordPress login screen.
 
 ## Installation
@@ -58,6 +62,22 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.2.5
+*   **Fix:** Header Animations - Added a Heading-only fallback control under the Advanced tab, applying Marrison animations on the frontend even if Elementor does not expose the additional animation group in the native control.
+
+### 1.2.4
+*   **Fix:** Header Animations - Register animation filters earlier so Elementor can include them while building editor controls.
+
+### 1.2.3
+*   **Fix:** Header Animations - Added Elementor's additional animations filter so the custom animations appear in the native entrance animation list.
+
+### 1.2.2
+*   **Fix:** Header Animations - Initialize Elementor modules reliably when Elementor loads after Marrison Addon.
+*   **Fix:** Header Animations - Added a fallback hook for Elementor common motion controls while still limiting animations to the Heading widget.
+
+### 1.2.1
+*   **New Module:** Header Animations - Added 10 custom entrance animations to Elementor's Heading widget only.
 
 ### 1.2.0
 *   **UI:** Admin Menu - Renamed menu item to "AM Addon" and repositioned it below "AM Updater" for better organization.
