@@ -27,7 +27,14 @@ class Marrison_Addon_Cursor {
 	}
 
 	public function register_settings() {
-		register_setting( 'marrison_addon_cursor_group', 'marrison_addon_cursor_settings' );
+		register_setting(
+			'marrison_addon_cursor_group',
+			'marrison_addon_cursor_settings',
+			[
+				'sanitize_callback' => [ $this, 'sanitize_settings' ],
+				'default' => $this->get_default_settings(),
+			]
+		);
 	}
 
 	public function enqueue_admin_scripts( $hook ) {
@@ -47,19 +54,27 @@ class Marrison_Addon_Cursor {
 			return;
 		}
 
-		$settings = get_option( 'marrison_addon_cursor_settings', [] );
+		$settings = wp_parse_args( get_option( 'marrison_addon_cursor_settings', [] ), $this->get_default_settings() );
 		
 		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_style( 'marrison-cursor', plugins_url( 'assets/css/marrison-cursor.css', $plugin_root_file ), [], Marrison_Addon::VERSION );
-		wp_enqueue_script( 'marrison-cursor', plugins_url( 'assets/js/marrison-cursor.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::VERSION, true );
+		$cursor_css_path = plugin_dir_path( $plugin_root_file ) . 'assets/css/marrison-cursor.css';
+		$cursor_js_path = plugin_dir_path( $plugin_root_file ) . 'assets/js/marrison-cursor.js';
+		$asset_version = Marrison_Addon::VERSION;
+
+		if ( file_exists( $cursor_css_path ) && file_exists( $cursor_js_path ) ) {
+			$asset_version .= '.' . max( filemtime( $cursor_css_path ), filemtime( $cursor_js_path ) );
+		}
+
+		wp_enqueue_style( 'marrison-cursor', plugins_url( 'assets/css/marrison-cursor.css', $plugin_root_file ), [], $asset_version );
+		wp_enqueue_script( 'marrison-cursor', plugins_url( 'assets/js/marrison-cursor.js', $plugin_root_file ), [], $asset_version, true );
 
 		// Pass settings to JS
 		wp_localize_script( 'marrison-cursor', 'marrison_cursor_settings', [
-			'dot_color' => isset( $settings['dot_color'] ) ? $settings['dot_color'] : '#000000',
-			'circle_color' => isset( $settings['circle_color'] ) ? $settings['circle_color'] : '#000000',
-			'hover_color' => isset( $settings['hover_color'] ) ? $settings['hover_color'] : 'rgba(0,0,0,0.1)',
-			'shape' => isset( $settings['shape'] ) ? $settings['shape'] : 'circle',
-			'animation' => isset( $settings['animation'] ) ? $settings['animation'] : 'lag',
+			'dot_color' => $settings['dot_color'],
+			'circle_color' => $settings['circle_color'],
+			'hover_color' => $settings['hover_color'],
+			'shape' => $settings['shape'],
+			'animation' => $settings['animation'],
 		] );
 	}
 
@@ -68,12 +83,12 @@ class Marrison_Addon_Cursor {
 			return;
 		}
 
-		$settings = get_option( 'marrison_addon_cursor_settings', [] );
-		$dot_color = isset( $settings['dot_color'] ) ? $settings['dot_color'] : '#000000';
-		$circle_color = isset( $settings['circle_color'] ) ? $settings['circle_color'] : '#000000';
-		$hover_color = isset( $settings['hover_color'] ) ? $settings['hover_color'] : 'rgba(0,0,0,0.1)';
-		$shape = isset( $settings['shape'] ) ? $settings['shape'] : 'circle';
-		$animation = isset( $settings['animation'] ) ? $settings['animation'] : 'lag';
+		$settings = wp_parse_args( get_option( 'marrison_addon_cursor_settings', [] ), $this->get_default_settings() );
+		$dot_color = $settings['dot_color'];
+		$circle_color = $settings['circle_color'];
+		$hover_color = $settings['hover_color'];
+		$shape = $settings['shape'];
+		$animation = $settings['animation'];
 
 		// Save logic is handled by WordPress options.php if we use form action="options.php"
 		?>
@@ -148,19 +163,32 @@ class Marrison_Addon_Cursor {
 	}
 
 	private function should_load_cursor() {
-		// 1. Check if Elementor Editor is active (Edit Mode or Preview Mode)
-		if ( class_exists( '\Elementor\Plugin' ) ) {
-			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() || 
-				 \Elementor\Plugin::$instance->preview->is_preview_mode() ) {
-				return false;
-			}
-		}
+		return Marrison_Addon_Context::is_public_frontend_request();
+	}
 
-		// 2. Check if is admin (backend)
-		if ( is_admin() ) {
-			return false;
-		}
+	public function sanitize_settings( $settings ) {
+		$settings = is_array( $settings ) ? $settings : [];
+		$defaults = $this->get_default_settings();
+		$shapes = [ 'circle', 'square', 'diamond' ];
+		$animations = [ 'lag', 'elastic', 'fast' ];
+		$hover_color = isset( $settings['hover_color'] ) ? sanitize_text_field( wp_unslash( $settings['hover_color'] ) ) : $defaults['hover_color'];
 
-		return true;
+		return [
+			'dot_color' => sanitize_hex_color( $settings['dot_color'] ?? $defaults['dot_color'] ) ?: $defaults['dot_color'],
+			'circle_color' => sanitize_hex_color( $settings['circle_color'] ?? $defaults['circle_color'] ) ?: $defaults['circle_color'],
+			'hover_color' => preg_match( '/^rgba?\(([^)]+)\)$/', $hover_color ) ? $hover_color : $defaults['hover_color'],
+			'shape' => in_array( $settings['shape'] ?? '', $shapes, true ) ? $settings['shape'] : $defaults['shape'],
+			'animation' => in_array( $settings['animation'] ?? '', $animations, true ) ? $settings['animation'] : $defaults['animation'],
+		];
+	}
+
+	private function get_default_settings() {
+		return [
+			'dot_color' => '#111111',
+			'circle_color' => '#111111',
+			'hover_color' => 'rgba(17,17,17,0.12)',
+			'shape' => 'circle',
+			'animation' => 'lag',
+		];
 	}
 }

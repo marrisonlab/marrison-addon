@@ -16,8 +16,7 @@ class Marrison_Addon_Admin {
 	}
 
 	public function enqueue_styles( $hook ) {
-		// Enqueue styles on all plugin pages
-		if ( strpos( $hook, 'marrison_addon' ) === false ) {
+		if ( ! $this->is_marrison_admin_page() ) {
 			return;
 		}
 		// Point to the root plugin file to get the correct base URL
@@ -26,8 +25,7 @@ class Marrison_Addon_Admin {
 	}
 
 	public function enqueue_scripts( $hook ) {
-		// Enqueue scripts on all plugin pages
-		if ( strpos( $hook, 'marrison_addon' ) === false ) {
+		if ( ! $this->is_marrison_admin_page() ) {
 			return;
 		}
 		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
@@ -39,6 +37,27 @@ class Marrison_Addon_Admin {
 			'error_saving' => __( 'Errore durante il salvataggio delle impostazioni', 'marrison-addon' ),
 			'connection_error' => __( 'Errore di connessione', 'marrison-addon' ),
 		] );
+	}
+
+	private function is_marrison_admin_page() {
+		if ( ! isset( $_GET['page'] ) ) {
+			return false;
+		}
+
+		$page = sanitize_key( wp_unslash( $_GET['page'] ) );
+
+		if ( 'marrison_addon_panel' === $page || 0 === strpos( $page, 'marrison_addon_' ) ) {
+			return true;
+		}
+
+		return in_array(
+			$page,
+			[
+				'marrison-cookie',
+				'marrison-video-thumb',
+			],
+			true
+		);
 	}
 
 	public function ajax_save_option() {
@@ -84,6 +103,10 @@ class Marrison_Addon_Admin {
 			}
 			
 			update_option( $option_name, $current_value );
+
+			if ( 'marrison_addon_modules' === $option_name ) {
+				do_action( 'marrison_addon/module_status_changed', $key, ! empty( $current_value[ $key ] ) );
+			}
 		} else {
 			update_option( $option_name, $value );
 		}
@@ -165,65 +188,14 @@ class Marrison_Addon_Admin {
 		$modules = get_option( 'marrison_addon_modules', [] );
 		$is_elementor_active = did_action( 'elementor/loaded' );
 
-		$available_modules = [
-			[
-				'id' => 'wrapped_link',
-				'title' => esc_html__( 'Wrapped Link', 'marrison-addon' ),
-				'desc' => esc_html__( 'Aggiungi link a qualsiasi contenitore Elementor.', 'marrison-addon' ),
-				'reload' => false,
-				'requires_elementor' => true,
-			],
-			[
-				'id' => 'ticker',
-				'title' => esc_html__( 'Ticker', 'marrison-addon' ),
-				'desc' => esc_html__( 'Widget ticker notizie con supporto JetEngine.', 'marrison-addon' ),
-				'reload' => false,
-				'requires_elementor' => true,
-			],
-			[
-				'id' => 'header_animations',
-				'title' => esc_html__( 'Animazioni Header', 'marrison-addon' ),
-				'desc' => esc_html__( 'Aggiunge animazioni in ingresso extra solo al widget Heading di Elementor.', 'marrison-addon' ),
-				'reload' => false,
-				'requires_elementor' => true,
-			],
-			[
-				'id' => 'image_sizes',
-				'title' => esc_html__( 'Dimensioni Immagini', 'marrison-addon' ),
-				'desc' => esc_html__( 'Registra dimensioni immagine personalizzate e aggiungile al selettore media.', 'marrison-addon' ),
-				'reload' => true,
-				'requires_elementor' => false,
-			],
-			[
-				'id' => 'cursor',
-				'title' => esc_html__( 'Cursore Animato', 'marrison-addon' ),
-				'desc' => esc_html__( 'Sostituisce il cursore predefinito con un puntatore animato personalizzabile.', 'marrison-addon' ),
-				'reload' => true,
-				'requires_elementor' => false,
-			],
-			[
-				'id' => 'preloader',
-				'title' => esc_html__( 'Preloader', 'marrison-addon' ),
-				'desc' => esc_html__( 'Aggiungi una schermata di caricamento con logo personalizzato e spinner.', 'marrison-addon' ),
-				'reload' => true,
-				'requires_elementor' => false,
-			],
-			[
-				'id' => 'fast_logout',
-				'title' => esc_html__( 'Fast Logout', 'marrison-addon' ),
-				'desc' => esc_html__( 'Reindirizza automaticamente alla home page dopo il logout.', 'marrison-addon' ),
-				'reload' => false,
-				'requires_elementor' => false,
-			],
-		];
+		$available_modules = Marrison_Addon::get_module_definitions();
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html__( 'Marrison Addon', 'marrison-addon' ); ?></h1>
 			<p><?php echo esc_html__( 'Benvenuto in Marrison Addon. Gestisci i tuoi moduli qui sotto.', 'marrison-addon' ); ?></p>
 			
 			<div class="marrison-modules-grid">
-				<?php foreach ( $available_modules as $module ) : 
-					$id = $module['id'];
+				<?php foreach ( $available_modules as $id => $module ) :
 					$checked = isset( $modules[ $id ] ) && $modules[ $id ] ? 'checked' : '';
 					$reload = isset( $module['reload'] ) && $module['reload'] ? 'true' : 'false';
 					
@@ -241,7 +213,7 @@ class Marrison_Addon_Admin {
 				?>
 				<div class="marrison-module-card" <?php echo $card_style; ?>>
 					<div class="marrison-card-header">
-						<h3 class="marrison-card-title"><?php echo $module['title']; ?></h3>
+						<h3 class="marrison-card-title"><?php echo esc_html( $module['title'] ); ?></h3>
 						<label class="marrison-switch">
 							<input type="checkbox" 
 								   class="marrison-ajax-toggle" 
@@ -253,7 +225,7 @@ class Marrison_Addon_Admin {
 							<span class="marrison-slider"></span>
 						</label>
 					</div>
-					<p class="marrison-card-desc"><?php echo $module['desc']; ?></p>
+					<p class="marrison-card-desc"><?php echo esc_html( $module['desc'] ); ?></p>
 					<?php if ( ! empty( $badge ) ) : ?>
 						<div style="margin-top: 10px;"><?php echo $badge; ?></div>
 					<?php endif; ?>

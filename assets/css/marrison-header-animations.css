@@ -142,6 +142,53 @@
 	}
 }
 
+@keyframes marrisonLettersRise {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 0.9em, 0) rotate3d(0, 0, 1, 6deg);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) rotate3d(0, 0, 1, 0deg);
+	}
+}
+
+@keyframes marrisonLettersFocus {
+	0% {
+		opacity: 0;
+		filter: blur(10px);
+		transform: translate3d(0, 0.5em, 0) scale3d(0.92, 0.92, 1);
+	}
+
+	100% {
+		opacity: 1;
+		filter: blur(0);
+		transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+	}
+}
+
+@keyframes marrisonLettersElastic {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 0.7em, 0) scale3d(0.75, 0.75, 1);
+	}
+
+	58% {
+		opacity: 1;
+		transform: translate3d(0, -0.08em, 0) scale3d(1.12, 1.12, 1);
+	}
+
+	82% {
+		transform: translate3d(0, 0.03em, 0) scale3d(0.97, 0.97, 1);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+	}
+}
+
 .marrisonLiftSoft,
 .marrisonDropSoft,
 .marrisonSlideReveal,
@@ -206,4 +253,39 @@
 .marrison-heading-animated {
 	animation-duration: 900ms;
 	animation-fill-mode: both;
+}
+
+.marrison-heading-letter-animation .elementor-heading-title,
+.marrison-heading-letter-animation .elementor-heading-title a,
+.marrisonLettersRise,
+.marrisonLettersFocus,
+.marrisonLettersElastic {
+	white-space: normal;
+}
+
+.marrison-heading-word {
+	display: inline-block;
+	white-space: nowrap;
+}
+
+.marrison-heading-letter {
+	display: inline-block;
+	opacity: 0;
+	animation-duration: 720ms;
+	animation-fill-mode: both;
+	animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+	animation-delay: calc(var(--marrison-letter-index, 0) * 38ms);
+	will-change: opacity, transform, filter;
+}
+
+.marrisonLettersRise .marrison-heading-letter {
+	animation-name: marrisonLettersRise;
+}
+
+.marrisonLettersFocus .marrison-heading-letter {
+	animation-name: marrisonLettersFocus;
+}
+
+.marrisonLettersElastic .marrison-heading-letter {
+	animation-name: marrisonLettersElastic;
 }

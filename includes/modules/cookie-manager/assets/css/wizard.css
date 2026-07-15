@@ -1,0 +1,624 @@
+/**
+ * CSS per il Wizard di Configurazione (Popup Modal) - Riscrittura robusta
+ */
+
+.marrison-wizard-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.marrison-wizard-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.marrison-wizard-wrapper {
+    width: 100%;
+    max-width: 900px;
+    max-height: calc(100vh - 40px);
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.marrison-wizard-header {
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    color: #fff;
+    padding: 24px 30px;
+    text-align: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.marrison-wizard-header h1 {
+    color: #fff !important;
+    margin: 0;
+    font-size: 1.5em;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+}
+
+.marrison-wizard-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+    z-index: 2;
+}
+
+.marrison-wizard-close:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.marrison-wizard-close:focus-visible,
+.marrison-btn:focus-visible,
+.marrison-scan-button:focus-visible,
+.marrison-page-option:focus-within {
+    outline: 3px solid rgba(117, 70, 185, 0.28);
+    outline-offset: 3px;
+}
+
+.marrison-wizard-header p {
+    margin: 6px 0 0;
+    opacity: 0.9;
+    font-size: 1em;
+    position: relative;
+    z-index: 1;
+}
+
+.marrison-wizard-progress {
+    background: #f8f9fa;
+    padding: 16px 64px 42px;
+    border-bottom: 1px solid #e9ecef;
+    flex-shrink: 0;
+    overflow: visible;
+}
+
+.marrison-progress-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin: 0 auto;
+    max-width: 780px;
+    padding: 0 28px;
+    box-sizing: border-box;
+}
+
+.marrison-progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 48px;
+    right: 48px;
+    height: 3px;
+    background: #e9ecef;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.marrison-progress-step {
+    position: relative;
+    z-index: 2;
+    background: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    border: 3px solid #e9ecef;
+    font-size: 1em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.marrison-progress-step.active {
+    border-color: #7546b9;
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(117, 70, 185, 0.4);
+}
+
+.marrison-progress-step.completed {
+    border-color: #7546b9;
+    background: #7546b9;
+    color: #fff;
+}
+
+.marrison-progress-label {
+    position: absolute;
+    top: 52px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8em;
+    white-space: nowrap;
+    color: #495057;
+    font-weight: 500;
+}
+
+.marrison-progress-step:first-child .marrison-progress-label {
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.marrison-progress-step:last-child .marrison-progress-label {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+}
+
+.marrison-wizard-content {
+    padding: 30px 40px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    min-height: 0;
+    box-sizing: border-box;
+}
+
+.marrison-wizard-step {
+    display: none;
+}
+
+.marrison-wizard-step.active {
+    display: block;
+}
+
+.marrison-step-title {
+    font-size: 1.6em;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+    color: #212529;
+    font-weight: 700;
+}
+
+.marrison-step-description {
+    color: #6c757d;
+    margin-bottom: 24px;
+    font-size: 1em;
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.marrison-form-group {
+    margin-bottom: 20px;
+}
+
+.marrison-form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #495057;
+    font-size: 0.95em;
+}
+
+.marrison-form-group input[type="text"],
+.marrison-form-group textarea,
+.marrison-form-group select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 0.95em;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #f8f9fa;
+}
+
+.marrison-form-group input[type="text"]:focus,
+.marrison-form-group textarea:focus,
+.marrison-form-group select:focus {
+    border-color: #7546b9;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(117, 70, 185, 0.1);
+}
+
+.marrison-form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+}
+
+.marrison-form-group input[type="color"] {
+    width: 60px;
+    height: 38px;
+    padding: 3px;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.marrison-form-group input[type="color"]:hover {
+    border-color: #7546b9;
+}
+
+.marrison-color-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.marrison-color-picker-group span {
+    font-family: monospace;
+    font-size: 1.1em;
+    color: #495057;
+    font-weight: 500;
+}
+
+.marrison-cookie-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 24px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.marrison-cookie-table th,
+.marrison-cookie-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.marrison-cookie-table th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.marrison-cookie-table tr:last-child td {
+    border-bottom: none;
+}
+
+.marrison-cookie-table select {
+    padding: 8px 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.marrison-cookie-table select:focus {
+    border-color: #7546b9;
+    outline: none;
+}
+
+.marrison-wizard-footer {
+    padding: 20px 40px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.marrison-wizard-info {
+    color: #6c757d;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.marrison-wizard-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.marrison-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    letter-spacing: 0.3px;
+}
+
+.marrison-btn-primary {
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(117, 70, 185, 0.3);
+}
+
+.marrison-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(117, 70, 185, 0.4);
+}
+
+.marrison-btn-secondary {
+    background: #fff;
+    color: #495057;
+    border: 2px solid #e9ecef;
+}
+
+.marrison-btn-secondary:hover {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.marrison-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.marrison-scan-button {
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    color: #fff;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 3px 10px rgba(117, 70, 185, 0.3);
+}
+
+.marrison-scan-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(117, 70, 185, 0.4);
+}
+
+.marrison-scan-button:disabled {
+    background: #adb5bd;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.marrison-scan-status {
+    margin: 16px 0;
+    padding: 14px 18px;
+    border-radius: 8px;
+    display: none;
+    font-weight: 500;
+    font-size: 0.95em;
+}
+
+.marrison-scan-status.loading {
+    background: #e3f2fd;
+    color: #1565c0;
+    display: block;
+    border-left: 4px solid #1565c0;
+}
+
+.marrison-scan-status.success {
+    background: #d4edda;
+    color: #7546b9;
+    display: block;
+    border-left: 4px solid #7546b9;
+}
+
+.marrison-scan-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    display: block;
+    border-left: 4px solid #721c24;
+}
+
+.marrison-page-options {
+    display: flex;
+    gap: 16px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.marrison-page-option {
+    flex: 1;
+    min-width: 200px;
+    padding: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.marrison-page-option:hover {
+    border-color: #7546b9;
+}
+
+.marrison-page-option.selected {
+    border-color: #7546b9;
+    background: #f0f4ff;
+}
+
+.marrison-page-option h4 {
+    margin: 0 0 8px;
+    color: #212529;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.marrison-page-option p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.marrison-page-option input {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.marrison-success-message {
+    text-align: center;
+    padding: 30px 20px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.marrison-success-icon {
+    font-size: 3em;
+    color: #7546b9;
+    margin-bottom: 16px;
+}
+
+.marrison-success-message h2 {
+    color: #212529;
+    margin-bottom: 12px;
+    font-size: 1.5em;
+    font-weight: 700;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.marrison-success-message p {
+    color: #6c757d;
+    font-size: 1em;
+    margin-bottom: 16px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .marrison-wizard-overlay {
+        padding: 0;
+    }
+    
+    .marrison-wizard-wrapper {
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        height: 100%;
+    }
+    
+    .marrison-wizard-header {
+        padding: 18px 20px;
+    }
+    
+    .marrison-wizard-header h1 {
+        font-size: 1.3em;
+    }
+    
+    .marrison-wizard-content {
+        padding: 24px 20px;
+    }
+    
+    .marrison-wizard-footer {
+        padding: 16px 20px;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .marrison-wizard-buttons {
+        width: 100%;
+    }
+    
+    .marrison-btn {
+        flex: 1;
+        padding: 12px 16px;
+    }
+    
+    .marrison-progress-label {
+        display: none;
+    }
+
+    .marrison-wizard-progress {
+        padding: 14px 28px 24px;
+    }
+
+    .marrison-progress-bar {
+        padding: 0 10px;
+    }
+
+    .marrison-progress-bar::before {
+        left: 28px;
+        right: 28px;
+    }
+    
+    .marrison-progress-step {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9em;
+    }
+    
+    .marrison-page-options {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .marrison-step-title {
+        font-size: 1.4em;
+    }
+    
+    .marrison-success-icon {
+        font-size: 2.5em;
+    }
+    
+    .marrison-success-message h2 {
+        font-size: 1.3em;
+    }
+    
+    .marrison-cookie-table {
+        font-size: 0.85em;
+    }
+    
+    .marrison-cookie-table th,
+    .marrison-cookie-table td {
+        padding: 10px 6px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marrison-wizard-overlay,
+    .marrison-wizard-wrapper,
+    .marrison-wizard-overlay *,
+    .marrison-wizard-overlay *::before,
+    .marrison-wizard-overlay *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}

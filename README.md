@@ -8,9 +8,9 @@
 *   **Author URI:** https://marrisonlab.com
 *   **Tags:** elementor, container, link, wrapper, ticker, cursor, preloader, logout, marrison
 *   **Requires at least:** 6.0
-*   **Tested up to:** 6.9
+*   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.2.5
+*   **Stable tag:** 1.3.1
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -45,7 +45,7 @@
     *   Replace the default system cursor with a custom follower.
     *   Customizable colors, size, and hover effects (scale, magnetic).
     *   "Exclusion" blending mode for high visibility on any background.
-    *   **Frontend Only:** Does not affect the backend or Elementor Editor.
+    *   **Frontend Only:** Skips backend, preview, and Elementor Editor contexts.
 
 6.  **Image Sizes:**
     *   Define custom image sizes for your theme directly from the dashboard.
@@ -53,6 +53,20 @@
 
 7.  **Fast Logout:**
     *   Automatically redirects users to the home page after logging out, bypassing the default WordPress login screen.
+
+8.  **Calendar Sync:**
+    *   Generate Google Calendar and ICS event links from post meta.
+    *   Configurable meta keys for start and end dates.
+    *   Includes shortcode support for templates and dynamic content.
+
+9.  **Cookie Manager:**
+    *   Cookie banner, floating widget, preferences modal, and setup wizard.
+    *   Automatic cookie scanning and category management.
+    *   Frontend UI only loads when the module is active and in a real frontend context.
+
+10. **Video Thumbnail:**
+    *   Fetch YouTube thumbnails and import them directly into the WordPress Media Library.
+    *   Keeps the original admin workflow while living as a module inside Marrison Addon.
 
 ## Installation
 
@@ -62,6 +76,19 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.1
+*   **Maintenance:** Updated plugin version, README stable tag, and WordPress compatibility to match the current WordPress release.
+
+### 1.3.0
+*   **Core:** Centralized module registry so disabled modules are no longer required or booted by the plugin.
+*   **Enhancement:** Wrapped Link now enqueues its frontend script only when a page actually renders a wrapped container.
+*   **Refactor:** Custom Cursor and Preloader now use a stricter frontend-context check and stay out of Elementor editor/preview contexts.
+*   **Refactor:** Custom Cursor, Preloader, and Wrapped Link no longer depend on jQuery on the frontend.
+*   **Enhancement:** Preloader styling now uses CSS variables instead of printing a page-level inline `<style>` block.
+*   **New Module:** Calendar Sync.
+*   **New Module:** Cookie Manager.
+*   **New Module:** Video Thumbnail.
 
 ### 1.2.5
 *   **Fix:** Header Animations - Added a Heading-only fallback control under the Advanced tab, applying Marrison animations on the frontend even if Elementor does not expose the additional animation group in the native control.

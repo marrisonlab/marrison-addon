@@ -6,16 +6,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Marrison_Addon_Header_Animations {
 
 	private const ANIMATION_GROUP = 'Marrison';
+	private const LETTER_ANIMATIONS = [
+		'marrisonLettersRise',
+		'marrisonLettersFocus',
+		'marrisonLettersElastic',
+	];
 
 	public function __construct() {
 		add_filter( 'elementor/controls/animations/additional_animations', [ $this, 'add_additional_animations' ] );
-		add_action( 'elementor/element/heading/section_title/after_section_end', [ $this, 'register_fallback_controls' ] );
 		add_action( 'elementor/element/heading/_section_effects/before_section_end', [ $this, 'register_animations' ] );
+		add_action( 'elementor/element/heading/_section_effects/before_section_end', [ $this, 'register_fallback_control' ], 20 );
 		add_action( 'elementor/element/common/_section_effects/before_section_end', [ $this, 'register_animations' ] );
 		add_action( 'elementor/element/after_section_end', [ $this, 'limit_animations_to_heading' ], 10, 2 );
 		add_action( 'elementor/frontend/widget/before_render', [ $this, 'before_render' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_styles' ] );
 		add_action( 'elementor/editor/after_enqueue_styles', [ $this, 'enqueue_styles' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	public function add_additional_animations( $animations ) {
@@ -26,33 +33,33 @@ class Marrison_Addon_Header_Animations {
 		return $this->add_custom_animations( $animations );
 	}
 
-	public function register_fallback_controls( $element ) {
-		if ( ! method_exists( $element, 'start_controls_section' ) || ! method_exists( $element, 'add_control' ) ) {
+	public function register_fallback_control( $element ) {
+		if ( ! method_exists( $element, 'add_control' ) ) {
 			return;
 		}
 
-		$element->start_controls_section(
-			'section_marrison_header_animations',
-			[
-				'label' => esc_html__( 'Marrison Animations', 'marrison-addon' ),
-				'tab' => \Elementor\Controls_Manager::TAB_ADVANCED,
-			]
-		);
+		if ( method_exists( $element, 'get_controls' ) ) {
+			$controls = $element->get_controls();
+
+			if ( isset( $controls['marrison_header_animation'] ) ) {
+				return;
+			}
+		}
 
 		$element->add_control(
 			'marrison_header_animation',
 			[
-				'label' => esc_html__( 'Entrance Animation', 'marrison-addon' ),
+				'label' => esc_html__( 'Marrison Animation', 'marrison-addon' ),
 				'type' => \Elementor\Controls_Manager::SELECT,
 				'default' => '',
+				'separator' => 'before',
+				'description' => esc_html__( 'Fallback control used if Elementor does not expose the Marrison animations in the native entrance animation list.', 'marrison-addon' ),
 				'options' => array_merge(
 					[ '' => esc_html__( 'Default', 'marrison-addon' ) ],
 					$this->get_custom_animations()
 				),
 			]
 		);
-
-		$element->end_controls_section();
 	}
 
 	public function register_animations( $element ) {
@@ -136,16 +143,45 @@ class Marrison_Addon_Header_Animations {
 		}
 
 		$widget->add_render_attribute( '_wrapper', 'class', [ 'marrison-heading-animated', $animation ] );
+
+		if ( $this->is_letter_animation( $animation ) ) {
+			$widget->add_render_attribute( '_wrapper', 'class', 'marrison-heading-letter-animation' );
+			$widget->add_render_attribute( '_wrapper', 'data-marrison-letter-animation', $animation );
+		}
 	}
 
 	public function enqueue_styles() {
 		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
+		$style_path = plugin_dir_path( $plugin_root_file ) . 'assets/css/marrison-header-animations.css';
+		$version = Marrison_Addon::VERSION;
+
+		if ( file_exists( $style_path ) ) {
+			$version .= '.' . filemtime( $style_path );
+		}
 
 		wp_enqueue_style(
 			'marrison-header-animations',
 			plugins_url( 'assets/css/marrison-header-animations.css', $plugin_root_file ),
 			[],
-			Marrison_Addon::VERSION
+			$version
+		);
+	}
+
+	public function enqueue_scripts() {
+		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
+		$script_path = plugin_dir_path( $plugin_root_file ) . 'assets/js/marrison-header-animations.js';
+		$version = Marrison_Addon::VERSION;
+
+		if ( file_exists( $script_path ) ) {
+			$version .= '.' . filemtime( $script_path );
+		}
+
+		wp_enqueue_script(
+			'marrison-header-animations',
+			plugins_url( 'assets/js/marrison-header-animations.js', $plugin_root_file ),
+			[],
+			$version,
+			true
 		);
 	}
 
@@ -174,6 +210,13 @@ class Marrison_Addon_Header_Animations {
 			'marrisonSkewSweep'     => esc_html__( 'Skew Sweep', 'marrison-addon' ),
 			'marrisonDriftLeft'     => esc_html__( 'Drift Left', 'marrison-addon' ),
 			'marrisonElasticPop'    => esc_html__( 'Elastic Pop', 'marrison-addon' ),
+			'marrisonLettersRise'   => esc_html__( 'Letters Rise', 'marrison-addon' ),
+			'marrisonLettersFocus'  => esc_html__( 'Letters Focus', 'marrison-addon' ),
+			'marrisonLettersElastic'=> esc_html__( 'Letters Elastic', 'marrison-addon' ),
 		];
+	}
+
+	private function is_letter_animation( $animation ) {
+		return in_array( $animation, self::LETTER_ANIMATIONS, true );
 	}
 }

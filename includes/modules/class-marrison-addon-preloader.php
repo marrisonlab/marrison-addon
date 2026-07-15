@@ -28,7 +28,14 @@ class Marrison_Addon_Preloader {
 	}
 
 	public function register_settings() {
-		register_setting( 'marrison_addon_preloader_group', 'marrison_addon_preloader_settings' );
+		register_setting(
+			'marrison_addon_preloader_group',
+			'marrison_addon_preloader_settings',
+			[
+				'sanitize_callback' => [ $this, 'sanitize_settings' ],
+				'default' => $this->get_default_settings(),
+			]
+		);
 	}
 
 	public function enqueue_admin_scripts( $hook ) {
@@ -51,11 +58,11 @@ class Marrison_Addon_Preloader {
 
 		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
 		wp_enqueue_style( 'marrison-preloader', plugins_url( 'assets/css/marrison-preloader.css', $plugin_root_file ), [], Marrison_Addon::VERSION );
-		wp_enqueue_script( 'marrison-preloader', plugins_url( 'assets/js/marrison-preloader.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::VERSION, true );
+		wp_enqueue_script( 'marrison-preloader', plugins_url( 'assets/js/marrison-preloader.js', $plugin_root_file ), [], Marrison_Addon::VERSION, true );
 		
-		$settings = get_option( 'marrison_addon_preloader_settings', [] );
+		$settings = wp_parse_args( get_option( 'marrison_addon_preloader_settings', [] ), $this->get_default_settings() );
 		wp_localize_script( 'marrison-preloader', 'marrison_preloader_settings', [
-			'transition_duration' => isset( $settings['transition_duration'] ) ? $settings['transition_duration'] : '500',
+			'transition_duration' => $settings['transition_duration'],
 		] );
 	}
 
@@ -64,65 +71,43 @@ class Marrison_Addon_Preloader {
 			return;
 		}
 
-		$settings = get_option( 'marrison_addon_preloader_settings', [] );
-		
-		$bg_color = isset( $settings['bg_color'] ) ? $settings['bg_color'] : '#ffffff';
-		$logo_url = isset( $settings['logo_url'] ) ? $settings['logo_url'] : '';
-		$logo_width = isset( $settings['logo_width'] ) ? $settings['logo_width'] : '150';
-		$spinner_type = isset( $settings['spinner_type'] ) ? $settings['spinner_type'] : 'circle';
-		$spinner_color = isset( $settings['spinner_color'] ) ? $settings['spinner_color'] : '#000000';
-		$animation_type = isset( $settings['animation_type'] ) ? $settings['animation_type'] : 'fade';
-		$show_progress = isset( $settings['show_progress'] ) ? $settings['show_progress'] : false;
-		$progress_color = isset( $settings['progress_color'] ) ? $settings['progress_color'] : '#000000';
-		$progress_bar_width = isset( $settings['progress_bar_width'] ) ? $settings['progress_bar_width'] : '200';
-		$progress_bar_height = isset( $settings['progress_bar_height'] ) ? $settings['progress_bar_height'] : '2';
-		
-		// Inline styles for critical CSS
-		echo '<style>
-			#marrison-preloader {
-				background-color: ' . esc_attr( $bg_color ) . ';
-			}
-			#marrison-preloader .marrison-preloader-logo {
-				width: ' . esc_attr( $logo_width ) . 'px;
-			}
-			#marrison-preloader .marrison-spinner-circle {
-				border-top-color: ' . esc_attr( $spinner_color ) . ';
-			}
-			#marrison-preloader .marrison-spinner-dots div {
-				background-color: ' . esc_attr( $spinner_color ) . ';
-			}
-			#marrison-preloader .marrison-spinner-double-ring {
-				border-color: ' . esc_attr( $spinner_color ) . ' transparent ' . esc_attr( $spinner_color ) . ' transparent;
-			}
-			#marrison-preloader .marrison-spinner-wave div {
-				background-color: ' . esc_attr( $spinner_color ) . ';
-			}
-			.marrison-preloader-progress-container {
-				width: ' . esc_attr( $progress_bar_width ) . 'px;
-			}
-			.marrison-preloader-progress-bar {
-				background-color: ' . esc_attr( $progress_color ) . ';
-				height: ' . esc_attr( $progress_bar_height ) . 'px;
-			}
-			.marrison-preloader-percentage {
-				color: ' . esc_attr( $progress_color ) . ';
-			}
-		</style>';
+		$settings = wp_parse_args( get_option( 'marrison_addon_preloader_settings', [] ), $this->get_default_settings() );
+		$bg_color = $settings['bg_color'];
+		$logo_url = $settings['logo_url'];
+		$logo_width = $settings['logo_width'];
+		$spinner_type = $settings['spinner_type'];
+		$spinner_color = $settings['spinner_color'];
+		$animation_type = $settings['animation_type'];
+		$show_progress = ! empty( $settings['show_progress'] );
+		$progress_color = $settings['progress_color'];
+		$progress_bar_width = $settings['progress_bar_width'];
+		$progress_bar_height = $settings['progress_bar_height'];
+		$transition_duration = $settings['transition_duration'];
+		$inline_vars = sprintf(
+			'--marrison-preloader-bg:%1$s;--marrison-preloader-logo-width:%2$spx;--marrison-preloader-spinner-color:%3$s;--marrison-preloader-progress-color:%4$s;--marrison-preloader-progress-width:%5$spx;--marrison-preloader-progress-height:%6$spx;--marrison-preloader-transition-duration:%7$sms;',
+			esc_attr( $bg_color ),
+			(int) $logo_width,
+			esc_attr( $spinner_color ),
+			esc_attr( $progress_color ),
+			(int) $progress_bar_width,
+			(int) $progress_bar_height,
+			(int) $transition_duration
+		);
 		?>
-		<div id="marrison-preloader" class="marrison-anim-<?php echo esc_attr( $animation_type ); ?>">
+		<div id="marrison-preloader" class="marrison-anim-<?php echo esc_attr( $animation_type ); ?>" style="<?php echo esc_attr( $inline_vars ); ?>" aria-hidden="true">
 			<?php if ( 'split' === $animation_type ) : ?>
-				<div class="marrison-preloader-curtain-top" style="background-color: <?php echo esc_attr( $bg_color ); ?>"></div>
-				<div class="marrison-preloader-curtain-bottom" style="background-color: <?php echo esc_attr( $bg_color ); ?>"></div>
+				<div class="marrison-preloader-curtain-top"></div>
+				<div class="marrison-preloader-curtain-bottom"></div>
 			<?php elseif ( 'shutter-vert' === $animation_type ) : ?>
 				<div class="marrison-preloader-shutter">
-					<div class="marrison-preloader-shutter-item" style="background-color: <?php echo esc_attr( $bg_color ); ?>"></div>
-					<div class="marrison-preloader-shutter-item" style="background-color: <?php echo esc_attr( $bg_color ); ?>"></div>
-					<div class="marrison-preloader-shutter-item" style="background-color: <?php echo esc_attr( $bg_color ); ?>"></div>
-					<div class="marrison-preloader-shutter-item" style="background-color: <?php echo esc_attr( $bg_color ); ?>"></div>
+					<div class="marrison-preloader-shutter-item"></div>
+					<div class="marrison-preloader-shutter-item"></div>
+					<div class="marrison-preloader-shutter-item"></div>
+					<div class="marrison-preloader-shutter-item"></div>
 				</div>
 			<?php endif; ?>
 			
-			<div class="marrison-preloader-content">
+			<div class="marrison-preloader-content" role="status">
 				<?php if ( ! empty( $logo_url ) ) : ?>
 					<img src="<?php echo esc_url( $logo_url ); ?>" class="marrison-preloader-logo <?php echo ( 'pulse' === $spinner_type ) ? 'marrison-pulse' : ''; ?>" alt="Loading...">
 				<?php endif; ?>
@@ -149,20 +134,7 @@ class Marrison_Addon_Preloader {
 	}
 
 	private function should_display_preloader() {
-		// 1. Check if Elementor Editor is active (Edit Mode or Preview Mode)
-		if ( class_exists( '\Elementor\Plugin' ) ) {
-			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() || 
-				 \Elementor\Plugin::$instance->preview->is_preview_mode() ) {
-				return false;
-			}
-		}
-
-		// 2. Check for Elementor GET parameters (Preview/Editor)
-		if ( isset( $_GET['elementor-preview'] ) || ( isset( $_GET['action'] ) && 'elementor' === $_GET['action'] ) ) {
-			return false;
-		}
-
-		return true;
+		return Marrison_Addon_Context::is_public_frontend_request();
 	}
 
 	public function render_admin_page() {
@@ -170,18 +142,18 @@ class Marrison_Addon_Preloader {
 			return;
 		}
 
-		$settings = get_option( 'marrison_addon_preloader_settings', [] );
-		$bg_color = isset( $settings['bg_color'] ) ? $settings['bg_color'] : '#ffffff';
-		$logo_url = isset( $settings['logo_url'] ) ? $settings['logo_url'] : '';
-		$logo_width = isset( $settings['logo_width'] ) ? $settings['logo_width'] : '150';
-		$spinner_type = isset( $settings['spinner_type'] ) ? $settings['spinner_type'] : 'circle';
-		$spinner_color = isset( $settings['spinner_color'] ) ? $settings['spinner_color'] : '#000000';
-		$transition_duration = isset( $settings['transition_duration'] ) ? $settings['transition_duration'] : '500';
-		$animation_type = isset( $settings['animation_type'] ) ? $settings['animation_type'] : 'fade';
-		$show_progress = isset( $settings['show_progress'] ) ? $settings['show_progress'] : false;
-		$progress_color = isset( $settings['progress_color'] ) ? $settings['progress_color'] : '#000000';
-		$progress_bar_width = isset( $settings['progress_bar_width'] ) ? $settings['progress_bar_width'] : '200';
-		$progress_bar_height = isset( $settings['progress_bar_height'] ) ? $settings['progress_bar_height'] : '2';
+		$settings = wp_parse_args( get_option( 'marrison_addon_preloader_settings', [] ), $this->get_default_settings() );
+		$bg_color = $settings['bg_color'];
+		$logo_url = $settings['logo_url'];
+		$logo_width = $settings['logo_width'];
+		$spinner_type = $settings['spinner_type'];
+		$spinner_color = $settings['spinner_color'];
+		$transition_duration = $settings['transition_duration'];
+		$animation_type = $settings['animation_type'];
+		$show_progress = ! empty( $settings['show_progress'] );
+		$progress_color = $settings['progress_color'];
+		$progress_bar_width = $settings['progress_bar_width'];
+		$progress_bar_height = $settings['progress_bar_height'];
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html__( 'Impostazioni Preloader', 'marrison-addon' ); ?></h1>
@@ -303,5 +275,42 @@ class Marrison_Addon_Preloader {
 			</form>
 		</div>
 		<?php
+	}
+
+	public function sanitize_settings( $settings ) {
+		$settings = is_array( $settings ) ? $settings : [];
+		$defaults = $this->get_default_settings();
+		$spinner_types = [ 'none', 'circle', 'double-ring', 'dots', 'wave', 'pulse' ];
+		$animation_types = [ 'fade', 'slide-up', 'slide-left', 'split', 'shutter-vert' ];
+
+		return [
+			'bg_color' => sanitize_hex_color( $settings['bg_color'] ?? $defaults['bg_color'] ) ?: $defaults['bg_color'],
+			'logo_url' => esc_url_raw( $settings['logo_url'] ?? $defaults['logo_url'] ),
+			'logo_width' => max( 40, min( 600, absint( $settings['logo_width'] ?? $defaults['logo_width'] ) ) ),
+			'spinner_type' => in_array( $settings['spinner_type'] ?? '', $spinner_types, true ) ? $settings['spinner_type'] : $defaults['spinner_type'],
+			'spinner_color' => sanitize_hex_color( $settings['spinner_color'] ?? $defaults['spinner_color'] ) ?: $defaults['spinner_color'],
+			'transition_duration' => max( 100, min( 5000, absint( $settings['transition_duration'] ?? $defaults['transition_duration'] ) ) ),
+			'animation_type' => in_array( $settings['animation_type'] ?? '', $animation_types, true ) ? $settings['animation_type'] : $defaults['animation_type'],
+			'show_progress' => ! empty( $settings['show_progress'] ),
+			'progress_color' => sanitize_hex_color( $settings['progress_color'] ?? $defaults['progress_color'] ) ?: $defaults['progress_color'],
+			'progress_bar_width' => max( 80, min( 600, absint( $settings['progress_bar_width'] ?? $defaults['progress_bar_width'] ) ) ),
+			'progress_bar_height' => max( 1, min( 24, absint( $settings['progress_bar_height'] ?? $defaults['progress_bar_height'] ) ) ),
+		];
+	}
+
+	private function get_default_settings() {
+		return [
+			'bg_color' => '#ffffff',
+			'logo_url' => '',
+			'logo_width' => 150,
+			'spinner_type' => 'circle',
+			'spinner_color' => '#111111',
+			'transition_duration' => 500,
+			'animation_type' => 'fade',
+			'show_progress' => false,
+			'progress_color' => '#111111',
+			'progress_bar_width' => 200,
+			'progress_bar_height' => 2,
+		];
 	}
 }

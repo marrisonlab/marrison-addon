@@ -8,7 +8,6 @@ class Marrison_Addon_Wrapped_Link {
 	public function __construct() {
 		add_action( 'elementor/element/container/section_layout/after_section_end', [ $this, 'register_controls' ] );
 		add_action( 'elementor/frontend/container/before_render', [ $this, 'before_render' ] );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	public function register_controls( $element ) {
@@ -36,9 +35,14 @@ class Marrison_Addon_Wrapped_Link {
 	}
 
 	public function before_render( $element ) {
+		if ( Marrison_Addon_Context::is_elementor_editor_context() ) {
+			return;
+		}
+
 		$settings = $element->get_settings_for_display();
 
 		if ( ! empty( $settings['marrison_addon_url']['url'] ) ) {
+			$this->enqueue_scripts();
 			$element->add_render_attribute( '_wrapper', 'data-marrison-addon', json_encode( $settings['marrison_addon_url'] ) );
 			$element->add_render_attribute( '_wrapper', 'style', 'cursor: pointer;' );
 		}
@@ -46,6 +50,6 @@ class Marrison_Addon_Wrapped_Link {
 
 	public function enqueue_scripts() {
 		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_script( 'marrison-addon', plugins_url( 'assets/js/marrison-addon.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::VERSION, true );
+		wp_enqueue_script( 'marrison-addon', plugins_url( 'assets/js/marrison-addon.js', $plugin_root_file ), [], Marrison_Addon::VERSION, true );
 	}
 }

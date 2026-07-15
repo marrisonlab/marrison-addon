@@ -1,0 +1,665 @@
+/**
+ * Admin CSS per Marrison Cookie Manager
+ */
+
+.marrison-cookie-settings {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.marrison-admin-header {
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    color: #fff;
+    padding: 30px 40px;
+    border-radius: 8px;
+    margin: 20px 0 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 8px 30px rgba(117, 70, 185, 0.3);
+}
+
+.marrison-admin-header h1 {
+    color: #fff;
+    margin: 0 0 8px;
+    font-size: 1.9em;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.marrison-admin-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1em;
+}
+
+.marrison-wizard-launch-btn {
+    background: #fff;
+    color: #7546b9;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1em;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+.marrison-wizard-launch-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.marrison-wizard-launch-btn:focus-visible,
+.marrison-scanner-controls button:focus-visible,
+.marrison-cookie-actions button:focus-visible,
+.marrison-card .submit input[type="submit"]:focus-visible,
+.marrison-cookie-settings .submit input[type="submit"]:focus-visible {
+    outline: 3px solid rgba(117, 70, 185, 0.28);
+    outline-offset: 3px;
+}
+
+.marrison-nav-tabs {
+    border-bottom: 2px solid #e9ecef;
+    padding-left: 0;
+}
+
+.marrison-nav-tabs .nav-tab {
+    border: none;
+    background: #f8f9fa;
+    color: #6c757d;
+    padding: 12px 24px;
+    margin-right: 6px;
+    margin-bottom: -2px;
+    border-radius: 10px 10px 0 0;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.marrison-nav-tabs .nav-tab:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.marrison-nav-tabs .nav-tab-active {
+    background: #fff;
+    color: #7546b9;
+    border: 2px solid #e9ecef;
+    border-bottom-color: #fff;
+}
+
+.marrison-card {
+    background: #fff;
+    padding: 0;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.08);
+    margin-top: 30px;
+    overflow: hidden;
+}
+
+.marrison-card-header {
+    padding: 24px 40px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.marrison-card-header h2 {
+    margin: 0 0 6px;
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.marrison-card-header p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.95em;
+}
+
+.marrison-card .form-table {
+    margin: 0;
+    width: 100%;
+}
+
+.marrison-card .form-table th,
+.marrison-card .form-table td {
+    padding: 20px 40px;
+    vertical-align: middle;
+}
+
+.marrison-card .form-table th {
+    width: 220px;
+    color: #495057;
+    font-weight: 600;
+}
+
+.marrison-card .form-table input[type="text"],
+.marrison-card .form-table input[type="url"],
+.marrison-card .form-table input[type="number"],
+.marrison-card .form-table textarea,
+.marrison-card .form-table select {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 0.95em;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #fff;
+}
+
+.marrison-card .form-table input:focus,
+.marrison-card .form-table textarea:focus,
+.marrison-card .form-table select:focus {
+    border-color: #7546b9;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(117, 70, 185, 0.1);
+}
+
+.marrison-card .form-table input[type="color"] {
+    width: 60px;
+    height: 38px;
+    padding: 3px;
+    cursor: pointer;
+}
+
+.marrison-card .form-table input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+}
+
+.marrison-admin-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 32px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.marrison-admin-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.marrison-admin-switch-slider {
+    position: relative;
+    width: 52px;
+    height: 28px;
+    flex: 0 0 52px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.marrison-admin-switch-slider::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.24);
+    transition: transform 0.2s ease;
+}
+
+.marrison-admin-switch input:checked + .marrison-admin-switch-slider {
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    box-shadow: inset 0 0 0 1px rgba(117, 70, 185, 0.18);
+}
+
+.marrison-admin-switch input:checked + .marrison-admin-switch-slider::before {
+    transform: translateX(24px);
+}
+
+.marrison-admin-switch input:focus-visible + .marrison-admin-switch-slider {
+    outline: 3px solid rgba(117, 70, 185, 0.28);
+    outline-offset: 3px;
+}
+
+.marrison-admin-switch-label {
+    color: #1f2937;
+    font-size: 0.95em;
+}
+
+/* Scanner controls */
+.marrison-scanner-controls {
+    padding: 24px 40px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.marrison-scanner-controls button {
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 3px 10px rgba(117, 70, 185, 0.3);
+}
+
+.marrison-scanner-controls button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(117, 70, 185, 0.4);
+}
+
+.marrison-scanner-controls button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#marrison-scan-status {
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #495057;
+}
+
+.marrison-scan-status-loading {
+    color: #7546b9;
+}
+
+.marrison-scan-status-success {
+    color: #7546b9;
+}
+
+.marrison-scan-status-error {
+    color: #dc3545;
+}
+
+.marrison-scanner-filters {
+    padding: 20px 40px;
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.marrison-scanner-filters label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.95em;
+}
+
+.marrison-scanner-filters select {
+    padding: 10px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.95em;
+    min-width: 160px;
+}
+
+.marrison-scanner-filters select:focus {
+    border-color: #7546b9;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(117, 70, 185, 0.1);
+}
+
+/* Cookie table */
+.marrison-cookie-list {
+    padding: 0 40px 40px;
+}
+
+.marrison-cookie-list table {
+    border-collapse: collapse;
+    width: 100%;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e9ecef;
+}
+
+.marrison-cookie-list th,
+.marrison-cookie-list td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+    font-size: 0.9em;
+}
+
+.marrison-cookie-list td:last-child {
+    width: 200px;
+    min-width: 200px;
+}
+
+.marrison-cookie-list th {
+    background: #f8f9fa;
+    font-weight: 700;
+    color: #495057;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.marrison-cookie-list tr:hover {
+    background: #f8f9fa;
+}
+
+.marrison-cookie-list tr:last-child td {
+    border-bottom: none;
+}
+
+.marrison-cookie-list select {
+    padding: 8px 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.9em;
+    min-width: 140px;
+}
+
+.marrison-cookie-list select:focus {
+    border-color: #7546b9;
+    outline: none;
+}
+
+.marrison-cookie-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.marrison-cookie-actions button {
+    padding: 6px 12px;
+    font-size: 0.8em;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.marrison-cookie-actions button:hover {
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    border-color: #7546b9;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(117, 70, 185, 0.3);
+}
+
+.marrison-cookie-actions select {
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 0.85em;
+}
+
+.marrison-cookie-actions select:focus {
+    border-color: #7546b9;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(117, 70, 185, 0.15);
+}
+
+.marrison-btn-delete {
+    color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+.marrison-btn-delete:hover {
+    background: #dc3545 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+/* Category badges */
+.marrison-category-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.marrison-category-necessary {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #7546b9;
+    border: 1px solid #c3e6cb;
+}
+
+.marrison-category-functional {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.marrison-category-analytics {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.marrison-category-marketing {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.marrison-category-uncategorized {
+    background: linear-gradient(135deg, #e2e3e5 0%, #d6d7db 100%);
+    color: #383d41;
+    border: 1px solid #d6d7db;
+}
+
+/* Color inputs */
+input[type="color"] {
+    width: 60px;
+    height: 40px;
+    padding: 3px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+input[type="color"]:hover {
+    border-color: #7546b9;
+}
+
+/* Form improvements */
+.form-table th {
+    font-weight: 600;
+    color: #495057;
+    padding: 16px 12px;
+    width: 200px;
+}
+
+.form-table td {
+    padding: 16px 12px;
+}
+
+.form-table input[type="text"],
+.form-table textarea,
+.form-table select {
+    padding: 10px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 0.95em;
+    transition: all 0.2s ease;
+}
+
+.form-table input[type="text"]:focus,
+.form-table textarea:focus,
+.form-table select:focus {
+    border-color: #7546b9;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(117, 70, 185, 0.1);
+}
+
+.form-table textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.6;
+}
+
+/* Submit button */
+.marrison-card .submit,
+.marrison-cookie-settings .submit {
+    margin: 0;
+    padding: 24px 40px;
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.marrison-card .submit input[type="submit"],
+.marrison-cookie-settings .submit input[type="submit"] {
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1em;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 3px 10px rgba(117, 70, 185, 0.3);
+}
+
+.marrison-card .submit input[type="submit"]:hover,
+.marrison-cookie-settings .submit input[type="submit"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(117, 70, 185, 0.4);
+}
+
+/* Notice improvements */
+.marrison-cookie-settings .notice {
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 24px 0;
+    border-left: 5px solid;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.marrison-cookie-settings .notice-info {
+    border-left-color: #7546b9;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    border: 1px solid #7546b9;
+}
+
+.marrison-cookie-settings .notice-success {
+    border-left-color: #7546b9;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 1px solid #7546b9;
+}
+
+.marrison-cookie-settings .notice button {
+    margin-left: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.marrison-cookie-settings .notice button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+    .marrison-admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px;
+    }
+    
+    .marrison-admin-header h1 {
+        font-size: 1.5em;
+    }
+    
+    .marrison-wizard-launch-btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .marrison-nav-tabs .nav-tab {
+        padding: 10px 16px;
+        font-size: 0.9em;
+    }
+    
+    .marrison-card-header,
+    .marrison-card .form-table th,
+    .marrison-card .form-table td,
+    .marrison-scanner-controls,
+    .marrison-scanner-filters,
+    .marrison-cookie-list,
+    .marrison-card .submit {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .marrison-card .form-table th,
+    .marrison-card .form-table td {
+        display: block;
+        width: 100%;
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+    
+    .marrison-card .form-table th {
+        padding-bottom: 4px;
+    }
+    
+    .marrison-scanner-controls,
+    .marrison-scanner-filters {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .marrison-cookie-list {
+        overflow-x: auto;
+    }
+    
+    .marrison-cookie-list table {
+        min-width: 700px;
+    }
+    
+    .form-table th,
+    .form-table td {
+        display: block;
+        width: 100%;
+        padding: 12px 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marrison-cookie-settings *,
+    .marrison-cookie-settings *::before,
+    .marrison-cookie-settings *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}

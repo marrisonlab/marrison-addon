@@ -1,41 +1,36 @@
-jQuery(document).ready(function($) {
-    // Wrapped Link Handler
-    $(document).on('click', '[data-marrison-addon]', function(e) {
-        // 1. Ignore clicks on interactive elements
-        if ($(e.target).closest('a, button, input, select, textarea').length) {
-            return;
-        }
+document.addEventListener('click', function(event) {
+    var wrapper = event.target.closest('[data-marrison-addon]');
 
-        var $wrapper = $(this);
-        
-        // 2. Get data explicitly from attribute to avoid jQuery parsing issues/caching
-        var rawData = $wrapper.attr('data-marrison-addon');
-        
-        if (!rawData) {
-            return;
-        }
+    if (!wrapper) {
+        return;
+    }
 
-        // 3. Parse JSON manually
-        var settings = {};
-        try {
-            settings = JSON.parse(rawData);
-        } catch (error) {
-            console.error('Marrison Addon: Failed to parse wrapped link data', error);
-            return;
-        }
+    if (event.target.closest('a, button, input, select, textarea, [role="button"]')) {
+        return;
+    }
 
-        if (!settings.url) {
-            return;
-        }
+    var rawData = wrapper.getAttribute('data-marrison-addon');
 
-        var url = settings.url;
-        var target = settings.is_external === 'on' ? '_blank' : '_self';
+    if (!rawData) {
+        return;
+    }
 
-        // 4. Navigate
-        if (target === '_blank') {
-            window.open(url, target);
-        } else {
-            location.href = url;
-        }
-    });
+    var settings;
+
+    try {
+        settings = JSON.parse(rawData);
+    } catch (error) {
+        return;
+    }
+
+    if (!settings.url) {
+        return;
+    }
+
+    if (settings.is_external === 'on') {
+        window.open(settings.url, '_blank', 'noopener');
+        return;
+    }
+
+    window.location.href = settings.url;
 });

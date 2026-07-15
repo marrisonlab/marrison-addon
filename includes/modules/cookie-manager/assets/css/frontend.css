@@ -1,0 +1,823 @@
+/**
+ * Frontend CSS per Marrison Cookie Manager
+ */
+
+/* Banner principale */
+.marrison-cookie-banner {
+    position: fixed;
+    z-index: 999999;
+    padding: 8px 18px;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.marrison-banner-top {
+    top: 0;
+    left: 0;
+    right: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.marrison-banner-bottom {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.marrison-banner-layout-box {
+    width: min(420px, calc(100vw - 32px));
+    padding: 16px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 8px;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18);
+}
+
+.marrison-box-top-left {
+    top: 24px;
+    left: 24px;
+}
+
+.marrison-box-top-right {
+    top: 24px;
+    right: 24px;
+}
+
+.marrison-box-bottom-left {
+    bottom: 24px;
+    left: 24px;
+}
+
+.marrison-box-bottom-right {
+    right: 24px;
+    bottom: 24px;
+}
+
+.marrison-banner-layout-box .marrison-banner-container {
+    display: block;
+    max-width: none;
+}
+
+.marrison-banner-layout-box .marrison-banner-content {
+    min-width: 0;
+    max-width: none;
+}
+
+.marrison-banner-layout-box .marrison-banner-description {
+    margin-bottom: 12px;
+}
+
+.marrison-banner-layout-box .marrison-banner-buttons {
+    margin-top: 16px;
+}
+
+.marrison-banner-layout-box .marrison-button {
+    flex: 1 1 calc(50% - 4px);
+    text-align: center;
+}
+
+.marrison-banner-layout-box .marrison-button-customize {
+    flex-basis: 100%;
+}
+
+.marrison-banner-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.marrison-banner-content {
+    flex: 1;
+    min-width: 260px;
+    max-width: 800px;
+}
+
+.marrison-banner-title {
+    margin: 0 0 3px 0;
+    font-size: 0.95em;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.3;
+}
+
+.marrison-banner-description {
+    margin: 0 0 6px 0;
+    font-size: 0.8em;
+    line-height: 1.35;
+    opacity: 0.85;
+}
+
+.marrison-banner-links {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.marrison-banner-link {
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.72em;
+    font-weight: 500;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+    transition: all 0.2s ease;
+    opacity: 0.85;
+}
+
+.marrison-banner-link:hover {
+    opacity: 0.8;
+    border-bottom-color: transparent;
+}
+
+.marrison-banner-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.marrison-button {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75em;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    font-family: inherit;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.marrison-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.marrison-button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.marrison-button:focus-visible,
+.marrison-close-button:focus-visible,
+.marrison-widget-button:focus-visible {
+    outline: 3px solid rgba(117, 70, 185, 0.35);
+    outline-offset: 3px;
+}
+
+/* Modal personalizzazione */
+.marrison-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.marrison-modal-content {
+    background: white;
+    border-radius: 8px;
+    max-width: 650px;
+    width: 100%;
+    max-height: 90vh;
+    min-height: 0;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.marrison-modal-body {
+    padding: 32px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.marrison-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 32px;
+    border-bottom: 1px solid #eee;
+    background: linear-gradient(to bottom, #fff, #f9f9f9);
+}
+
+.marrison-modal-header h3 {
+    margin: 0;
+    font-size: 1.5em;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.marrison-close-button {
+    background: #f5f5f5;
+    border: none;
+    font-size: 1.8em;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    color: #666;
+}
+
+.marrison-close-button:hover {
+    background-color: #e0e0e0;
+    color: #333;
+    transform: rotate(90deg);
+}
+
+.marrison-cookie-category {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%);
+    border-radius: 8px;
+    border: 1px solid #eee;
+    transition: all 0.2s ease;
+}
+
+.marrison-cookie-category:hover {
+    border-color: #ddd;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.marrison-category-cookie-list {
+    display: none;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.marrison-category-cookie-list.has-cookies {
+    display: block;
+}
+
+.marrison-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.marrison-category-info h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.15em;
+    font-weight: 600;
+    color: #333;
+}
+
+.marrison-category-info p {
+    margin: 0;
+    font-size: 0.9em;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Switch toggle */
+.marrison-switch {
+    position: relative;
+    display: inline-block;
+    width: 56px;
+    height: 30px;
+    flex-shrink: 0;
+}
+
+.marrison-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.marrison-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 30px;
+}
+
+.marrison-slider:before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.marrison-switch input:checked + .marrison-slider {
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+}
+
+.marrison-switch input:disabled + .marrison-slider {
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.marrison-switch input:checked + .marrison-slider:before {
+    transform: translateX(26px);
+}
+
+.marrison-switch input:disabled + .marrison-slider:before {
+    transform: translateX(26px);
+}
+
+.marrison-switch input:focus-visible + .marrison-slider {
+    outline: 3px solid rgba(117, 70, 185, 0.28);
+    outline-offset: 3px;
+}
+
+.marrison-modal-footer {
+    padding: 24px 32px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    background: #f9f9f9;
+    border-radius: 0 0 16px 16px;
+}
+
+/* Elenco cookie nel modal */
+.marrison-modal-cookie-list {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 2px solid #eee;
+}
+
+.marrison-modal-cookie-list h4 {
+    margin: 0 0 16px 0;
+    font-size: 1.05em;
+    font-weight: 700;
+    color: #333;
+}
+
+.marrison-modal-cookie-category {
+    margin-bottom: 0;
+    padding: 0;
+    background: transparent;
+    border-radius: 8px;
+    border: none;
+}
+
+.marrison-modal-cookie-category h5 {
+    margin: 0 0 10px 0;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.marrison-modal-cookie-category ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.marrison-modal-cookie-category li {
+    padding: 8px 0;
+    font-size: 0.85em;
+    color: #666;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.marrison-modal-cookie-category li:last-child {
+    border-bottom: none;
+}
+
+.marrison-modal-cookie-category li strong {
+    color: #333;
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.marrison-cookie-domain {
+    color: #999;
+    font-size: 0.9em;
+    flex-shrink: 0;
+}
+
+.marrison-cookie-list-empty,
+.marrison-cookie-list-loading {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    font-size: 0.9em;
+    color: #666;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .marrison-cookie-banner {
+        padding: 8px 14px;
+    }
+
+    .marrison-banner-layout-box {
+        width: auto;
+        left: 16px;
+        right: 16px;
+        top: auto;
+        bottom: 16px;
+        padding: 14px;
+    }
+    
+    .marrison-banner-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .marrison-banner-content {
+        min-width: 100%;
+    }
+    
+    .marrison-banner-title {
+        font-size: 0.92em;
+    }
+    
+    .marrison-banner-description {
+        font-size: 0.78em;
+    }
+    
+    .marrison-banner-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+    
+    .marrison-button {
+        width: 100%;
+        min-width: 0;
+        padding: 7px 12px;
+        font-size: 0.74em;
+    }
+
+    .marrison-button-customize {
+        grid-column: 1 / -1;
+    }
+    
+    .marrison-modal-content {
+        margin: 10px;
+        max-height: 95vh;
+        border-radius: 8px;
+    }
+    
+    .marrison-modal-header {
+        padding: 20px 24px;
+    }
+    
+    .marrison-modal-body {
+        padding: 24px;
+    }
+    
+    .marrison-modal-footer {
+        padding: 20px 24px;
+    }
+    
+    .marrison-category-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .marrison-switch {
+        margin-top: 8px;
+    }
+}
+
+/* Widget preferenze */
+.marrison-preferences-widget {
+    background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%);
+    padding: 28px;
+    border-radius: 8px;
+    margin: 24px 0;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.marrison-preferences-widget h3 {
+    margin-top: 0;
+    margin-bottom: 24px;
+    font-size: 1.4em;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: #333;
+}
+
+.marrison-pref-category {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+
+.marrison-pref-category:hover {
+    border-color: #ccc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.marrison-pref-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.marrison-pref-info h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #333;
+}
+
+.marrison-pref-info p {
+    margin: 0;
+    font-size: 0.9em;
+    color: #666;
+    line-height: 1.5;
+}
+
+.marrison-preferences-actions {
+    margin-top: 24px;
+}
+
+.marrison-message {
+    margin-top: 16px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    display: none;
+    font-weight: 500;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.marrison-message.success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #7546b9;
+    border: 1px solid #c3e6cb;
+}
+
+.marrison-message.error {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Widget flottante */
+.marrison-floating-widget {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 999998;
+    display: none;
+    animation: slideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.marrison-widget-button {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7546b9 0%, #fa5ec1 100%);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(117, 70, 185, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+/* Mantiene il widget circolare anche quando il tema imposta stili generici sui button. */
+#marrison-floating-widget #marrison-widget-button {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    box-sizing: border-box;
+    flex: 0 0 56px;
+    line-height: 1;
+    overflow: hidden;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.marrison-widget-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 24px rgba(117, 70, 185, 0.5);
+}
+
+.marrison-widget-button:active {
+    transform: scale(0.95);
+}
+
+.marrison-widget-icon {
+    width: 28px;
+    height: 28px;
+    fill: #fff;
+    transition: transform 0.3s ease;
+}
+
+.marrison-widget-button:hover .marrison-widget-icon {
+    transform: rotate(-10deg);
+}
+
+.marrison-widget-tooltip {
+    position: absolute;
+    left: 70px;
+    background: #333;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85em;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.marrison-widget-tooltip::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: #333;
+}
+
+.marrison-widget-button:hover .marrison-widget-tooltip {
+    opacity: 1;
+    visibility: visible;
+    left: 68px;
+}
+
+/* Responsive widget */
+@media (max-width: 768px) {
+    .marrison-floating-widget {
+        bottom: 20px;
+        left: 20px;
+    }
+    
+    #marrison-floating-widget #marrison-widget-button {
+        width: 50px !important;
+        height: 50px !important;
+        min-width: 50px !important;
+        max-width: 50px !important;
+        min-height: 50px !important;
+        max-height: 50px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 50% !important;
+        box-sizing: border-box;
+        flex: 0 0 50px;
+        line-height: 1;
+        overflow: hidden;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+    
+    .marrison-widget-icon {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .marrison-widget-tooltip {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marrison-cookie-banner,
+    .marrison-button,
+    .marrison-modal,
+    .marrison-modal-content,
+    .marrison-close-button,
+    .marrison-widget-button,
+    .marrison-widget-icon,
+    .marrison-floating-widget {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* Responsive modal */
+@media (max-width: 768px) {
+    .marrison-modal {
+        padding: 16px;
+        align-items: flex-end;
+    }
+    
+    .marrison-modal-content {
+        max-height: 85vh;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .marrison-modal-header {
+        padding: 20px 24px;
+    }
+    
+    .marrison-modal-header h3 {
+        font-size: 1.3em;
+    }
+    
+    .marrison-modal-body {
+        padding: 24px;
+    }
+    
+    .marrison-modal-footer {
+        padding: 20px 24px;
+    }
+}

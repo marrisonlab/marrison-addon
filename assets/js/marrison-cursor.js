@@ -1,139 +1,143 @@
-(function($) {
+(function() {
     'use strict';
 
-    const cursor = {
-        init: function() {
-            if (!marrison_cursor_settings) return;
+    if (typeof marrison_cursor_settings === 'undefined') {
+        return;
+    }
 
-            this.settings = marrison_cursor_settings;
-            this.createCursor();
-            this.bindEvents();
-            this.animate();
-        },
+    if (!window.matchMedia('(pointer: fine)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
 
-        createCursor: function() {
-            this.dot = $('<div class="marrison-cursor-dot"></div>').appendTo('body');
-            this.circle = $('<div class="marrison-cursor-circle"></div>').appendTo('body');
+    var params = new URLSearchParams(window.location.search);
+    if (params.has('elementor-preview') || params.get('action') === 'elementor') {
+        return;
+    }
 
-            // Apply settings
-            if (this.settings.dot_color) {
-                this.dot.css('background-color', this.settings.dot_color);
-            }
-            if (this.settings.circle_color) {
-                this.circle.css('border-color', this.settings.circle_color);
-            }
-
-            // Apply shape class to body
-            if (this.settings.shape && this.settings.shape !== 'circle') {
-                $('body').addClass('marrison-cursor-' + this.settings.shape);
-            }
-            
-            // State
-            this.mouseX = 0;
-            this.mouseY = 0;
-            this.circleX = 0;
-            this.circleY = 0;
-            this.dotX = 0;
-            this.dotY = 0;
-            
-            // For elastic effect
-            this.velX = 0;
-            this.velY = 0;
-            
-            $('body').addClass('marrison-cursor-active');
-        },
-
-        bindEvents: function() {
-            const self = this;
-
-            $(document).on('mousemove', function(e) {
-                self.mouseX = e.clientX;
-                self.mouseY = e.clientY;
-
-                // Check for admin bar or Elementor UI
-                const target = $(e.target);
-                const isUI = target.closest('#wpadminbar, #elementor-panel, .elementor-editor-header, .elementor-context-menu, #elementor-mode-switcher, .elementor-editor-active .elementor-element-overlay').length > 0;
-
-                if (isUI) {
-                    $('body').addClass('marrison-cursor-disabled-zone');
-                } else {
-                    $('body').removeClass('marrison-cursor-disabled-zone');
-                }
-            });
-
-            // Hover effects
-            const hoverSelectors = 'a, button, input[type="submit"], input[type="button"], .elementor-button, [role="button"]';
-            
-            $(document).on('mouseenter', hoverSelectors, function() {
-                $('body').addClass('marrison-cursor-hover');
-                if (self.settings.hover_color) {
-                    self.circle.css('background-color', self.settings.hover_color);
-                    self.circle.css('border-color', 'transparent');
-                }
-            }).on('mouseleave', hoverSelectors, function() {
-                $('body').removeClass('marrison-cursor-hover');
-                if (self.settings.circle_color) {
-                    self.circle.css('border-color', self.settings.circle_color);
-                    self.circle.css('background-color', 'transparent');
-                }
-            });
-        },
-
-        animate: function() {
-            const self = this;
-            const animationType = this.settings.animation || 'lag';
-            
-            // Dot follows instantly (or very fast)
-            this.dotX += (this.mouseX - this.dotX) * 1;
-            this.dotY += (this.mouseY - this.dotY) * 1;
-            
-            // Circle animation logic based on type
-            if (animationType === 'fast') {
-                // Fast follow (almost instant)
-                this.circleX += (this.mouseX - this.circleX) * 0.5;
-                this.circleY += (this.mouseY - this.circleY) * 0.5;
-            } else if (animationType === 'elastic') {
-                // Elastic / Spring physics
-                const tension = 0.08;
-                const friction = 0.75;
-                
-                const targetX = this.mouseX;
-                const targetY = this.mouseY;
-                
-                this.velX += (targetX - this.circleX) * tension;
-                this.velY += (targetY - this.circleY) * tension;
-                
-                this.velX *= friction;
-                this.velY *= friction;
-                
-                this.circleX += this.velX;
-                this.circleY += this.velY;
-            } else {
-                // Standard Lag (default)
-                this.circleX += (this.mouseX - this.circleX) * 0.15;
-                this.circleY += (this.mouseY - this.circleY) * 0.15;
-            }
-
-            // Rotate logic for diamond shape
-            let rotate = '';
-            if (this.settings.shape === 'diamond') {
-                 rotate = ' rotate(45deg)';
-            }
-
-            this.dot.css('transform', `translate3d(${this.dotX}px, ${this.dotY}px, 0) translate(-50%, -50%)${rotate}`);
-            this.circle.css('transform', `translate3d(${this.circleX}px, ${this.circleY}px, 0) translate(-50%, -50%)${rotate}`);
-
-            requestAnimationFrame(function() {
-                self.animate();
-            });
-        }
+    var state = {
+        dot: null,
+        circle: null,
+        dotX: 0,
+        dotY: 0,
+        circleX: 0,
+        circleY: 0,
+        mouseX: window.innerWidth / 2,
+        mouseY: window.innerHeight / 2,
+        velX: 0,
+        velY: 0,
+        insideViewport: false
     };
 
-    $(document).ready(function() {
-        // Only init on non-touch or if forced (though CSS handles hiding)
-        if (window.matchMedia("(pointer: fine)").matches) {
-            cursor.init();
+    var root = document.documentElement;
+    var body = document.body;
+    var hoverSelector = 'a, button, input[type="submit"], input[type="button"], .elementor-button, [role="button"]';
+    var disabledSelector = '#wpadminbar, #elementor-panel, .elementor-editor-header, .elementor-context-menu, #elementor-mode-switcher, .elementor-editor-active .elementor-element-overlay';
+
+    function createCursor() {
+        state.dot = document.createElement('div');
+        state.dot.className = 'marrison-cursor-dot';
+        state.circle = document.createElement('div');
+        state.circle.className = 'marrison-cursor-circle';
+
+        state.dot.style.backgroundColor = marrison_cursor_settings.dot_color;
+        state.circle.style.borderColor = marrison_cursor_settings.circle_color;
+
+        body.appendChild(state.dot);
+        body.appendChild(state.circle);
+
+        if (marrison_cursor_settings.shape && marrison_cursor_settings.shape !== 'circle') {
+            body.classList.add('marrison-cursor-' + marrison_cursor_settings.shape);
+        }
+
+        body.classList.add('marrison-cursor-active');
+    }
+
+    function setDisabledZone(target) {
+        if (target && target.closest(disabledSelector)) {
+            body.classList.add('marrison-cursor-disabled-zone');
+            body.classList.remove('marrison-cursor-hover');
+            state.circle.style.backgroundColor = 'transparent';
+            state.circle.style.borderColor = marrison_cursor_settings.circle_color;
+            return;
+        }
+
+        body.classList.remove('marrison-cursor-disabled-zone');
+    }
+
+    function setHoverState(target) {
+        if (body.classList.contains('marrison-cursor-disabled-zone')) {
+            body.classList.remove('marrison-cursor-hover');
+            state.circle.style.backgroundColor = 'transparent';
+            state.circle.style.borderColor = marrison_cursor_settings.circle_color;
+            return;
+        }
+
+        if (target && target.closest(hoverSelector)) {
+            body.classList.add('marrison-cursor-hover');
+            state.circle.style.backgroundColor = marrison_cursor_settings.hover_color;
+            state.circle.style.borderColor = 'transparent';
+            return;
+        }
+
+        body.classList.remove('marrison-cursor-hover');
+        state.circle.style.backgroundColor = 'transparent';
+        state.circle.style.borderColor = marrison_cursor_settings.circle_color;
+    }
+
+    function handlePointerMove(event) {
+        state.insideViewport = true;
+        state.mouseX = event.clientX;
+        state.mouseY = event.clientY;
+
+        setDisabledZone(event.target);
+        setHoverState(event.target);
+        root.classList.add('marrison-cursor-visible');
+    }
+
+    function animate() {
+        var animationType = marrison_cursor_settings.animation || 'lag';
+
+        state.dotX += (state.mouseX - state.dotX) * 0.55;
+        state.dotY += (state.mouseY - state.dotY) * 0.55;
+
+        if (animationType === 'fast') {
+            state.circleX += (state.mouseX - state.circleX) * 0.32;
+            state.circleY += (state.mouseY - state.circleY) * 0.32;
+        } else if (animationType === 'elastic') {
+            state.velX += (state.mouseX - state.circleX) * 0.08;
+            state.velY += (state.mouseY - state.circleY) * 0.08;
+            state.velX *= 0.72;
+            state.velY *= 0.72;
+            state.circleX += state.velX;
+            state.circleY += state.velY;
+        } else {
+            state.circleX += (state.mouseX - state.circleX) * 0.16;
+            state.circleY += (state.mouseY - state.circleY) * 0.16;
+        }
+
+        var rotate = marrison_cursor_settings.shape === 'diamond' ? ' rotate(45deg)' : '';
+        state.dot.style.transform = 'translate3d(' + state.dotX + 'px,' + state.dotY + 'px,0) translate(-50%, -50%)' + rotate;
+        state.circle.style.transform = 'translate3d(' + state.circleX + 'px,' + state.circleY + 'px,0) translate(-50%, -50%)' + rotate;
+
+        window.requestAnimationFrame(animate);
+    }
+
+    function hideCursor() {
+        root.classList.remove('marrison-cursor-visible');
+        body.classList.remove('marrison-cursor-hover');
+        body.classList.remove('marrison-cursor-disabled-zone');
+    }
+
+    createCursor();
+
+    document.addEventListener('pointermove', handlePointerMove, { passive: true });
+    document.addEventListener('pointerleave', hideCursor, { passive: true });
+    window.addEventListener('blur', hideCursor);
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            hideCursor();
         }
     });
 
-})(jQuery);
+    animate();
+})();
