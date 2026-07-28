@@ -8,7 +8,7 @@
 .marrison-module-card {
     background: #fff;
     border-radius: 8px;
-    padding: 20px;
+    padding: 18px 18px 16px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     border: 1px solid #dcdcde;
     display: flex;
@@ -19,7 +19,23 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     margin-bottom: 10px;
+}
+
+.marrison-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.marrison-card-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #2271b1;
+    flex-shrink: 0;
 }
 
 .marrison-card-title {
@@ -33,15 +49,15 @@
     font-size: 13px;
     color: #646970;
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.55;
 }
 
 /* Switch Toggle */
 .marrison-switch {
     position: relative;
     display: inline-block;
-    width: 42px;
-    height: 24px;
+    width: 32px;
+    height: 18px;
     flex-shrink: 0;
 }
 
@@ -67,8 +83,8 @@
 .marrison-slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
+    height: 12px;
+    width: 12px;
     left: 3px;
     bottom: 3px;
     background-color: white;
@@ -88,7 +104,7 @@ input:focus + .marrison-slider {
 input:checked + .marrison-slider:before {
     -webkit-transform: translateX(18px);
     -ms-transform: translateX(18px);
-    transform: translateX(18px);
+    transform: translateX(14px);
 }
 
 /* Button Loading State */

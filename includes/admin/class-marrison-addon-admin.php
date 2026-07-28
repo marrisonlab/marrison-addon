@@ -198,6 +198,7 @@ class Marrison_Addon_Admin {
 				<?php foreach ( $available_modules as $id => $module ) :
 					$checked = isset( $modules[ $id ] ) && $modules[ $id ] ? 'checked' : '';
 					$reload = isset( $module['reload'] ) && $module['reload'] ? 'true' : 'false';
+					$icon = isset( $module['icon'] ) ? $module['icon'] : 'dashicons-admin-generic';
 					
 					$is_disabled = false;
 					$disabled_attr = '';
@@ -213,7 +214,10 @@ class Marrison_Addon_Admin {
 				?>
 				<div class="marrison-module-card" <?php echo $card_style; ?>>
 					<div class="marrison-card-header">
-						<h3 class="marrison-card-title"><?php echo esc_html( $module['title'] ); ?></h3>
+						<div class="marrison-card-heading">
+							<span class="dashicons <?php echo esc_attr( $icon ); ?> marrison-card-icon" aria-hidden="true"></span>
+							<h3 class="marrison-card-title"><?php echo esc_html( $module['title'] ); ?></h3>
+						</div>
 						<label class="marrison-switch">
 							<input type="checkbox" 
 								   class="marrison-ajax-toggle" 

@@ -3,7 +3,7 @@
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
  * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Content Ticker, Header Animations, Custom Image Sizes, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, and Video Thumbnail.
- * Version: 1.3.1
+ * Version: 1.3.2
  * Author: Marrisonlab
  * Author URI:  https://marrisonlab.com
  * Text Domain: marrison-addon
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.3.1';
+	const VERSION = '1.3.2';
 
 	private $elementor_modules_initialized = false;
 	private $header_animations_initialized = false;
@@ -119,8 +119,9 @@ final class Marrison_Addon {
 	public static function get_module_definitions() {
 		return [
 			'wrapped_link' => [
+				'icon' => 'dashicons-admin-links',
 				'title' => esc_html__( 'Wrapped Link', 'marrison-addon' ),
-				'desc' => esc_html__( 'Aggiungi link a qualsiasi contenitore Elementor.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Rende cliccabile un contenitore Elementor senza modificare il layout o aggiungere widget extra.', 'marrison-addon' ),
 				'reload' => false,
 				'requires_elementor' => true,
 				'boot' => 'elementor',
@@ -128,8 +129,9 @@ final class Marrison_Addon {
 				'file' => 'includes/modules/class-marrison-addon-wrapped-link.php',
 			],
 			'ticker' => [
+				'icon' => 'dashicons-controls-forward',
 				'title' => esc_html__( 'Ticker', 'marrison-addon' ),
-				'desc' => esc_html__( 'Widget ticker notizie con supporto JetEngine.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Mostra testi o notizie in scorrimento continuo, anche partendo da contenuti dinamici.', 'marrison-addon' ),
 				'reload' => false,
 				'requires_elementor' => true,
 				'boot' => 'elementor',
@@ -137,8 +139,9 @@ final class Marrison_Addon {
 				'file' => 'includes/modules/class-marrison-addon-ticker.php',
 			],
 			'header_animations' => [
+				'icon' => 'dashicons-format-status',
 				'title' => esc_html__( 'Animazioni Header', 'marrison-addon' ),
-				'desc' => esc_html__( 'Aggiunge animazioni in ingresso extra solo al widget Heading di Elementor.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Aggiunge animazioni in ingresso extra al widget Heading di Elementor, mantenendo i controlli nativi.', 'marrison-addon' ),
 				'reload' => false,
 				'requires_elementor' => true,
 				'boot' => 'header',
@@ -146,8 +149,9 @@ final class Marrison_Addon {
 				'file' => 'includes/modules/class-marrison-addon-header-animations.php',
 			],
 			'image_sizes' => [
+				'icon' => 'dashicons-format-image',
 				'title' => esc_html__( 'Dimensioni Immagini', 'marrison-addon' ),
-				'desc' => esc_html__( 'Registra dimensioni immagine personalizzate e aggiungile al selettore media.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Aggiunge dimensioni immagine personalizzate al tema e le rende disponibili nel selettore media.', 'marrison-addon' ),
 				'reload' => true,
 				'requires_elementor' => false,
 				'boot' => 'independent',
@@ -155,8 +159,9 @@ final class Marrison_Addon {
 				'file' => 'includes/modules/class-marrison-addon-image-sizes.php',
 			],
 			'cursor' => [
+				'icon' => 'dashicons-arrow-right-alt2',
 				'title' => esc_html__( 'Cursore Animato', 'marrison-addon' ),
-				'desc' => esc_html__( 'Sostituisce il cursore predefinito con un puntatore animato personalizzabile.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Sostituisce il cursore standard con un effetto animato personalizzabile, visibile solo sul frontend.', 'marrison-addon' ),
 				'reload' => true,
 				'requires_elementor' => false,
 				'boot' => 'independent',
@@ -164,8 +169,9 @@ final class Marrison_Addon {
 				'file' => 'includes/modules/class-marrison-addon-cursor.php',
 			],
 			'preloader' => [
+				'icon' => 'dashicons-update',
 				'title' => esc_html__( 'Preloader', 'marrison-addon' ),
-				'desc' => esc_html__( 'Aggiungi una schermata di caricamento con logo personalizzato e spinner.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Mostra una schermata di caricamento con logo, stile e animazione personalizzati durante il caricamento della pagina.', 'marrison-addon' ),
 				'reload' => true,
 				'requires_elementor' => false,
 				'boot' => 'independent',
@@ -173,8 +179,9 @@ final class Marrison_Addon {
 				'file' => 'includes/modules/class-marrison-addon-preloader.php',
 			],
 			'fast_logout' => [
+				'icon' => 'dashicons-migrate',
 				'title' => esc_html__( 'Fast Logout', 'marrison-addon' ),
-				'desc' => esc_html__( 'Reindirizza automaticamente alla home page dopo il logout.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Reindirizza subito alla home page dopo il logout, saltando la schermata standard di WordPress.', 'marrison-addon' ),
 				'reload' => false,
 				'requires_elementor' => false,
 				'boot' => 'independent',
@@ -182,8 +189,9 @@ final class Marrison_Addon {
 				'file' => 'includes/modules/class-marrison-addon-fast-logout.php',
 			],
 			'calendar_sync' => [
+				'icon' => 'dashicons-calendar-alt',
 				'title' => esc_html__( 'Calendar Sync', 'marrison-addon' ),
-				'desc' => esc_html__( 'Genera link Google Calendar e file ICS da post e CPT.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Genera link Google Calendar e file ICS dai contenuti del sito partendo dai meta campi.', 'marrison-addon' ),
 				'reload' => true,
 				'requires_elementor' => false,
 				'boot' => 'independent',
@@ -191,8 +199,9 @@ final class Marrison_Addon {
 				'file' => 'includes/modules/class-marrison-addon-calendar-sync.php',
 			],
 			'cookie_manager' => [
+				'icon' => 'dashicons-shield-alt',
 				'title' => esc_html__( 'Cookie Manager', 'marrison-addon' ),
-				'desc' => esc_html__( 'Gestisce banner consenso, preferenze, scansione cookie e wizard di setup.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Gestisce banner, preferenze, scansione cookie e wizard iniziale per configurare il consenso.', 'marrison-addon' ),
 				'reload' => true,
 				'requires_elementor' => false,
 				'boot' => 'independent',
@@ -200,8 +209,9 @@ final class Marrison_Addon {
 				'file' => 'includes/modules/class-marrison-addon-cookie-manager.php',
 			],
 			'video_thumbnail' => [
+				'icon' => 'dashicons-video-alt3',
 				'title' => esc_html__( 'Video Thumbnail', 'marrison-addon' ),
-				'desc' => esc_html__( 'Importa miniature YouTube nella libreria media di WordPress.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Importa miniature YouTube e genera cover automatiche dai video locali caricati nella libreria media.', 'marrison-addon' ),
 				'reload' => true,
 				'requires_elementor' => false,
 				'boot' => 'independent',

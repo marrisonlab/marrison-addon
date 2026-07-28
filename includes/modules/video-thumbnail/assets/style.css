@@ -2,6 +2,18 @@
     max-width: 900px;
 }
 
+.mvt-section {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    margin: 20px 0;
+    padding: 18px 20px;
+}
+
+.mvt-section h2 {
+    margin-top: 0;
+}
+
 .mvt-form {
     display: flex;
     gap: 10px;
@@ -35,6 +47,26 @@
     background: #d1ecf1;
     border: 1px solid #bee5eb;
     color: #0c5460;
+}
+
+.mvt-ffmpeg-status {
+    border-left: 4px solid #dcdcde;
+    margin: 12px 0 18px;
+    padding: 10px 12px;
+}
+
+.mvt-ffmpeg-status.success {
+    background: #f0fdf4;
+    border-left-color: #46b450;
+}
+
+.mvt-ffmpeg-status.error {
+    background: #fef2f2;
+    border-left-color: #d63638;
+}
+
+.mvt-settings-form .form-table {
+    margin-top: 0;
 }
 
 .mvt-results {

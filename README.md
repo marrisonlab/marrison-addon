@@ -6,11 +6,11 @@
 *   **Plugin URI:** https://github.com/marrisonlab/marrison-addon
 *   **Author:** Angelo Marra
 *   **Author URI:** https://marrisonlab.com
-*   **Tags:** elementor, container, link, wrapper, ticker, cursor, preloader, logout, marrison
+*   **Tags:** elementor, container, link, wrapper, ticker, cursor, preloader, logout, video thumbnail, cookie, calendar, marrison
 *   **Requires at least:** 6.0
 *   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.1
+*   **Stable tag:** 1.3.2
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -66,6 +66,8 @@
 
 10. **Video Thumbnail:**
     *   Fetch YouTube thumbnails and import them directly into the WordPress Media Library.
+    *   Automatically generate JPG covers from uploaded MP4/WebM videos using FFmpeg.
+    *   Configure capture second, cover destination, and optional FFmpeg binary path from the admin page.
     *   Keeps the original admin workflow while living as a module inside Marrison Addon.
 
 ## Installation
@@ -76,6 +78,12 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.2
+*   **Enhancement:** Video Thumbnail now generates automatic covers for uploaded MP4/WebM videos.
+*   **Enhancement:** Added local video settings for capture second, cover destination, and optional FFmpeg path.
+*   **Security:** Added upload permission checks to Video Thumbnail AJAX actions.
+*   **UI:** Added module icons and refined dashboard card spacing, toggle sizing, and module descriptions.
 
 ### 1.3.1
 *   **Maintenance:** Updated plugin version, README stable tag, and WordPress compatibility to match the current WordPress release.
