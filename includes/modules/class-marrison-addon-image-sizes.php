@@ -262,24 +262,12 @@ class Marrison_Addon_Image_Sizes {
 				$dest_h = $size_data['height'];
 				$crop = $size_data['crop'];
 
-				// Calculate dimensions with upscaling
-				if ( $crop ) {
-					// Hard crop: upscale to fill exactly
-					$ratio = max( $dest_w / $orig_w, $dest_h / $orig_h );
-					$new_w = round( $orig_w * $ratio );
-					$new_h = round( $orig_h * $ratio );
-				} else {
-					// Soft crop: upscale proportionally
-					$ratio = min( $dest_w / $orig_w, $dest_h / $orig_h );
-					$new_w = round( $orig_w * $ratio );
-					$new_h = round( $orig_h * $ratio );
-				}
-
 				// Use center-center crop position for hard crop
 				$crop_position = $crop ? ['center', 'center'] : false;
 
-				// Resize the image
-				$editor->resize( $new_w, $new_h, $crop_position );
+				// Request the final dimensions directly. The image_resize_dimensions
+				// filter handles proportional upscaling and calculates the source crop.
+				$editor->resize( $dest_w, $dest_h, $crop_position );
 
 				// Save the resized image
 				$saved = $editor->save( $editor->generate_filename( $slug ) );
@@ -352,20 +340,9 @@ class Marrison_Addon_Image_Sizes {
 		$dest_h = $size_data['height'];
 		$crop = $size_data['crop'];
 
-		// Calculate dimensions
-		if ( $crop ) {
-			$ratio = max( $dest_w / $orig_w, $dest_h / $orig_h );
-			$new_w = round( $orig_w * $ratio );
-			$new_h = round( $orig_h * $ratio );
-		} else {
-			$ratio = min( $dest_w / $orig_w, $dest_h / $orig_h );
-			$new_w = round( $orig_w * $ratio );
-			$new_h = round( $orig_h * $ratio );
-		}
-
 		// Use center-center crop position for hard crop
 		$crop_position = $crop ? ['center', 'center'] : false;
-		$editor->resize( $new_w, $new_h, $crop_position );
+		$editor->resize( $dest_w, $dest_h, $crop_position );
 		$saved = $editor->save( $editor->generate_filename( $slug ) );
 
 		if ( is_wp_error( $saved ) ) {
@@ -496,19 +473,20 @@ class Marrison_Addon_Image_Sizes {
 					$size_w = (int) $size['width'];
 					$size_h = (int) $size['height'];
 					$size_crop = isset( $size['crop'] ) && $size['crop'];
+					$is_crop = (bool) $crop;
 					
 					// Match by dimensions and crop setting
-					if ( $size_w === $dest_w && $size_h === $dest_h && $size_crop === $crop ) {
+					if ( $size_w === $dest_w && $size_h === $dest_h && $size_crop === $is_crop ) {
 						// Check if original image is smaller than target
 						if ( $orig_w < $dest_w || $orig_h < $dest_h ) {
 							// Calculate dimensions with upscaling while maintaining aspect ratio
 							if ( $crop ) {
 								// Hard crop: upscale to fill exactly
 								$ratio = max( $dest_w / $orig_w, $dest_h / $orig_h );
-								$crop_w = round( $orig_w * $ratio );
-								$crop_h = round( $orig_h * $ratio );
-								$s_x = floor( ( $crop_w - $dest_w ) / 2 );
-								$s_y = floor( ( $crop_h - $dest_h ) / 2 );
+								$crop_w = round( $dest_w / $ratio );
+								$crop_h = round( $dest_h / $ratio );
+								$s_x = floor( ( $orig_w - $crop_w ) / 2 );
+								$s_y = floor( ( $orig_h - $crop_h ) / 2 );
 								return [ 0, 0, $s_x, $s_y, $dest_w, $dest_h, $crop_w, $crop_h ];
 							} else {
 								// Soft crop: upscale proportionally to fit within bounds
