@@ -8,6 +8,8 @@ class Marrison_Addon_Wrapped_Link {
 	public function __construct() {
 		add_action( 'elementor/element/container/section_layout/after_section_end', [ $this, 'register_controls' ] );
 		add_action( 'elementor/frontend/container/before_render', [ $this, 'before_render' ] );
+		add_action( 'elementor/element/common/_section_style/after_section_end', [ $this, 'register_controls' ] );
+		add_action( 'elementor/frontend/widget/before_render', [ $this, 'before_render' ] );
 	}
 
 	public function register_controls( $element ) {
@@ -43,7 +45,7 @@ class Marrison_Addon_Wrapped_Link {
 
 		if ( ! empty( $settings['marrison_addon_url']['url'] ) ) {
 			$this->enqueue_scripts();
-			$element->add_render_attribute( '_wrapper', 'data-marrison-addon', json_encode( $settings['marrison_addon_url'] ) );
+			$element->add_render_attribute( '_wrapper', 'data-marrison-addon', wp_json_encode( $settings['marrison_addon_url'] ) );
 			$element->add_render_attribute( '_wrapper', 'style', 'cursor: pointer;' );
 		}
 	}

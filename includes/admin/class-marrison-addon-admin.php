@@ -187,6 +187,8 @@ class Marrison_Addon_Admin {
 
 		$modules = get_option( 'marrison_addon_modules', [] );
 		$is_elementor_active = did_action( 'elementor/loaded' );
+		$is_woocommerce_active = Marrison_Addon::is_woocommerce_active();
+		$is_jet_engine_active = Marrison_Addon::is_jet_engine_active();
 
 		$available_modules = Marrison_Addon::get_module_definitions();
 		?>
@@ -205,11 +207,29 @@ class Marrison_Addon_Admin {
 					$card_style = '';
 					$badge = '';
 
+					$missing_requirements = [];
+
 					if ( isset( $module['requires_elementor'] ) && $module['requires_elementor'] && ! $is_elementor_active ) {
+						$missing_requirements[] = esc_html__( 'Elementor', 'marrison-addon' );
+					}
+
+					if ( isset( $module['requires_woocommerce'] ) && $module['requires_woocommerce'] && ! $is_woocommerce_active ) {
+						$missing_requirements[] = esc_html__( 'WooCommerce', 'marrison-addon' );
+					}
+
+					if ( isset( $module['requires_jet_engine'] ) && $module['requires_jet_engine'] && ! $is_jet_engine_active ) {
+						$missing_requirements[] = esc_html__( 'JetEngine', 'marrison-addon' );
+					}
+
+					if ( ! empty( $missing_requirements ) ) {
 						$is_disabled = true;
 						$disabled_attr = 'disabled';
 						$card_style = 'style="opacity: 0.6; filter: grayscale(100%); pointer-events: none;"';
-						$badge = '<span class="marrison-badge-error">' . esc_html__( 'Richiede Elementor', 'marrison-addon' ) . '</span>';
+						$badge = '<span class="marrison-badge-error">' . sprintf(
+							/* translators: %s: Missing plugin names. */
+							esc_html__( 'Richiede %s', 'marrison-addon' ),
+							esc_html( implode( ' + ', $missing_requirements ) )
+						) . '</span>';
 					}
 				?>
 				<div class="marrison-module-card" <?php echo $card_style; ?>>

@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
- * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Content Ticker, Header Animations, Custom Image Sizes, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, and Video Thumbnail.
- * Version: 1.3.2
+ * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Product Discount, Listing Grid Title, Recently Viewed Products, Content Ticker, Header Animations, Custom Image Sizes, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, and Video Thumbnail.
+ * Version: 1.3.12
  * Author: Marrisonlab
  * Author URI:  https://marrisonlab.com
  * Text Domain: marrison-addon
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.3.2';
+	const VERSION = '1.3.12';
 
 	private $elementor_modules_initialized = false;
 	private $header_animations_initialized = false;
@@ -34,6 +34,10 @@ final class Marrison_Addon {
 
 		foreach ( self::get_module_definitions() as $module_id => $module ) {
 			if ( ! self::is_module_enabled( $module_id ) || empty( $module['file'] ) ) {
+				continue;
+			}
+
+			if ( ! self::module_dependencies_available( $module ) ) {
 				continue;
 			}
 
@@ -85,6 +89,10 @@ final class Marrison_Addon {
 				continue;
 			}
 
+			if ( ! self::module_dependencies_available( $module ) ) {
+				continue;
+			}
+
 			if ( self::is_module_enabled( $module_id ) && ! empty( $module['class'] ) && class_exists( $module['class'] ) ) {
 				new $module['class']();
 			}
@@ -110,6 +118,10 @@ final class Marrison_Addon {
 				continue;
 			}
 
+			if ( ! self::module_dependencies_available( $module ) ) {
+				continue;
+			}
+
 			if ( self::is_module_enabled( $module_id ) && ! empty( $module['class'] ) && class_exists( $module['class'] ) ) {
 				new $module['class']();
 			}
@@ -121,7 +133,7 @@ final class Marrison_Addon {
 			'wrapped_link' => [
 				'icon' => 'dashicons-admin-links',
 				'title' => esc_html__( 'Wrapped Link', 'marrison-addon' ),
-				'desc' => esc_html__( 'Rende cliccabile un contenitore Elementor senza modificare il layout o aggiungere widget extra.', 'marrison-addon' ),
+				'desc' => esc_html__( 'Rende cliccabili container e widget Elementor senza modificare il layout o aggiungere widget extra.', 'marrison-addon' ),
 				'reload' => false,
 				'requires_elementor' => true,
 				'boot' => 'elementor',
@@ -137,6 +149,40 @@ final class Marrison_Addon {
 				'boot' => 'elementor',
 				'class' => 'Marrison_Addon_Ticker',
 				'file' => 'includes/modules/class-marrison-addon-ticker.php',
+			],
+			'product_discount' => [
+				'icon' => 'dashicons-tag',
+				'title' => esc_html__( 'Sconto Prodotto', 'marrison-addon' ),
+				'desc' => esc_html__( 'Aggiunge un widget Elementor che mostra la percentuale di sconto del prodotto WooCommerce corrente.', 'marrison-addon' ),
+				'reload' => false,
+				'requires_elementor' => true,
+				'requires_woocommerce' => true,
+				'boot' => 'elementor',
+				'class' => 'Marrison_Addon_Product_Discount',
+				'file' => 'includes/modules/class-marrison-addon-product-discount.php',
+			],
+			'recently_viewed_products' => [
+				'icon' => 'dashicons-visibility',
+				'title' => esc_html__( 'Visualizzati di recente', 'marrison-addon' ),
+				'desc' => esc_html__( 'Aggiunge una macro JetEngine con gli ID dei prodotti WooCommerce visualizzati di recente.', 'marrison-addon' ),
+				'reload' => false,
+				'requires_elementor' => false,
+				'requires_woocommerce' => true,
+				'requires_jet_engine' => true,
+				'boot' => 'independent',
+				'class' => 'Marrison_Addon_Recently_Viewed_Products',
+				'file' => 'includes/modules/class-marrison-addon-recently-viewed-products.php',
+			],
+			'listing_title' => [
+				'icon' => 'dashicons-heading',
+				'title' => esc_html__( 'Titolo Listing', 'marrison-addon' ),
+				'desc' => esc_html__( 'Aggiunge un campo titolo con controlli di stile direttamente nel widget Listing Grid di JetEngine.', 'marrison-addon' ),
+				'reload' => false,
+				'requires_elementor' => true,
+				'requires_jet_engine' => true,
+				'boot' => 'elementor',
+				'class' => 'Marrison_Addon_Listing_Title',
+				'file' => 'includes/modules/class-marrison-addon-listing-title.php',
 			],
 			'header_animations' => [
 				'icon' => 'dashicons-format-status',
@@ -225,6 +271,26 @@ final class Marrison_Addon {
 		$modules = get_option( 'marrison_addon_modules', [] );
 
 		return ! empty( $modules[ $module_id ] );
+	}
+
+	public static function module_dependencies_available( $module ) {
+		if ( ! empty( $module['requires_woocommerce'] ) && ! self::is_woocommerce_active() ) {
+			return false;
+		}
+
+		if ( ! empty( $module['requires_jet_engine'] ) && ! self::is_jet_engine_active() ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public static function is_woocommerce_active() {
+		return class_exists( 'WooCommerce' ) || function_exists( 'WC' );
+	}
+
+	public static function is_jet_engine_active() {
+		return function_exists( 'jet_engine' ) || class_exists( 'Jet_Engine' );
 	}
 }
 

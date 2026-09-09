@@ -6,11 +6,11 @@
 *   **Plugin URI:** https://github.com/marrisonlab/marrison-addon
 *   **Author:** Angelo Marra
 *   **Author URI:** https://marrisonlab.com
-*   **Tags:** elementor, container, link, wrapper, ticker, cursor, preloader, logout, video thumbnail, cookie, calendar, marrison
+*   **Tags:** elementor, container, link, wrapper, ticker, discount, woocommerce, cursor, preloader, logout, video thumbnail, cookie, calendar, marrison
 *   **Requires at least:** 6.0
 *   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.2
+*   **Stable tag:** 1.3.12
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -21,7 +21,7 @@
 **Included Modules:**
 
 1.  **Wrapped Link (Elementor):**
-    *   Make an entire Elementor Container clickable.
+    *   Make an entire Elementor Container or widget clickable.
     *   Adds a "Wrapped Link" section directly to the **Advanced** tab.
     *   Supports dynamic tags and custom attributes.
 
@@ -30,41 +30,59 @@
     *   Customizable speed, direction, and styling.
     *   Pause on hover functionality.
 
-3.  **Header Animations (Elementor):**
+3.  **Product Discount (WooCommerce + Elementor):**
+    *   Adds an Elementor widget that displays the current product discount percentage.
+    *   Works in product pages and product listings that provide a WooCommerce product context.
+    *   Includes typography, color, background, alignment, border, radius, padding, and shadow controls.
+
+4.  **Header Animations (Elementor):**
     *   Adds 10 custom entrance animations to Elementor's Heading widget only.
     *   Uses Elementor's native entrance animation control and timing options.
 
-4.  **Preloader:**
+5.  **Recently Viewed Products (WooCommerce + JetEngine):**
+    *   Adds the "Visualizzati di recente (prodotti)" macro to JetEngine macro UIs.
+    *   Returns recently viewed WooCommerce product IDs as a comma-separated list.
+    *   Designed for dynamic query parameters and Elementor/JetEngine listing contexts.
+    *   Tracks product views while the module is enabled, without requiring WooCommerce's native recently viewed widget.
+    *   When used in Query Builder, disable "Cache Query" because results depend on the visitor cookie.
+
+6.  **Listing Grid Title (JetEngine + Elementor):**
+    *   Adds a "Titolo Listing" section directly to the JetEngine Listing Grid widget.
+    *   Outputs an optional title before the Listing Grid output.
+    *   Includes title text, optional link, HTML tag, typography, colors, alignment, background, border, radius, shadow, padding, and margin controls.
+    *   To center Listing Grid items when a row has fewer elements, add `selector .jet-listing-grid__items { justify-content: center; }` to the Listing Grid custom CSS.
+
+7.  **Preloader:**
     *   Add a professional loading screen to your site.
     *   **Animations:** Fade, Slide Up, Slide Left, Split (Curtain), Shutter (Vertical).
     *   **Spinners:** Circle, Dots, Double Ring, Wave, Pulse (Logo).
     *   **Customization:** Upload your logo, choose colors, and set transition duration.
     *   **Progress Bar:** Optional progress bar with percentage display.
 
-5.  **Custom Cursor:**
+8.  **Custom Cursor:**
     *   Replace the default system cursor with a custom follower.
     *   Customizable colors, size, and hover effects (scale, magnetic).
     *   "Exclusion" blending mode for high visibility on any background.
     *   **Frontend Only:** Skips backend, preview, and Elementor Editor contexts.
 
-6.  **Image Sizes:**
+9.  **Image Sizes:**
     *   Define custom image sizes for your theme directly from the dashboard.
     *   Control cropping and dimensions without editing code.
 
-7.  **Fast Logout:**
+10. **Fast Logout:**
     *   Automatically redirects users to the home page after logging out, bypassing the default WordPress login screen.
 
-8.  **Calendar Sync:**
+11. **Calendar Sync:**
     *   Generate Google Calendar and ICS event links from post meta.
     *   Configurable meta keys for start and end dates.
     *   Includes shortcode support for templates and dynamic content.
 
-9.  **Cookie Manager:**
+12. **Cookie Manager:**
     *   Cookie banner, floating widget, preferences modal, and setup wizard.
     *   Automatic cookie scanning and category management.
     *   Frontend UI only loads when the module is active and in a real frontend context.
 
-10. **Video Thumbnail:**
+13. **Video Thumbnail:**
     *   Fetch YouTube thumbnails and import them directly into the WordPress Media Library.
     *   Automatically generate JPG covers from uploaded MP4/WebM videos using FFmpeg.
     *   Configure capture second, cover destination, and optional FFmpeg binary path from the admin page.
@@ -78,6 +96,37 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.12
+*   **Docs:** Added the recommended Listing Grid CSS snippet for centering items when a row has fewer elements.
+
+### 1.3.11
+*   **Fix:** Listing Grid Title is prepended to the Listing Grid widget content, so it appears in the Elementor preview and matches the widget-scoped style controls.
+
+### 1.3.10
+*   **New Module:** Listing Grid Title adds a title field and style controls directly to the JetEngine Listing Grid widget.
+*   **Performance:** Listing Grid Title does not enqueue frontend JS or CSS; styling is generated by Elementor only when the Listing Grid title option is used.
+
+### 1.3.8
+*   **Fix:** Recently Viewed Products now tracks product views directly while the module is enabled, without depending on WooCommerce's native recently viewed widget.
+
+### 1.3.7
+*   **Fix:** Recently Viewed Products now returns a positive non-existing product ID when the list is empty, preventing JetEngine from discarding the Post In value and returning all products.
+*   **Enhancement:** The macro can include the current product immediately when "Escludi prodotto corrente" is set to "No".
+
+### 1.3.6
+*   **Fix:** Recently Viewed Products now returns an empty-query-safe value when no product IDs are available, preventing JetEngine Posts Query from falling back to all products.
+
+### 1.3.5
+*   **New Module:** Recently Viewed Products adds a JetEngine macro for WooCommerce recently viewed product IDs.
+*   **Performance:** The module only registers the macro when enabled and when WooCommerce and JetEngine are available.
+
+### 1.3.4
+*   **New Module:** Product Discount adds an Elementor widget for WooCommerce sale percentage badges.
+*   **Performance:** Product Discount stays unavailable when WooCommerce is inactive and does not enqueue frontend JS or CSS.
+
+### 1.3.3
+*   **Enhancement:** Wrapped Link is now available for Elementor widgets as well as Containers.
 
 ### 1.3.2
 *   **Enhancement:** Video Thumbnail now generates automatic covers for uploaded MP4/WebM videos.
