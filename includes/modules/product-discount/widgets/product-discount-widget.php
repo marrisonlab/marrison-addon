@@ -233,7 +233,7 @@ class Product_Discount_Widget extends \Elementor\Widget_Base {
 		}
 
 		$settings = $this->get_settings_for_display();
-		$discount = $this->get_discount_percentage( $product );
+		$discount = \Marrison_Addon_Product_Discount::get_discount_percentage( $product );
 
 		if ( $discount <= 0 ) {
 			return;
@@ -277,55 +277,6 @@ class Product_Discount_Widget extends \Elementor\Widget_Base {
 		}
 
 		return wc_get_product( $post_id );
-	}
-
-	private function get_discount_percentage( $product ) {
-		if ( ! $product instanceof \WC_Product || ! $product->is_on_sale() ) {
-			return 0;
-		}
-
-		if ( $product->is_type( 'variable' ) && method_exists( $product, 'get_variation_prices' ) ) {
-			return $this->get_variable_discount_percentage( $product );
-		}
-
-		$regular_price = (float) $product->get_regular_price();
-		$sale_price = (float) $product->get_sale_price();
-
-		return $this->calculate_discount_percentage( $regular_price, $sale_price );
-	}
-
-	private function get_variable_discount_percentage( $product ) {
-		$prices = $product->get_variation_prices( false );
-
-		if ( empty( $prices['regular_price'] ) || empty( $prices['sale_price'] ) ) {
-			return 0;
-		}
-
-		$highest_discount = 0;
-
-		foreach ( $prices['regular_price'] as $variation_id => $regular_price ) {
-			$sale_price = isset( $prices['sale_price'][ $variation_id ] ) ? $prices['sale_price'][ $variation_id ] : 0;
-			$active_price = isset( $prices['price'][ $variation_id ] ) ? $prices['price'][ $variation_id ] : $sale_price;
-
-			if ( (float) $sale_price !== (float) $active_price ) {
-				continue;
-			}
-
-			$highest_discount = max(
-				$highest_discount,
-				$this->calculate_discount_percentage( (float) $regular_price, (float) $sale_price )
-			);
-		}
-
-		return $highest_discount;
-	}
-
-	private function calculate_discount_percentage( $regular_price, $sale_price ) {
-		if ( $regular_price <= 0 || $sale_price < 0 || $sale_price >= $regular_price ) {
-			return 0;
-		}
-
-		return ( ( $regular_price - $sale_price ) / $regular_price ) * 100;
 	}
 
 	private function round_discount( $discount, $method, $decimals ) {

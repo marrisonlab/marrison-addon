@@ -157,7 +157,7 @@ final class Marrison_Addon {
 				'reload' => false,
 				'requires_elementor' => true,
 				'requires_woocommerce' => true,
-				'boot' => 'elementor',
+				'boot' => 'independent',
 				'class' => 'Marrison_Addon_Product_Discount',
 				'file' => 'includes/modules/class-marrison-addon-product-discount.php',
 			],
