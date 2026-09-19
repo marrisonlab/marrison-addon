@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
- * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Product Discount, Listing Grid Title, Recently Viewed Products, Content Ticker, Header Animations, Custom Image Sizes, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, and Video Thumbnail.
- * Version: 1.3.12
+ * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Product Discount, Listing Grid Title, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, and Video Thumbnail.
+ * Version: 1.3.13
  * Author: Marrisonlab
  * Author URI:  https://marrisonlab.com
  * Text Domain: marrison-addon
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.3.12';
+	const VERSION = '1.3.13';
 
 	private $elementor_modules_initialized = false;
 	private $header_animations_initialized = false;
@@ -193,6 +193,16 @@ final class Marrison_Addon {
 				'boot' => 'header',
 				'class' => 'Marrison_Addon_Header_Animations',
 				'file' => 'includes/modules/class-marrison-addon-header-animations.php',
+			],
+			'anchor_offset' => [
+				'icon' => 'dashicons-editor-unlink',
+				'title' => esc_html__( 'Anchor Offset', 'marrison-addon' ),
+				'desc' => esc_html__( 'Corregge lo scroll degli anchor link usando l\'altezza dell\'header con ID hdr, evitando sezioni coperte.', 'marrison-addon' ),
+				'reload' => false,
+				'requires_elementor' => false,
+				'boot' => 'independent',
+				'class' => 'Marrison_Addon_Anchor_Offset',
+				'file' => 'includes/modules/class-marrison-addon-anchor-offset.php',
 			],
 			'image_sizes' => [
 				'icon' => 'dashicons-format-image',

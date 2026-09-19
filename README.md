@@ -6,11 +6,11 @@
 *   **Plugin URI:** https://github.com/marrisonlab/marrison-addon
 *   **Author:** Angelo Marra
 *   **Author URI:** https://marrisonlab.com
-*   **Tags:** elementor, container, link, wrapper, ticker, discount, woocommerce, cursor, preloader, logout, video thumbnail, cookie, calendar, marrison
+*   **Tags:** elementor, container, link, wrapper, anchor, ticker, discount, woocommerce, cursor, preloader, logout, video thumbnail, cookie, calendar, marrison
 *   **Requires at least:** 6.0
 *   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.12
+*   **Stable tag:** 1.3.13
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -52,37 +52,42 @@
     *   Includes title text, optional link, HTML tag, typography, colors, alignment, background, border, radius, shadow, padding, and margin controls.
     *   To center Listing Grid items when a row has fewer elements, add `selector .jet-listing-grid__items { justify-content: center; }` to the Listing Grid custom CSS.
 
-7.  **Preloader:**
+7.  **Anchor Offset:**
+    *   Corrects same-page anchor scroll when the site header uses the `hdr` ID.
+    *   Uses the live height of `#hdr` so linked sections are not hidden under a fixed or sticky header.
+    *   Applies to anchor clicks, direct page loads with a hash, and hash changes.
+
+8.  **Preloader:**
     *   Add a professional loading screen to your site.
     *   **Animations:** Fade, Slide Up, Slide Left, Split (Curtain), Shutter (Vertical).
     *   **Spinners:** Circle, Dots, Double Ring, Wave, Pulse (Logo).
     *   **Customization:** Upload your logo, choose colors, and set transition duration.
     *   **Progress Bar:** Optional progress bar with percentage display.
 
-8.  **Custom Cursor:**
+9.  **Custom Cursor:**
     *   Replace the default system cursor with a custom follower.
     *   Customizable colors, size, and hover effects (scale, magnetic).
     *   "Exclusion" blending mode for high visibility on any background.
     *   **Frontend Only:** Skips backend, preview, and Elementor Editor contexts.
 
-9.  **Image Sizes:**
+10. **Image Sizes:**
     *   Define custom image sizes for your theme directly from the dashboard.
     *   Control cropping and dimensions without editing code.
 
-10. **Fast Logout:**
+11. **Fast Logout:**
     *   Automatically redirects users to the home page after logging out, bypassing the default WordPress login screen.
 
-11. **Calendar Sync:**
+12. **Calendar Sync:**
     *   Generate Google Calendar and ICS event links from post meta.
     *   Configurable meta keys for start and end dates.
     *   Includes shortcode support for templates and dynamic content.
 
-12. **Cookie Manager:**
+13. **Cookie Manager:**
     *   Cookie banner, floating widget, preferences modal, and setup wizard.
     *   Automatic cookie scanning and category management.
     *   Frontend UI only loads when the module is active and in a real frontend context.
 
-13. **Video Thumbnail:**
+14. **Video Thumbnail:**
     *   Fetch YouTube thumbnails and import them directly into the WordPress Media Library.
     *   Automatically generate JPG covers from uploaded MP4/WebM videos using FFmpeg.
     *   Configure capture second, cover destination, and optional FFmpeg binary path from the admin page.
@@ -96,6 +101,9 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.13
+*   **New Module:** Anchor Offset adjusts same-page anchor scrolling using the live height of the header with ID `hdr`.
 
 ### 1.3.12
 *   **Docs:** Added the recommended Listing Grid CSS snippet for centering items when a row has fewer elements.
