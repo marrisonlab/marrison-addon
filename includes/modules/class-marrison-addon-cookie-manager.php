@@ -97,6 +97,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 	private function init_hooks() {
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'wp_ajax_marrison_repair_cookie_table', array( $this, 'ajax_repair_cookie_table' ) );
 		add_action( 'marrison_addon/module_status_changed', array( $this, 'handle_module_status_change' ), 10, 2 );
 	}
 
@@ -109,8 +110,12 @@ class Marrison_Addon_Cookie_Manager_Module {
 		}
 
 		$this->create_default_options();
-		$this->create_tables();
-		update_option( 'marrison_cookie_module_version', MARRISON_COOKIE_VERSION );
+
+		$table_result = $this->create_tables();
+
+		if ( ! empty( $table_result['success'] ) ) {
+			update_option( 'marrison_cookie_module_version', MARRISON_COOKIE_VERSION );
+		}
 
 		if ( $is_first_install ) {
 			set_transient( 'marrison_cookie_just_activated', true, 30 );
@@ -134,18 +139,23 @@ class Marrison_Addon_Cookie_Manager_Module {
 			return;
 		}
 
+		$admin_css_path = MARRISON_COOKIE_PLUGIN_DIR . 'assets/css/admin.css';
+		$admin_js_path = MARRISON_COOKIE_PLUGIN_DIR . 'assets/js/admin.js';
+		$admin_css_version = file_exists( $admin_css_path ) ? (string) filemtime( $admin_css_path ) : MARRISON_COOKIE_VERSION;
+		$admin_js_version = file_exists( $admin_js_path ) ? (string) filemtime( $admin_js_path ) : MARRISON_COOKIE_VERSION;
+
 		wp_enqueue_style(
 			'marrison-cookie-admin',
 			MARRISON_COOKIE_PLUGIN_URL . 'assets/css/admin.css',
 			array(),
-			MARRISON_COOKIE_VERSION
+			$admin_css_version
 		);
 
 		wp_enqueue_script(
 			'marrison-cookie-admin',
 			MARRISON_COOKIE_PLUGIN_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
-			MARRISON_COOKIE_VERSION,
+			$admin_js_version,
 			true
 		);
 
@@ -165,8 +175,31 @@ class Marrison_Addon_Cookie_Manager_Module {
 				'categoryFunctional'  => function_exists( 'marrison_cookie_site_text' ) ? marrison_cookie_site_text( 'Funzionali', 'Functional' ) : 'Funzionali',
 				'categoryAnalytics'   => function_exists( 'marrison_cookie_site_text' ) ? marrison_cookie_site_text( 'Analitici', 'Analytics' ) : 'Analitici',
 				'categoryMarketing'   => function_exists( 'marrison_cookie_site_text' ) ? marrison_cookie_site_text( 'Marketing', 'Marketing' ) : 'Marketing',
+				'repairingTableText'  => function_exists( 'marrison_cookie_site_text' ) ? marrison_cookie_site_text( 'Verifica tabella in corso...', 'Checking table...' ) : 'Verifica tabella in corso...',
+				'tableReadyText'      => function_exists( 'marrison_cookie_site_text' ) ? marrison_cookie_site_text( 'Tabella cookie pronta.', 'Cookie table ready.' ) : 'Tabella cookie pronta.',
 			)
 		);
+	}
+
+	public function ajax_repair_cookie_table() {
+		check_ajax_referer( 'marrison_cookie_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error(
+				array(
+					'message' => 'Permessi insufficienti',
+				)
+			);
+		}
+
+		$result = $this->create_tables();
+
+		if ( ! empty( $result['success'] ) ) {
+			update_option( 'marrison_cookie_module_version', MARRISON_COOKIE_VERSION );
+			wp_send_json_success( $result );
+		}
+
+		wp_send_json_error( $result );
 	}
 
 	private function is_cookie_manager_admin_page() {
@@ -233,7 +266,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 		$table_name = $wpdb->prefix . 'marrison_cookies';
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
+		$sql = "CREATE TABLE $table_name (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			cookie_name varchar(255) NOT NULL,
 			cookie_domain varchar(255) DEFAULT '',
@@ -242,7 +275,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 			cookie_category varchar(50) DEFAULT 'functional',
 			cookie_description text DEFAULT '',
 			source varchar(255) DEFAULT '',
-			scan_date datetime DEFAULT CURRENT_TIMESTAMP,
+			scan_date datetime DEFAULT NULL,
 			PRIMARY KEY  (id),
 			KEY cookie_name (cookie_name),
 			KEY cookie_category (cookie_category)
@@ -250,5 +283,81 @@ class Marrison_Addon_Cookie_Manager_Module {
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
+
+		if ( $this->cookie_table_exists( $table_name ) ) {
+			return array(
+				'success' => true,
+				'message' => 'Tabella cookie creata o gia presente tramite dbDelta.',
+				'database' => DB_NAME,
+				'table' => $table_name,
+				'method' => 'dbDelta',
+			);
+		}
+
+		$quoted_table_name = $this->quote_identifier( $table_name );
+		$wpdb->last_error = '';
+		$created = $wpdb->query(
+			"CREATE TABLE IF NOT EXISTS $quoted_table_name (
+				id mediumint(9) NOT NULL AUTO_INCREMENT,
+				cookie_name varchar(255) NOT NULL,
+				cookie_domain varchar(255) DEFAULT '',
+				cookie_path varchar(255) DEFAULT '/',
+				cookie_expiration datetime DEFAULT NULL,
+				cookie_category varchar(50) DEFAULT 'functional',
+				cookie_description text DEFAULT '',
+				source varchar(255) DEFAULT '',
+				scan_date datetime DEFAULT NULL,
+				PRIMARY KEY  (id),
+				KEY cookie_name (cookie_name),
+				KEY cookie_category (cookie_category)
+			) $charset_collate"
+		);
+
+		$create_error = $wpdb->last_error;
+
+		if ( false !== $created && $this->cookie_table_exists( $table_name ) ) {
+			return array(
+				'success' => true,
+				'message' => 'Tabella cookie creata tramite query diretta.',
+				'database' => DB_NAME,
+				'table' => $table_name,
+				'method' => 'direct',
+			);
+		}
+
+		return array(
+			'success' => false,
+			'message' => $create_error ? $create_error : 'CREATE TABLE eseguito, ma la tabella non risulta presente dopo la verifica.',
+			'database' => DB_NAME,
+			'table' => $table_name,
+			'method' => false === $created ? 'direct_failed' : 'verification_failed',
+		);
+	}
+
+	private function cookie_table_exists( $table_name ) {
+		global $wpdb;
+
+		$previous_error = $wpdb->last_error;
+
+		$found = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s LIMIT 1',
+				$table_name
+			)
+		);
+
+		if ( $found === $table_name ) {
+			$wpdb->last_error = $previous_error;
+			return true;
+		}
+
+		$found = $wpdb->get_var( "SHOW TABLES LIKE '" . esc_sql( $wpdb->esc_like( $table_name ) ) . "'" );
+		$wpdb->last_error = $previous_error;
+
+		return $found === $table_name;
+	}
+
+	private function quote_identifier( $identifier ) {
+		return '`' . str_replace( '`', '``', $identifier ) . '`';
 	}
 }

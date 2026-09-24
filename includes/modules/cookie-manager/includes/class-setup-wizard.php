@@ -174,15 +174,18 @@ class Marrison_Setup_Wizard {
         
         $scanner = Marrison_Cookie_Scanner::get_instance();
         $result = $scanner->perform_scan();
+        $cookies = $scanner->get_cookies('all');
         
-        if ($result) {
-            $cookies = $scanner->get_cookies('all');
+        if ($result || !empty($cookies)) {
             wp_send_json_success(array(
                 'message' => 'Scansione completata',
                 'cookies' => $cookies
             ));
         } else {
-            wp_send_json_error(array('message' => 'Errore durante la scansione'));
+            $error = $scanner->get_last_scan_error();
+            wp_send_json_error(array(
+                'message' => $error ? 'Scansione completata senza cookie rilevati. Dettaglio: ' . $error : 'Scansione completata senza cookie rilevati'
+            ));
         }
     }
     
@@ -282,16 +285,7 @@ class Marrison_Setup_Wizard {
                     continue;
                 }
 
-                global $wpdb;
-                $table_name = $wpdb->prefix . 'marrison_cookies';
-                
-                $wpdb->update(
-                    $table_name,
-                    array('cookie_category' => sanitize_text_field($category)),
-                    array('id' => intval($cookie_id)),
-                    array('%s'),
-                    array('%d')
-                );
+                $scanner->update_cookie_record_category($cookie_id, $category);
             }
         }
     }

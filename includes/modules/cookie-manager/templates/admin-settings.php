@@ -328,11 +328,16 @@ $categories = $scanner->get_categories();
                 </div>
                 
                 <div class="marrison-scanner-controls">
+                    <button type="button" id="marrison-repair-cookie-table" class="button">
+                        <?php _e('Verifica/Ripara Tabella', 'marrison-cookie'); ?>
+                    </button>
+
                     <button type="button" id="marrison-scan-cookies" class="button button-primary">
                         <?php _e('Avvia Scansione', 'marrison-cookie'); ?>
                     </button>
                     
                     <span id="marrison-scan-status"></span>
+                    <span id="marrison-db-status"></span>
                 </div>
                 
                 <div class="marrison-scanner-filters">

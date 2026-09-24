@@ -11,6 +11,7 @@
             this.bindEvents();
             this.applyExistingPreferences();
             this.checkExistingConsent();
+            this.activateAllowedBlockedContent();
         },
 
         bindEvents: function() {
@@ -197,6 +198,8 @@
                 },
                 success: function(response) {
                     if (response.success) {
+                        MarrisonCookie.applyConsentCookies(consentType, categories);
+                        MarrisonCookie.activateAllowedBlockedContent();
                         $('#marrison-cookie-banner').hide();
                         $('#marrison-cookie-modal').hide();
                         MarrisonCookie.showFloatingWidget();
@@ -208,6 +211,88 @@
                     window.console && console.error('Errore AJAX:', error);
                 }
             });
+        },
+
+        applyConsentCookies: function(consentType, categories) {
+            var duration = parseInt(marrisonCookie.consentDuration || 30, 10);
+            var expires = new Date();
+
+            if (consentType === 'accept_all') {
+                categories = ['necessary', 'functional', 'analytics', 'marketing'];
+            } else if (consentType === 'reject_all') {
+                categories = ['necessary'];
+            }
+
+            expires.setTime(expires.getTime() + (duration * 24 * 60 * 60 * 1000));
+            document.cookie = 'marrison_cookie_consent=' + encodeURIComponent(consentType) + '; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
+            document.cookie = 'marrison_cookie_categories=' + encodeURIComponent((categories || []).join('|')) + '; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
+        },
+
+        activateAllowedBlockedContent: function() {
+            var allowedCategories = MarrisonCookie.getAllowedCategories();
+
+            $('[data-marrison-cookie-blocked]').each(function() {
+                var element = this;
+                var $element = $(element);
+                var category = $element.data('marrison-cookie-category');
+
+                if (allowedCategories.indexOf(category) === -1) {
+                    return;
+                }
+
+                if ($element.data('marrison-cookie-blocked') === 'script') {
+                    MarrisonCookie.activateBlockedScript(element);
+                } else if ($element.data('marrison-cookie-blocked') === 'iframe') {
+                    MarrisonCookie.activateBlockedIframe(element);
+                }
+            });
+        },
+
+        activateBlockedScript: function(element) {
+            var replacement = document.createElement('script');
+            var blockedSrc = element.getAttribute('data-marrison-blocked-src');
+
+            $.each(element.attributes, function(index, attr) {
+                if (!attr || attr.name === 'type' || attr.name.indexOf('data-marrison-') === 0) {
+                    return;
+                }
+
+                replacement.setAttribute(attr.name, attr.value);
+            });
+
+            if (blockedSrc) {
+                replacement.src = blockedSrc;
+            } else {
+                replacement.text = element.text || element.textContent || element.innerHTML || '';
+            }
+
+            element.parentNode.replaceChild(replacement, element);
+        },
+
+        activateBlockedIframe: function(element) {
+            var blockedSrc = element.getAttribute('data-marrison-blocked-src');
+
+            if (blockedSrc) {
+                element.setAttribute('src', blockedSrc);
+                element.removeAttribute('data-marrison-blocked-src');
+                element.removeAttribute('data-marrison-cookie-blocked');
+            }
+        },
+
+        getAllowedCategories: function() {
+            var consent = MarrisonCookie.getCookie('marrison_cookie_consent');
+            var categoriesCookie = MarrisonCookie.getCookie('marrison_cookie_categories');
+            var categories = ['necessary'];
+
+            if (consent === 'accept_all') {
+                return ['necessary', 'functional', 'analytics', 'marketing'];
+            }
+
+            if (categoriesCookie) {
+                categories = decodeURIComponent(categoriesCookie).split('|');
+            }
+
+            return categories;
         },
 
         updatePreferences: function(categories) {

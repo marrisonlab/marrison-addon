@@ -8,6 +8,8 @@ jQuery(document).ready(function($) {
     var $logContainer = $('#marrison-log-container');
     var $logList = $('#marrison-log-list');
     var $stopBtn = $('#marrison-stop-btn');
+    var $testAvifBtn = $('#marrison-test-avif-btn');
+    var $avifTestResult = $('#marrison-avif-test-result');
 
     var isProcessing = false;
     var totalImages = 0;
@@ -33,6 +35,38 @@ jQuery(document).ready(function($) {
         $stopBtn.hide();
         $regenerateBtn.show().prop('disabled', false);
         $logList.prepend('<li><span style="color: red;">' + marrison_vars.process_stopped + '</span></li>');
+    });
+
+    $testAvifBtn.on('click', function(e) {
+        e.preventDefault();
+
+        $testAvifBtn.prop('disabled', true);
+        $avifTestResult.css('color', '').text(marrison_vars.avif_testing);
+
+        $.ajax({
+            url: marrison_vars.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'marrison_test_avif_support',
+                nonce: marrison_vars.nonce
+            },
+            success: function(response) {
+                var details = response.data && response.data.details ? ' (' + response.data.details.join(' - ') + ')' : '';
+                var message = response.data && response.data.message ? response.data.message : 'Risposta non valida.';
+
+                $avifTestResult
+                    .css('color', response.success ? '#008a20' : '#d63638')
+                    .text(message + details);
+            },
+            error: function() {
+                $avifTestResult
+                    .css('color', '#d63638')
+                    .text('Errore durante il test AVIF.');
+            },
+            complete: function() {
+                $testAvifBtn.prop('disabled', false);
+            }
+        });
     });
 
     function startRegeneration() {
@@ -129,5 +163,19 @@ jQuery(document).ready(function($) {
         $stopBtn.hide();
         $logList.prepend('<li><strong>' + message + '</strong></li>');
         $progressFill.css('width', '100%');
+
+        $.ajax({
+            url: marrison_vars.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'marrison_clear_elementor_css_cache',
+                nonce: marrison_vars.nonce
+            },
+            success: function(response) {
+                if (response.success && response.data.message) {
+                    $logList.prepend('<li class="success">' + response.data.message + '</li>');
+                }
+            }
+        });
     }
 });

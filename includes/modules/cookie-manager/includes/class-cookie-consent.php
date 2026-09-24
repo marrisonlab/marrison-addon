@@ -29,6 +29,7 @@ class Marrison_Cookie_Consent {
     private function init_hooks() {
         // Hook per bloccare script prima del consenso
         add_action('wp_enqueue_scripts', array($this, 'manage_scripts'), 999);
+        add_action('template_redirect', array($this, 'start_output_buffer'), 0);
         
         // Hook per shortcode per mostrare preferenze
         add_shortcode('marrison_cookie_preferences', array($this, 'render_preferences_shortcode'));
@@ -36,6 +37,133 @@ class Marrison_Cookie_Consent {
         // AJAX per aggiornare preferenze
         add_action('wp_ajax_marrison_update_preferences', array($this, 'ajax_update_preferences'));
         add_action('wp_ajax_nopriv_marrison_update_preferences', array($this, 'ajax_update_preferences'));
+    }
+
+    /**
+     * Avvia un buffer HTML per neutralizzare script/iframe traccianti hardcoded.
+     */
+    public function start_output_buffer() {
+        if (is_admin() || wp_doing_ajax() || (class_exists('Marrison_Addon_Context') && !Marrison_Addon_Context::is_public_frontend_request())) {
+            return;
+        }
+
+        ob_start(array($this, 'filter_output'));
+    }
+
+    /**
+     * Blocca preventivamente script e iframe noti finche manca il consenso alla categoria.
+     */
+    public function filter_output($html) {
+        if (!is_string($html) || '' === $html) {
+            return $html;
+        }
+
+        $html = preg_replace_callback('/<script\b([^>]*)>(.*?)<\/script>/is', array($this, 'filter_script_tag'), $html);
+        $html = preg_replace_callback('/<iframe\b([^>]*)>/is', array($this, 'filter_iframe_tag'), $html);
+
+        return $html;
+    }
+
+    /**
+     * Neutralizza script esterni o inline associati ad analytics/marketing.
+     */
+    private function filter_script_tag($matches) {
+        $attributes = isset($matches[1]) ? $matches[1] : '';
+        $body = isset($matches[2]) ? $matches[2] : '';
+        $haystack = $attributes . "\n" . $body;
+        $category = $this->detect_tracking_category($haystack);
+
+        if (!$category || $this->is_category_allowed($category)) {
+            return $matches[0];
+        }
+
+        $blocked_attributes = preg_replace('/\s+type=(["\']).*?\1/i', '', $attributes);
+        $blocked_attributes = preg_replace('/\s+src=(["\'])(.*?)\1/i', ' data-marrison-blocked-src=$1$2$1', $blocked_attributes);
+
+        return '<script type="text/plain" data-marrison-cookie-blocked="script" data-marrison-cookie-category="' . esc_attr($category) . '"' . $blocked_attributes . '>' . $body . '</script>';
+    }
+
+    /**
+     * Neutralizza iframe di terze parti che possono impostare tracciamenti.
+     */
+    private function filter_iframe_tag($matches) {
+        $attributes = isset($matches[1]) ? $matches[1] : '';
+        $category = $this->detect_tracking_category($attributes);
+
+        if (!$category || $this->is_category_allowed($category)) {
+            return $matches[0];
+        }
+
+        $blocked_attributes = preg_replace('/\s+src=(["\'])(.*?)\1/i', ' data-marrison-blocked-src=$1$2$1', $attributes);
+
+        return '<iframe data-marrison-cookie-blocked="iframe" data-marrison-cookie-category="' . esc_attr($category) . '"' . $blocked_attributes . '>';
+    }
+
+    /**
+     * Associa URL/snippet comuni alle categorie consenso.
+     */
+    private function detect_tracking_category($content) {
+        $content = strtolower((string) $content);
+
+        $analytics_patterns = array(
+            'google-analytics.com',
+            'googletagmanager.com/gtag/js',
+            'gtag(',
+            'ga(',
+            'dataLayer',
+            'monsterinsights',
+            'stats.wp.com',
+            'matomo',
+            'plausible.io',
+        );
+
+        foreach ($analytics_patterns as $pattern) {
+            if (false !== strpos($content, strtolower($pattern))) {
+                return 'analytics';
+            }
+        }
+
+        $marketing_patterns = array(
+            'googletagmanager.com/gtm.js',
+            'connect.facebook.net',
+            'facebook.com/tr',
+            'fbq(',
+            'doubleclick.net',
+            'googleadservices.com',
+            'googlesyndication.com',
+            'hotjar',
+            'clarity.ms',
+            'youtube.com',
+            'youtube-nocookie.com',
+            'vimeo.com',
+            'google.com/maps',
+            'maps.googleapis.com',
+        );
+
+        foreach ($marketing_patterns as $pattern) {
+            if (false !== strpos($content, strtolower($pattern))) {
+                return 'marketing';
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Verifica se una categoria opzionale e consentita.
+     */
+    private function is_category_allowed($category) {
+        $consent = $this->get_user_consent();
+
+        if ('accept_all' === $consent) {
+            return true;
+        }
+
+        if ('custom' === $consent) {
+            return in_array($category, $this->get_consent_categories(), true);
+        }
+
+        return false;
     }
     
     /**

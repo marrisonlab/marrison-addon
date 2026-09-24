@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.13
+*   **Stable tag:** 1.3.24
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -101,6 +101,46 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.24
+*   **Enhancement:** Cookie Manager now blocks common analytics and marketing scripts/iframes before consent, then activates them only when the visitor accepts the related category.
+*   **Fix:** Cookie preference controls now start with only necessary cookies selected by default, avoiding preselected optional categories.
+
+### 1.3.23
+*   **Fix:** Cookie Manager now creates and verifies its cookie scan table more reliably, including a manual repair/check action in the scanner panel with diagnostic output.
+*   **Fix:** Cookie Manager avoids a `DATETIME DEFAULT CURRENT_TIMESTAMP` table definition so older or stricter MySQL/MariaDB servers can create the scan table.
+*   **Enhancement:** Cookie scans now report whether results are stored in the database table or the JSON fallback, and admin assets use file timestamps to avoid stale cached JavaScript/CSS.
+
+### 1.3.22
+*   **Enhancement:** Image Sizes adds optional AVIF generation alongside WebP for custom and registered WordPress image sizes, with separate quality settings and server support testing in the admin screen.
+*   **Enhancement:** Frontend image replacement now prefers AVIF for browsers that advertise support, keeps WebP as fallback, and sends `Vary: Accept` when AVIF is selected.
+
+### 1.3.21
+*   **Fix:** Image Sizes now resolves already-generated full-size `.webp` background URLs from Elementor runtime slideshows back to the attachment metadata, so the configured default generated WebP size can be served instead.
+
+### 1.3.20
+*   **Fix:** Image Sizes now resolves Elementor slideshow and lightbox JSON image URLs through attachment metadata, so original JPG/PNG payloads use the configured generated WebP size instead of full-size `.webp` files.
+
+### 1.3.19
+*   **Enhancement:** Image Sizes adds an Elementor Container "Ottimizzazione LCP" control to preload the hero background or first slideshow image and prioritize the first internal image.
+*   **Fix:** Image Sizes now rewrites Elementor lightbox `data-e-action-hash` payloads and slideshow `data-settings` image URLs from JPG/PNG to WebP in the frontend output buffer.
+
+### 1.3.18
+*   **Fix:** Image Sizes responsive background auto mode now considers both rendered width and height for `background-size: cover`, preserving cover behavior without choosing undersized WebP crops.
+
+### 1.3.17
+*   **Enhancement:** Image Sizes now includes a frontend auto mode for dynamic CSS background images, choosing the smallest suitable generated WebP size based on the rendered container width and device pixel ratio.
+
+### 1.3.16
+*   **Enhancement:** Image Sizes can now choose a WebP-enabled fallback size for original/full image URLs, so dynamic Elementor background images can be served as resized WebP files instead of full-size uploads.
+
+### 1.3.15
+*   **Enhancement:** Image Sizes can now edit existing custom sizes while preserving the original slug, so existing Elementor and gallery assignments remain valid.
+*   **Enhancement:** Image Sizes can now enable WebP conversion and quality settings for registered WordPress, theme, and plugin image sizes.
+
+### 1.3.14
+*   **Fix:** Image Sizes now serves generated WebP files on the frontend for WordPress image URLs, srcset candidates, Elementor-generated CSS backgrounds, and inline/plugin-rendered upload URLs when a WebP counterpart exists.
+*   **Enhancement:** WebP regeneration also creates a WebP counterpart for the original upload and clears Elementor generated CSS after thumbnail regeneration.
 
 ### 1.3.13
 *   **New Module:** Anchor Offset adjusts same-page anchor scrolling using the live height of the header with ID `hdr`.

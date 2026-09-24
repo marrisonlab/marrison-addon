@@ -61,7 +61,7 @@ $layout_class = 'marrison-banner-layout-' . $banner_layout;
                 ?>
                 
                 <?php foreach ($categories as $key => $category): ?>
-                    <?php $checked_by_default = $category['required'] || $key === 'functional'; ?>
+                    <?php $checked_by_default = $category['required']; ?>
                     <div class="marrison-cookie-category" data-category="<?php echo esc_attr($key); ?>">
                         <div class="marrison-category-header">
                             <div class="marrison-category-info">

@@ -23,6 +23,11 @@
                 MarrisonCookieAdmin.scanCookies();
             });
 
+            $(document).on('click', '#marrison-repair-cookie-table', function(e) {
+                e.preventDefault();
+                MarrisonCookieAdmin.repairCookieTable();
+            });
+
             $(document).on('change', '#marrison-category-filter', function(e) {
                 e.preventDefault();
                 MarrisonCookieAdmin.loadCookies($(this).val());
@@ -72,6 +77,7 @@
         scanCookies: function() {
             var $button = $('#marrison-scan-cookies');
             var $status = $('#marrison-scan-status');
+            var $dbStatus = $('#marrison-db-status');
 
             if ($button.length === 0) {
                 return;
@@ -92,18 +98,33 @@
                     nonce: marrisonCookieAdmin.nonce
                 },
                 success: function(response) {
+                    var data = response.data || {};
+
                     if (response.success) {
+                        var scanText = marrisonCookieAdmin.scanSuccessText || 'Scan completed!';
+                        if (data.count || data.count === 0) {
+                            scanText += ' (' + data.count + ' cookie)';
+                        }
+
                         $status
                             .removeClass('marrison-scan-status-loading')
                             .addClass('marrison-scan-status-success')
-                            .text(marrisonCookieAdmin.scanSuccessText || 'Scan completed!');
+                            .text(scanText);
+
+                        if (data.storage_label && $dbStatus.length) {
+                            $dbStatus
+                                .removeClass('marrison-scan-status-loading marrison-scan-status-error')
+                                .addClass('marrison-scan-status-success')
+                                .text('Storage scansione: ' + data.storage_label + (data.storage_detail ? ' (' + data.storage_detail + ')' : ''))
+                                .show();
+                        }
 
                         MarrisonCookieAdmin.loadCookies();
                     } else {
                         $status
                             .removeClass('marrison-scan-status-loading')
                             .addClass('marrison-scan-status-error')
-                            .text((marrisonCookieAdmin.errorText || 'Error: ') + (response.data.message || 'Unknown'));
+                            .text((marrisonCookieAdmin.errorText || 'Error: ') + (data.message || 'Unknown'));
                     }
 
                     $button.prop('disabled', false);
@@ -111,6 +132,57 @@
                     setTimeout(function() {
                         $status.fadeOut();
                     }, 3000);
+                },
+                error: function() {
+                    $status
+                        .removeClass('marrison-scan-status-loading')
+                        .addClass('marrison-scan-status-error')
+                        .text(marrisonCookieAdmin.connectionErrorText || 'Connection error');
+
+                    $button.prop('disabled', false);
+                }
+            });
+        },
+
+        repairCookieTable: function() {
+            var $button = $('#marrison-repair-cookie-table');
+            var $status = $('#marrison-db-status');
+
+            if ($button.length === 0) {
+                return;
+            }
+
+            $button.prop('disabled', true);
+            $status
+                .removeClass('marrison-scan-status-success marrison-scan-status-error')
+                .addClass('marrison-scan-status-loading')
+                .text(marrisonCookieAdmin.repairingTableText || 'Verifica tabella in corso...')
+                .show();
+
+            $.ajax({
+                url: marrisonCookieAdmin.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'marrison_repair_cookie_table',
+                    nonce: marrisonCookieAdmin.nonce
+                },
+                success: function(response) {
+                    var data = response.data || {};
+                    var detail = data.table ? ' (' + data.database + '.' + data.table + ', ' + data.method + ')' : '';
+
+                    if (response.success) {
+                        $status
+                            .removeClass('marrison-scan-status-loading')
+                            .addClass('marrison-scan-status-success')
+                            .text((data.message || marrisonCookieAdmin.tableReadyText || 'Tabella cookie pronta.') + detail);
+                    } else {
+                        $status
+                            .removeClass('marrison-scan-status-loading')
+                            .addClass('marrison-scan-status-error')
+                            .text((marrisonCookieAdmin.errorText || 'Error: ') + (data.message || 'Unknown') + detail);
+                    }
+
+                    $button.prop('disabled', false);
                 },
                 error: function() {
                     $status

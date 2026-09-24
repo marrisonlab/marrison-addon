@@ -12,7 +12,7 @@ $current_consent = isset($_COOKIE['marrison_cookie_consent']) ? sanitize_text_fi
     
     <div class="marrison-preferences-content">
         <?php foreach ($categories as $key => $category): ?>
-            <?php $checked_by_default = $category['required'] || $key === 'functional'; ?>
+            <?php $checked_by_default = $category['required']; ?>
             <div class="marrison-pref-category">
                 <div class="marrison-pref-header">
                     <div class="marrison-pref-info">

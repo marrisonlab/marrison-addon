@@ -266,21 +266,25 @@
     transform: none;
 }
 
-#marrison-scan-status {
+#marrison-scan-status,
+#marrison-db-status {
     font-weight: 600;
     font-size: 0.95em;
     color: #495057;
 }
 
-.marrison-scan-status-loading {
+#marrison-scan-status.marrison-scan-status-loading,
+#marrison-db-status.marrison-scan-status-loading {
     color: #7546b9;
 }
 
-.marrison-scan-status-success {
+#marrison-scan-status.marrison-scan-status-success,
+#marrison-db-status.marrison-scan-status-success {
     color: #7546b9;
 }
 
-.marrison-scan-status-error {
+#marrison-scan-status.marrison-scan-status-error,
+#marrison-db-status.marrison-scan-status-error {
     color: #dc3545;
 }
 
