@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
- * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Product Discount, Listing Grid Title, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, and Video Thumbnail.
- * Version: 1.3.24
+ * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Steps, Product Discount, Listing Grid Title, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, and Video Thumbnail.
+ * Version: 1.3.25
  * Author: Marrisonlab
  * Author URI:  https://marrisonlab.com
  * Text Domain: marrison-addon
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.3.24';
+	const VERSION = '1.3.25';
 
 	private $elementor_modules_initialized = false;
 	private $header_animations_initialized = false;
@@ -149,6 +149,16 @@ final class Marrison_Addon {
 				'boot' => 'elementor',
 				'class' => 'Marrison_Addon_Ticker',
 				'file' => 'includes/modules/class-marrison-addon-ticker.php',
+			],
+			'steps' => [
+				'icon' => 'dashicons-editor-ol',
+				'title' => esc_html__( 'Steps', 'marrison-addon' ),
+				'desc' => esc_html__( 'Aggiunge un widget Elementor per creare step responsive con numeri, icone, immagini e connettori personalizzabili.', 'marrison-addon' ),
+				'reload' => false,
+				'requires_elementor' => true,
+				'boot' => 'elementor',
+				'class' => 'Marrison_Addon_Steps',
+				'file' => 'includes/modules/class-marrison-addon-steps.php',
 			],
 			'product_discount' => [
 				'icon' => 'dashicons-tag',

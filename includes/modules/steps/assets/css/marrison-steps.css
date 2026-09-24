@@ -1,0 +1,367 @@
+.marrison-steps {
+	--marrison-steps-connector-horizontal-length: 80px;
+	--marrison-steps-connector-vertical-length: 36px;
+	--marrison-steps-connector-width: 2px;
+	--marrison-steps-connector-style: solid;
+	--marrison-steps-connector-color: #111827;
+	--marrison-steps-arrow-size: 12px;
+}
+
+.marrison-steps-list {
+	display: grid;
+	align-items: stretch;
+	justify-content: center;
+	width: 100%;
+}
+
+.marrison-step {
+	display: flex;
+	width: 100%;
+	min-width: 0;
+}
+
+.marrison-step-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+	min-width: 0;
+}
+
+.marrison-step-marker {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	overflow: hidden;
+	line-height: 1;
+}
+
+.marrison-step-number {
+	font-size: 24px;
+	font-weight: 700;
+}
+
+.marrison-step-icon {
+	font-size: 28px;
+}
+
+.marrison-step-icon i,
+.marrison-step-icon svg {
+	display: block;
+	width: 1em;
+	height: 1em;
+}
+
+.marrison-step-icon svg {
+	fill: currentColor;
+}
+
+.marrison-step-image img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.marrison-step-title {
+	margin: 0;
+	line-height: 1.2;
+}
+
+.marrison-step-text {
+	line-height: 1.5;
+}
+
+.marrison-step-text p,
+.marrison-step-text br:last-child {
+	margin-bottom: 0;
+}
+
+.marrison-step-connector {
+	--marrison-steps-arrow-rotation: 45deg;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--marrison-steps-connector-horizontal-length);
+	min-width: 16px;
+	position: relative;
+}
+
+.marrison-step-connector-line {
+	display: block;
+	width: 100%;
+	border-top: var(--marrison-steps-connector-width) var(--marrison-steps-connector-style) var(--marrison-steps-connector-color);
+}
+
+.marrison-step-connector-head {
+	--marrison-steps-arrow-offset: 0px;
+	display: block;
+	position: absolute;
+	right: 0;
+	width: var(--marrison-steps-arrow-size);
+	height: var(--marrison-steps-arrow-size);
+	transform-origin: center;
+}
+
+.marrison-step-connector-head-arrow,
+.marrison-step-connector-head-chevron {
+	border-top: var(--marrison-steps-connector-width) var(--marrison-steps-connector-style) var(--marrison-steps-connector-color);
+	border-right: var(--marrison-steps-connector-width) var(--marrison-steps-connector-style) var(--marrison-steps-connector-color);
+	transform: rotate(var(--marrison-steps-arrow-rotation));
+}
+
+.marrison-step-connector-head-chevron {
+	border-radius: 1px;
+}
+
+.marrison-step-connector-head-triangle {
+	width: 0;
+	height: 0;
+	border-top: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+	border-bottom: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+	border-left: var(--marrison-steps-arrow-size) solid var(--marrison-steps-connector-color);
+}
+
+.marrison-step-connector-head-double-one {
+	right: calc(var(--marrison-steps-arrow-size) * 0.65);
+}
+
+.marrison-step-connector-head-double-two {
+	right: 0;
+}
+
+.marrison-steps-connector-none .marrison-step-connector {
+	display: none;
+}
+
+.marrison-steps-layout-vertical .marrison-steps-list {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.marrison-steps-layout-vertical .marrison-step {
+	width: 100%;
+}
+
+.marrison-steps-layout-vertical .marrison-step-connector {
+	--marrison-steps-arrow-rotation: 135deg;
+	flex-basis: var(--marrison-steps-connector-vertical-length);
+	width: auto;
+	height: var(--marrison-steps-connector-vertical-length);
+	min-height: 8px;
+}
+
+.marrison-steps-layout-vertical .marrison-step-connector-line {
+	width: 0;
+	height: 100%;
+	border-top: 0;
+	border-left: var(--marrison-steps-connector-width) var(--marrison-steps-connector-style) var(--marrison-steps-connector-color);
+}
+
+.marrison-steps-layout-vertical .marrison-step-connector-head {
+	right: auto;
+	bottom: 0;
+}
+
+.marrison-steps-layout-vertical .marrison-step-connector-head-triangle {
+	border-top: var(--marrison-steps-arrow-size) solid var(--marrison-steps-connector-color);
+	border-right: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+	border-left: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+	border-bottom: 0;
+}
+
+.marrison-steps-layout-vertical .marrison-step-connector-head-double-one {
+	right: auto;
+	bottom: calc(var(--marrison-steps-arrow-size) * 0.65);
+}
+
+.marrison-steps-layout-vertical .marrison-step-connector-head-double-two {
+	right: auto;
+	bottom: 0;
+}
+
+@media (max-width: 1024px) {
+	.marrison-steps-layout-tablet-horizontal .marrison-steps-list {
+		display: grid;
+		align-items: stretch;
+	}
+
+	.marrison-steps-layout-tablet-horizontal .marrison-step-connector {
+		--marrison-steps-arrow-rotation: 45deg;
+		width: var(--marrison-steps-connector-horizontal-length);
+		height: auto;
+		min-height: 0;
+	}
+
+	.marrison-steps-layout-tablet-horizontal .marrison-step-connector-line {
+		width: 100%;
+		height: auto;
+		border-left: 0;
+		border-top: var(--marrison-steps-connector-width) var(--marrison-steps-connector-style) var(--marrison-steps-connector-color);
+	}
+
+	.marrison-steps-layout-tablet-horizontal .marrison-step-connector-head {
+		right: 0;
+		bottom: auto;
+	}
+
+	.marrison-steps-layout-tablet-horizontal .marrison-step-connector-head-triangle {
+		width: 0;
+		height: 0;
+		border-top: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+		border-bottom: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+		border-left: var(--marrison-steps-arrow-size) solid var(--marrison-steps-connector-color);
+		border-right: 0;
+	}
+
+	.marrison-steps-layout-tablet-horizontal .marrison-step-connector-head-double-one {
+		right: calc(var(--marrison-steps-arrow-size) * 0.65);
+		bottom: auto;
+	}
+
+	.marrison-steps-layout-tablet-horizontal .marrison-step-connector-head-double-two {
+		right: 0;
+		bottom: auto;
+	}
+
+	.marrison-steps-layout-tablet-vertical .marrison-steps-list {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.marrison-steps-layout-tablet-vertical .marrison-step {
+		width: 100%;
+	}
+
+	.marrison-steps-layout-tablet-vertical .marrison-step-connector {
+		--marrison-steps-arrow-rotation: 135deg;
+		flex-basis: var(--marrison-steps-connector-vertical-length);
+		width: auto;
+		height: var(--marrison-steps-connector-vertical-length);
+		min-height: 8px;
+	}
+
+	.marrison-steps-layout-tablet-vertical .marrison-step-connector-line {
+		width: 0;
+		height: 100%;
+		border-top: 0;
+		border-left: var(--marrison-steps-connector-width) var(--marrison-steps-connector-style) var(--marrison-steps-connector-color);
+	}
+
+	.marrison-steps-layout-tablet-vertical .marrison-step-connector-head {
+		right: auto;
+		bottom: 0;
+	}
+
+	.marrison-steps-layout-tablet-vertical .marrison-step-connector-head-triangle {
+		border-top: var(--marrison-steps-arrow-size) solid var(--marrison-steps-connector-color);
+		border-right: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+		border-left: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+		border-bottom: 0;
+	}
+
+	.marrison-steps-layout-tablet-vertical .marrison-step-connector-head-double-one {
+		right: auto;
+		bottom: calc(var(--marrison-steps-arrow-size) * 0.65);
+	}
+
+	.marrison-steps-layout-tablet-vertical .marrison-step-connector-head-double-two {
+		right: auto;
+		bottom: 0;
+	}
+}
+
+@media (max-width: 767px) {
+	.marrison-steps-layout-mobile-horizontal .marrison-steps-list {
+		display: grid;
+		align-items: stretch;
+	}
+
+	.marrison-steps-layout-mobile-horizontal .marrison-step-connector {
+		--marrison-steps-arrow-rotation: 45deg;
+		width: var(--marrison-steps-connector-horizontal-length);
+		height: auto;
+		min-height: 0;
+	}
+
+	.marrison-steps-layout-mobile-horizontal .marrison-step-connector-line {
+		width: 100%;
+		height: auto;
+		border-left: 0;
+		border-top: var(--marrison-steps-connector-width) var(--marrison-steps-connector-style) var(--marrison-steps-connector-color);
+	}
+
+	.marrison-steps-layout-mobile-horizontal .marrison-step-connector-head {
+		right: 0;
+		bottom: auto;
+	}
+
+	.marrison-steps-layout-mobile-horizontal .marrison-step-connector-head-triangle {
+		width: 0;
+		height: 0;
+		border-top: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+		border-bottom: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+		border-left: var(--marrison-steps-arrow-size) solid var(--marrison-steps-connector-color);
+		border-right: 0;
+	}
+
+	.marrison-steps-layout-mobile-horizontal .marrison-step-connector-head-double-one {
+		right: calc(var(--marrison-steps-arrow-size) * 0.65);
+		bottom: auto;
+	}
+
+	.marrison-steps-layout-mobile-horizontal .marrison-step-connector-head-double-two {
+		right: 0;
+		bottom: auto;
+	}
+
+	.marrison-steps-layout-mobile-vertical .marrison-steps-list {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.marrison-steps-layout-mobile-vertical .marrison-step {
+		width: 100%;
+	}
+
+	.marrison-steps-layout-mobile-vertical .marrison-step-connector {
+		--marrison-steps-arrow-rotation: 135deg;
+		flex-basis: var(--marrison-steps-connector-vertical-length);
+		width: auto;
+		height: var(--marrison-steps-connector-vertical-length);
+		min-height: 8px;
+	}
+
+	.marrison-steps-layout-mobile-vertical .marrison-step-connector-line {
+		width: 0;
+		height: 100%;
+		border-top: 0;
+		border-left: var(--marrison-steps-connector-width) var(--marrison-steps-connector-style) var(--marrison-steps-connector-color);
+	}
+
+	.marrison-steps-layout-mobile-vertical .marrison-step-connector-head {
+		right: auto;
+		bottom: 0;
+	}
+
+	.marrison-steps-layout-mobile-vertical .marrison-step-connector-head-triangle {
+		border-top: var(--marrison-steps-arrow-size) solid var(--marrison-steps-connector-color);
+		border-right: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+		border-left: calc(var(--marrison-steps-arrow-size) / 2) solid transparent;
+		border-bottom: 0;
+	}
+
+	.marrison-steps-layout-mobile-vertical .marrison-step-connector-head-double-one {
+		right: auto;
+		bottom: calc(var(--marrison-steps-arrow-size) * 0.65);
+	}
+
+	.marrison-steps-layout-mobile-vertical .marrison-step-connector-head-double-two {
+		right: auto;
+		bottom: 0;
+	}
+}
