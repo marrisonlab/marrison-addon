@@ -155,7 +155,7 @@ class Marrison_Addon_Preloader {
 		$progress_bar_width = $settings['progress_bar_width'];
 		$progress_bar_height = $settings['progress_bar_height'];
 		?>
-		<div class="wrap">
+		<div class="wrap marrison-admin-page marrison-admin-page-preloader">
 			<h1><?php echo esc_html__( 'Impostazioni Preloader', 'marrison-addon' ); ?></h1>
 			<p><?php echo esc_html__( 'Configura la schermata di caricamento del sito.', 'marrison-addon' ); ?></p>
 
@@ -163,7 +163,7 @@ class Marrison_Addon_Preloader {
 				<?php settings_fields( 'marrison_addon_preloader_group' ); ?>
 				<?php do_settings_sections( 'marrison_addon_preloader_group' ); ?>
 
-				<div class="marrison-module-card" style="max-width: 600px; margin-top: 20px;">
+				<div class="marrison-module-card marrison-settings-card">
 					<div class="marrison-card-header">
 						<h2 class="marrison-card-title"><?php echo esc_html__( 'Aspetto', 'marrison-addon' ); ?></h2>
 					</div>
@@ -198,7 +198,7 @@ class Marrison_Addon_Preloader {
 					</table>
 				</div>
 
-				<div class="marrison-module-card" style="max-width: 600px; margin-top: 20px;">
+				<div class="marrison-module-card marrison-settings-card">
 					<div class="marrison-card-header">
 						<h2 class="marrison-card-title"><?php echo esc_html__( 'Spinner & Animazione', 'marrison-addon' ); ?></h2>
 					</div>

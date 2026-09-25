@@ -2309,7 +2309,7 @@ class Marrison_Addon_Image_Sizes {
 			'show_in_media' => true,
 		];
 		?>
-		<div class="wrap">
+		<div class="wrap marrison-admin-page marrison-admin-page-image-sizes">
 			<h1><?php echo esc_html__( 'Gestore Dimensioni Immagini', 'marrison-addon' ); ?></h1>
 			<p><?php echo esc_html__( 'Registra dimensioni immagine personalizzate per il tuo tema.', 'marrison-addon' ); ?></p>
 

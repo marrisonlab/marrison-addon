@@ -176,6 +176,92 @@
     outline-offset: 3px;
 }
 
+@media (min-width: 1025px) {
+    .marrison-cookie-banner.marrison-banner-layout-bar {
+        padding: 14px 24px;
+        box-shadow: 0 -14px 34px rgba(15, 23, 42, 0.12);
+    }
+
+    .marrison-cookie-banner.marrison-banner-top.marrison-banner-layout-bar {
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+    }
+
+    .marrison-banner-layout-bar .marrison-banner-container {
+        max-width: 1180px;
+        flex-wrap: nowrap;
+        gap: 24px;
+    }
+
+    .marrison-banner-layout-bar .marrison-banner-content {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: baseline;
+        column-gap: 14px;
+        row-gap: 4px;
+        max-width: none;
+        min-width: 0;
+    }
+
+    .marrison-banner-layout-bar .marrison-banner-title {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+
+    .marrison-banner-layout-bar .marrison-banner-description {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.45;
+        opacity: 0.78;
+    }
+
+    .marrison-banner-layout-bar .marrison-banner-links {
+        grid-column: 2;
+        gap: 12px;
+        margin-top: 1px;
+    }
+
+    .marrison-banner-layout-bar .marrison-banner-link {
+        border-bottom: 0;
+        font-size: 12px;
+        font-weight: 700;
+        opacity: 0.9;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+    }
+
+    .marrison-banner-layout-bar .marrison-banner-buttons {
+        flex: 0 0 auto;
+        gap: 10px;
+        flex-wrap: nowrap;
+    }
+
+    .marrison-banner-layout-bar .marrison-button {
+        align-items: center;
+        border-radius: 5px;
+        box-shadow: none;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 700;
+        justify-content: center;
+        line-height: 1.15;
+        min-height: 38px;
+        min-width: 118px;
+        padding: 10px 16px;
+    }
+
+    .marrison-banner-layout-bar .marrison-button:hover {
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+    }
+
+    .marrison-banner-layout-bar .marrison-button-reject,
+    .marrison-banner-layout-bar .marrison-button-customize {
+        background-clip: padding-box;
+    }
+}
+
 /* Modal personalizzazione */
 .marrison-modal {
     position: fixed;
@@ -268,12 +354,43 @@
     border-radius: 50%;
     transition: all 0.2s ease;
     color: #666;
+    font-family: Arial, sans-serif;
+    font-weight: 400;
+    text-align: center;
+    box-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .marrison-close-button:hover {
     background-color: #e0e0e0;
     color: #333;
-    transform: rotate(90deg);
+    transform: none;
+}
+
+#marrison-cookie-modal .marrison-close-button {
+    align-items: center !important;
+    background: #f5f5f5 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+    color: #666 !important;
+    display: flex !important;
+    height: 40px !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    min-height: 40px !important;
+    min-width: 40px !important;
+    padding: 0 !important;
+    transform: none !important;
+    width: 40px !important;
+}
+
+#marrison-cookie-modal .marrison-close-button:hover {
+    background: #e0e0e0 !important;
+    color: #333 !important;
+    transform: none !important;
 }
 
 .marrison-cookie-category {
@@ -472,51 +589,103 @@
 /* Responsive */
 @media (max-width: 768px) {
     .marrison-cookie-banner {
-        padding: 8px 14px;
+        padding: 5px 8px;
     }
 
     .marrison-banner-layout-box {
         width: auto;
-        left: 16px;
-        right: 16px;
+        left: 6px;
+        right: 6px;
         top: auto;
-        bottom: 16px;
-        padding: 14px;
+        bottom: 6px;
+        padding: 6px;
+        border-radius: 6px;
     }
     
     .marrison-banner-container {
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
+        gap: 5px;
     }
     
     .marrison-banner-content {
-        min-width: 100%;
+        min-width: 0;
     }
     
     .marrison-banner-title {
-        font-size: 0.92em;
+        display: none;
     }
     
-    .marrison-banner-description {
-        font-size: 0.78em;
+    #marrison-cookie-banner .marrison-banner-description {
+        display: -webkit-box;
+        margin: 0 !important;
+        max-height: 1.2em !important;
+        overflow: hidden !important;
+        font-size: 12.6px !important;
+        line-height: 1.2 !important;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+    }
+
+    .marrison-banner-layout-box .marrison-banner-description {
+        margin-bottom: 0;
+    }
+
+    .marrison-banner-links {
+        gap: 8px;
+        margin-top: 2px;
+    }
+
+    #marrison-cookie-banner .marrison-banner-link {
+        font-size: 12px !important;
+        line-height: 1.1 !important;
     }
     
-    .marrison-banner-buttons {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        width: 100%;
+    #marrison-cookie-banner .marrison-banner-buttons {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: center !important;
+        gap: 4px !important;
+        width: 100% !important;
+    }
+
+    .marrison-banner-layout-box .marrison-banner-buttons {
+        margin-top: 0 !important;
     }
     
-    .marrison-button {
-        width: 100%;
-        min-width: 0;
-        padding: 7px 12px;
-        font-size: 0.74em;
+    #marrison-cookie-banner .marrison-banner-buttons .marrison-button {
+        box-sizing: border-box !important;
+        align-items: center !important;
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        min-height: 44px !important;
+        height: auto !important;
+        padding: 10px !important;
+        border-radius: 4px !important;
+        overflow: visible !important;
+        font-size: 11.2px !important;
+        line-height: 1.1 !important;
+        letter-spacing: 0 !important;
+        text-align: center !important;
+        text-overflow: clip !important;
+        text-transform: none !important;
+        white-space: nowrap !important;
+        box-shadow: none !important;
+    }
+
+    .marrison-banner-layout-box .marrison-button {
+        flex: none !important;
     }
 
     .marrison-button-customize {
-        grid-column: 1 / -1;
+        grid-column: auto;
+    }
+
+    .marrison-banner-layout-box .marrison-button-customize {
+        flex-basis: auto;
     }
     
     .marrison-modal-content {
@@ -544,6 +713,29 @@
     
     .marrison-switch {
         margin-top: 8px;
+    }
+}
+
+@media (max-width: 360px) {
+    .marrison-cookie-banner {
+        padding: 4px 6px;
+    }
+
+    .marrison-banner-layout-box {
+        left: 5px;
+        right: 5px;
+        bottom: 5px;
+        padding: 5px;
+    }
+
+    #marrison-cookie-banner .marrison-banner-buttons {
+        gap: 3px !important;
+    }
+
+    #marrison-cookie-banner .marrison-banner-buttons .marrison-button {
+        padding: 10px !important;
+        font-size: 10.2px !important;
+        min-height: 42px !important;
     }
 }
 
@@ -796,28 +988,157 @@
 /* Responsive modal */
 @media (max-width: 768px) {
     .marrison-modal {
-        padding: 16px;
         align-items: flex-end;
+        padding: 8px 8px 0;
     }
     
-    .marrison-modal-content {
-        max-height: 85vh;
-        border-radius: 8px 8px 0 0;
+    #marrison-cookie-modal .marrison-modal-content {
+        width: 100%;
+        max-height: calc(100vh - 8px);
+        max-height: calc(100dvh - 8px);
+        margin: 0;
+        overflow: hidden;
+        border-radius: 10px 10px 0 0;
+        display: flex;
+        flex-direction: column;
     }
     
-    .marrison-modal-header {
-        padding: 20px 24px;
+    #marrison-cookie-modal .marrison-modal-header {
+        flex: 0 0 auto;
+        padding: 12px 14px;
+        background: #fff;
     }
     
-    .marrison-modal-header h3 {
-        font-size: 1.3em;
+    #marrison-cookie-modal .marrison-modal-header h3 {
+        font-size: 1rem;
+        line-height: 1.2;
     }
     
-    .marrison-modal-body {
-        padding: 24px;
+    #marrison-cookie-modal .marrison-close-button {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        font-size: 1.35rem !important;
+    }
+
+    #marrison-cookie-modal .marrison-modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 10px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
-    .marrison-modal-footer {
-        padding: 20px 24px;
+    #marrison-cookie-modal .marrison-cookie-category {
+        margin-bottom: 8px;
+        padding: 10px;
+        border-radius: 6px;
+    }
+
+    #marrison-cookie-modal .marrison-category-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #marrison-cookie-modal .marrison-category-info {
+        min-width: 0;
+    }
+
+    #marrison-cookie-modal .marrison-category-info h4 {
+        margin-bottom: 3px;
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+
+    #marrison-cookie-modal .marrison-category-info p {
+        display: -webkit-box;
+        max-height: 2.5em;
+        overflow: hidden;
+        font-size: 0.72rem;
+        line-height: 1.25;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    #marrison-cookie-modal .marrison-switch {
+        width: 42px;
+        height: 24px;
+        margin-top: 0;
+    }
+
+    #marrison-cookie-modal .marrison-slider {
+        border-radius: 24px;
+    }
+
+    #marrison-cookie-modal .marrison-slider:before {
+        width: 18px;
+        height: 18px;
+        left: 3px;
+        bottom: 3px;
+    }
+
+    #marrison-cookie-modal .marrison-switch input:checked + .marrison-slider:before,
+    #marrison-cookie-modal .marrison-switch input:disabled + .marrison-slider:before {
+        transform: translateX(18px);
+    }
+
+    #marrison-cookie-modal .marrison-category-cookie-list {
+        margin-top: 8px;
+        padding-top: 8px;
+    }
+
+    #marrison-cookie-modal .marrison-modal-cookie-category li {
+        display: block;
+        padding: 6px 0;
+        font-size: 0.72rem;
+        line-height: 1.25;
+    }
+
+    #marrison-cookie-modal .marrison-cookie-domain {
+        display: block;
+        margin-top: 2px;
+        font-size: 0.68rem;
+    }
+
+    #marrison-cookie-modal .marrison-cookie-list-empty,
+    #marrison-cookie-modal .marrison-cookie-list-loading {
+        margin-top: 8px;
+        padding: 8px 10px;
+        font-size: 0.75rem;
+    }
+
+    #marrison-cookie-modal .marrison-modal-footer {
+        flex: 0 0 auto;
+        padding: 10px 10px max(10px, env(safe-area-inset-bottom));
+        border-radius: 0;
+    }
+
+    #marrison-cookie-modal #marrison-save-preferences {
+        width: 100%;
+        min-height: 38px;
+        padding: 9px 12px;
+        font-size: 0.85rem;
+        line-height: 1.15;
+    }
+}
+
+@media (max-width: 360px) {
+    #marrison-cookie-modal .marrison-modal-header {
+        padding: 10px 12px;
+    }
+
+    #marrison-cookie-modal .marrison-modal-body {
+        padding: 8px;
+    }
+
+    #marrison-cookie-modal .marrison-cookie-category {
+        padding: 8px;
+    }
+
+    #marrison-cookie-modal .marrison-category-info p {
+        font-size: 0.68rem;
     }
 }

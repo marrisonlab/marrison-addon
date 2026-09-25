@@ -9,9 +9,11 @@
             $('#marrison-cookie-modal').appendTo('body');
 
             this.bindEvents();
+            this.bindResponsiveClosedTrigger();
             this.applyExistingPreferences();
             this.checkExistingConsent();
             this.activateAllowedBlockedContent();
+            this.openPreferencesFromHash();
         },
 
         bindEvents: function() {
@@ -56,6 +58,15 @@
                 e.preventDefault();
                 MarrisonCookie.openBanner();
             });
+
+            $(document).on('click', 'a[href*="#marrison-cookie-preferences"], a[href*="#marrison-cookie-settings"], .marrison-open-cookie-preferences, [data-marrison-cookie-preferences]', function(e) {
+                if (!MarrisonCookie.isPreferencesTrigger(this)) {
+                    return;
+                }
+
+                e.preventDefault();
+                MarrisonCookie.openPreferences();
+            });
         },
 
         checkExistingConsent: function() {
@@ -75,7 +86,14 @@
         },
 
         showFloatingWidget: function() {
-            $('#marrison-floating-widget').show();
+            var $widget = $('#marrison-floating-widget');
+
+            if (!this.shouldShowFloatingWidget()) {
+                $widget.hide();
+                return;
+            }
+
+            $widget.show();
         },
 
         hideFloatingWidget: function() {
@@ -91,6 +109,80 @@
 
             this.hideFloatingWidget();
             $banner.show();
+        },
+
+        openPreferences: function() {
+            var $modal = $('#marrison-cookie-modal');
+
+            if (!$modal.length) {
+                this.openBanner();
+                return;
+            }
+
+            this.loadCookieList();
+            $modal.show();
+        },
+
+        openPreferencesFromHash: function() {
+            if (window.location.hash === '#marrison-cookie-preferences' || window.location.hash === '#marrison-cookie-settings') {
+                this.openPreferences();
+            }
+        },
+
+        isPreferencesTrigger: function(element) {
+            var $element = $(element);
+            var href = $element.attr('href') || '';
+
+            return $element.hasClass('marrison-open-cookie-preferences') ||
+                typeof $element.attr('data-marrison-cookie-preferences') !== 'undefined' ||
+                href.indexOf('#marrison-cookie-preferences') !== -1 ||
+                href.indexOf('#marrison-cookie-settings') !== -1;
+        },
+
+        bindResponsiveClosedTrigger: function() {
+            var resizeTimer = null;
+
+            $(window).on('resize orientationchange', function() {
+                window.clearTimeout(resizeTimer);
+                resizeTimer = window.setTimeout(function() {
+                    MarrisonCookie.refreshClosedTriggerVisibility();
+                }, 120);
+            });
+        },
+
+        refreshClosedTriggerVisibility: function() {
+            var consent = MarrisonCookie.getCookie('marrison_cookie_consent') || (marrisonCookie.hasConsent ? 'stored' : null);
+            var $banner = $('#marrison-cookie-banner');
+
+            if (consent && (!$banner.length || !$banner.is(':visible'))) {
+                this.showFloatingWidget();
+            } else {
+                this.hideFloatingWidget();
+            }
+        },
+
+        shouldShowFloatingWidget: function() {
+            return this.getClosedTriggerMode() === 'floating';
+        },
+
+        getClosedTriggerMode: function() {
+            var modes = marrisonCookie.closedTriggerModes || {};
+            var device = this.getCurrentDevice();
+            var mode = modes[device] || 'floating';
+
+            return mode === 'link' ? 'link' : 'floating';
+        },
+
+        getCurrentDevice: function() {
+            if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+                return 'mobile';
+            }
+
+            if (window.matchMedia && window.matchMedia('(max-width: 1024px)').matches) {
+                return 'tablet';
+            }
+
+            return 'desktop';
         },
 
         loadCookieList: function() {

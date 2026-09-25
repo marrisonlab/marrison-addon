@@ -272,6 +272,47 @@ $categories = $scanner->get_categories();
                             </label>
                         </td>
                     </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <?php _e('Accesso preferenze dopo consenso', 'marrison-cookie'); ?>
+                        </th>
+                        <td>
+                            <?php
+                            $closed_trigger_options = array(
+                                'floating' => __('Icona flottante', 'marrison-cookie'),
+                                'link'     => __('Link / pulsante', 'marrison-cookie'),
+                            );
+                            $closed_trigger_devices = array(
+                                'desktop' => __('Desktop', 'marrison-cookie'),
+                                'tablet'  => __('Tablet', 'marrison-cookie'),
+                                'mobile'  => __('Mobile', 'marrison-cookie'),
+                            );
+                            ?>
+
+                            <?php foreach ($closed_trigger_devices as $device_key => $device_label): ?>
+                                <?php $field_id = 'closed_trigger_' . $device_key; ?>
+                                <label for="<?php echo esc_attr($field_id); ?>" class="marrison-closed-trigger-row">
+                                    <strong><?php echo esc_html($device_label); ?></strong>
+                                    <select id="<?php echo esc_attr($field_id); ?>" name="<?php echo esc_attr($field_id); ?>">
+                                        <?php foreach ($closed_trigger_options as $option_value => $option_label): ?>
+                                            <option value="<?php echo esc_attr($option_value); ?>" <?php selected($settings[$field_id], $option_value); ?>>
+                                                <?php echo esc_html($option_label); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </label>
+                            <?php endforeach; ?>
+
+                            <p class="description">
+                                <?php _e('Se scegli "Link / pulsante", il widget flottante non viene mostrato su quel dispositivo. Usa un link menu con URL', 'marrison-cookie'); ?>
+                                <code>#marrison-cookie-preferences</code>
+                                <?php _e('oppure aggiungi la classe', 'marrison-cookie'); ?>
+                                <code>marrison-open-cookie-preferences</code>
+                                <?php _e('a un pulsante o link.', 'marrison-cookie'); ?>
+                            </p>
+                        </td>
+                    </tr>
                     
                     <tr>
                         <th scope="row">

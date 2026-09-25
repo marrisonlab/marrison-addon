@@ -11,7 +11,6 @@ class Marrison_Addon_Admin {
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_styles' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'wp_ajax_marrison_save_option', [ $this, 'ajax_save_option' ] );
-		add_action( 'wp_ajax_marrison_force_update_check', [ $this, 'ajax_force_update_check' ] );
 		add_action( 'admin_head', [ $this, 'add_menu_badge_styles' ] );
 	}
 
@@ -112,35 +111,6 @@ class Marrison_Addon_Admin {
 		}
 
 		wp_send_json_success( [ 'message' => 'Settings saved' ] );
-	}
-
-	public function ajax_force_update_check() {
-		check_ajax_referer( 'marrison_save_option_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'update_plugins' ) ) {
-			wp_send_json_error( [ 'message' => 'Permission denied' ] );
-		}
-
-		// Force check
-		delete_site_transient( 'update_plugins' );
-		wp_update_plugins();
-		
-		// Get results
-		$update_plugins = get_site_transient( 'update_plugins' );
-		$plugin_slug = plugin_basename( dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php' );
-		
-		if ( isset( $update_plugins->response[ $plugin_slug ] ) ) {
-			$update = $update_plugins->response[ $plugin_slug ];
-			wp_send_json_success( [ 
-				'message' => sprintf( __( 'Trovata nuova versione: %s', 'marrison-addon' ), $update->new_version ),
-				'found' => true
-			] );
-		} else {
-			wp_send_json_success( [ 
-				'message' => __( 'Nessun aggiornamento trovato. Il plugin è aggiornato.', 'marrison-addon' ),
-				'found' => false
-			] );
-		}
 	}
 
 	public function add_admin_menu() {
@@ -257,18 +227,6 @@ class Marrison_Addon_Admin {
 				<?php endforeach; ?>
 			</div>
 
-			<div class="marrison-update-section">
-				<div class="marrison-update-info">
-					<h2><?php esc_html_e( 'Aggiornamenti', 'marrison-addon' ); ?></h2>
-					<p><?php esc_html_e( 'Cerca manualmente nuove versioni del plugin su GitHub.', 'marrison-addon' ); ?></p>
-				</div>
-				<div class="marrison-update-actions">
-					<span class="marrison-update-status"></span>
-					<button type="button" class="button button-primary marrison-force-update">
-						<?php esc_html_e( 'Cerca Aggiornamenti', 'marrison-addon' ); ?>
-					</button>
-				</div>
-			</div>
 		</div>
 		<?php
 	}

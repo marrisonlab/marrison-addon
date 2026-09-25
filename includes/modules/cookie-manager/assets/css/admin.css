@@ -667,3 +667,413 @@ input[type="color"]:hover {
         animation: none !important;
     }
 }
+
+/* Marrison Addon unified admin skin */
+.marrison-cookie-settings {
+    max-width: 1180px;
+    margin: 10px 20px 0 2px;
+}
+
+.marrison-cookie-settings .marrison-admin-header {
+    background: transparent;
+    color: #1d2327;
+    padding: 0 0 14px;
+    border-radius: 0;
+    border-bottom: 1px solid #dcdcde;
+    box-shadow: none;
+    margin: 0 0 18px;
+}
+
+.marrison-cookie-settings .marrison-admin-header h1 {
+    color: #1d2327;
+    font-size: 2em;
+    font-weight: 400;
+    line-height: 1.3;
+    margin: 0 0 6px;
+}
+
+.marrison-cookie-settings .marrison-admin-header p {
+    color: #646970;
+    font-size: 14px;
+    opacity: 1;
+}
+
+.marrison-cookie-settings .marrison-wizard-launch-btn {
+    min-height: 32px;
+    padding: 0 12px;
+    background: #2271b1;
+    border: 1px solid #2271b1;
+    border-radius: 4px;
+    color: #fff;
+    box-shadow: none;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 2.15384615;
+}
+
+.marrison-cookie-settings .marrison-wizard-launch-btn:hover {
+    background: #135e96;
+    border-color: #135e96;
+    box-shadow: none;
+    transform: none;
+}
+
+.marrison-cookie-settings .marrison-nav-tabs {
+    border-bottom: 1px solid #c3c4c7;
+    margin: 0 0 20px;
+    padding-left: 0;
+}
+
+.marrison-cookie-settings .marrison-nav-tabs .nav-tab {
+    background: #f0f0f1;
+    border: 1px solid #c3c4c7;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    color: #2c3338;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 4px -1px 0;
+    padding: 9px 12px;
+    transition: none;
+}
+
+.marrison-cookie-settings .marrison-nav-tabs .nav-tab:hover,
+.marrison-cookie-settings .marrison-nav-tabs .nav-tab-active {
+    background: #fff;
+    color: #2271b1;
+}
+
+.marrison-cookie-settings .marrison-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.marrison-cookie-settings .marrison-card-header {
+    background: #fff;
+    border-bottom: 1px solid #f0f0f1;
+    padding: 18px 18px 14px;
+}
+
+.marrison-cookie-settings .marrison-card-header h2 {
+    color: #1d2327;
+    font-size: 1.3em;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0 0 6px;
+}
+
+.marrison-cookie-settings .marrison-card-header p {
+    color: #646970;
+    font-size: 13px;
+}
+
+.marrison-cookie-settings .marrison-card .form-table th,
+.marrison-cookie-settings .marrison-card .form-table td {
+    padding: 16px 18px;
+}
+
+.marrison-cookie-settings .marrison-card .form-table th,
+.marrison-cookie-settings .form-table th {
+    color: #1d2327;
+    font-weight: 600;
+    width: 220px;
+}
+
+.marrison-cookie-settings .marrison-card .form-table input[type="text"],
+.marrison-cookie-settings .marrison-card .form-table input[type="url"],
+.marrison-cookie-settings .marrison-card .form-table input[type="number"],
+.marrison-cookie-settings .marrison-card .form-table textarea,
+.marrison-cookie-settings .marrison-card .form-table select,
+.marrison-cookie-settings .form-table input[type="text"],
+.marrison-cookie-settings .form-table textarea,
+.marrison-cookie-settings .form-table select,
+.marrison-cookie-settings .marrison-scanner-filters select,
+.marrison-cookie-settings .marrison-cookie-list select,
+.marrison-cookie-settings .marrison-cookie-actions select {
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    box-shadow: none;
+    font-size: 14px;
+    padding: 4px 8px;
+    transition: none;
+}
+
+.marrison-cookie-settings .marrison-card .form-table input:focus,
+.marrison-cookie-settings .marrison-card .form-table textarea:focus,
+.marrison-cookie-settings .marrison-card .form-table select:focus,
+.marrison-cookie-settings .form-table input[type="text"]:focus,
+.marrison-cookie-settings .form-table textarea:focus,
+.marrison-cookie-settings .form-table select:focus,
+.marrison-cookie-settings .marrison-scanner-filters select:focus,
+.marrison-cookie-settings .marrison-cookie-list select:focus,
+.marrison-cookie-settings .marrison-cookie-actions select:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.marrison-cookie-settings input[type="color"],
+.marrison-cookie-settings .marrison-card .form-table input[type="color"] {
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    height: 34px;
+    padding: 2px;
+    width: 58px;
+}
+
+.marrison-cookie-settings input[type="color"]:hover {
+    border-color: #8c8f94;
+}
+
+.marrison-cookie-settings .marrison-admin-switch-slider {
+    width: 32px;
+    height: 18px;
+    flex: 0 0 32px;
+    background: #a7aaad;
+}
+
+.marrison-cookie-settings .marrison-admin-switch-slider::before {
+    top: 3px;
+    left: 3px;
+    width: 12px;
+    height: 12px;
+    box-shadow: none;
+}
+
+.marrison-cookie-settings .marrison-admin-switch input:checked + .marrison-admin-switch-slider {
+    background: #2271b1;
+    box-shadow: none;
+}
+
+.marrison-cookie-settings .marrison-admin-switch input:checked + .marrison-admin-switch-slider::before {
+    transform: translateX(14px);
+}
+
+.marrison-cookie-settings .marrison-admin-switch-label {
+    color: #1d2327;
+    font-size: 13px;
+}
+
+.marrison-cookie-settings .marrison-closed-trigger-row {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.marrison-cookie-settings .marrison-closed-trigger-row select {
+    min-width: 160px;
+}
+
+.marrison-cookie-settings .marrison-scanner-controls,
+.marrison-cookie-settings .marrison-scanner-filters {
+    background: #fff;
+    border-bottom: 1px solid #f0f0f1;
+    padding: 16px 18px;
+}
+
+.marrison-cookie-settings .marrison-scanner-controls .button {
+    min-height: 32px;
+    padding: 0 12px;
+    background: #f6f7f7;
+    border: 1px solid #2271b1;
+    border-radius: 4px;
+    color: #2271b1;
+    box-shadow: none;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 2.15384615;
+    transform: none;
+}
+
+.marrison-cookie-settings .marrison-scanner-controls .button:hover {
+    background: #f0f6fc;
+    box-shadow: none;
+    transform: none;
+}
+
+.marrison-cookie-settings .marrison-scanner-controls .button-primary {
+    background: #2271b1;
+    color: #fff;
+}
+
+.marrison-cookie-settings .marrison-scanner-controls .button-primary:hover {
+    background: #135e96;
+    border-color: #135e96;
+    color: #fff;
+}
+
+.marrison-cookie-settings #marrison-scan-status,
+.marrison-cookie-settings #marrison-db-status {
+    color: #646970;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.marrison-cookie-settings #marrison-scan-status.marrison-scan-status-loading,
+.marrison-cookie-settings #marrison-db-status.marrison-scan-status-loading {
+    color: #2271b1;
+}
+
+.marrison-cookie-settings #marrison-scan-status.marrison-scan-status-success,
+.marrison-cookie-settings #marrison-db-status.marrison-scan-status-success {
+    color: #00a32a;
+}
+
+.marrison-cookie-settings #marrison-scan-status.marrison-scan-status-error,
+.marrison-cookie-settings #marrison-db-status.marrison-scan-status-error {
+    color: #d63638;
+}
+
+.marrison-cookie-settings .marrison-cookie-list {
+    padding: 18px;
+}
+
+.marrison-cookie-settings .marrison-cookie-list table {
+    border: 1px solid #dcdcde;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.marrison-cookie-settings .marrison-cookie-list th,
+.marrison-cookie-settings .marrison-cookie-list td {
+    border-bottom: 1px solid #f0f0f1;
+    font-size: 13px;
+    padding: 12px;
+}
+
+.marrison-cookie-settings .marrison-cookie-list th {
+    background: #f6f7f7;
+    color: #1d2327;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.marrison-cookie-settings .marrison-cookie-actions button {
+    background: #f6f7f7;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    box-shadow: none;
+    color: #2c3338;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 3px 10px;
+    transform: none;
+}
+
+.marrison-cookie-settings .marrison-cookie-actions button:hover {
+    background: #f0f0f1;
+    border-color: #8c8f94;
+    box-shadow: none;
+    color: #2c3338;
+    transform: none;
+}
+
+.marrison-cookie-settings .marrison-btn-delete,
+.marrison-cookie-settings .marrison-btn-delete:hover {
+    background: transparent !important;
+    border-color: #d63638 !important;
+    box-shadow: none;
+    color: #d63638 !important;
+}
+
+.marrison-cookie-settings .marrison-category-badge {
+    border-radius: 4px;
+    font-size: 12px;
+    letter-spacing: 0;
+    padding: 4px 8px;
+    text-transform: none;
+}
+
+.marrison-cookie-settings .marrison-category-necessary {
+    background: #edfaef;
+    border-color: #b8e6bf;
+    color: #008a20;
+}
+
+.marrison-cookie-settings .marrison-category-functional {
+    background: #f0f6fc;
+    border-color: #c5d9ed;
+    color: #135e96;
+}
+
+.marrison-cookie-settings .marrison-category-analytics {
+    background: #fcf9e8;
+    border-color: #e6d26a;
+    color: #6f5500;
+}
+
+.marrison-cookie-settings .marrison-category-marketing {
+    background: #fcf0f1;
+    border-color: #f0b9bd;
+    color: #b32d2e;
+}
+
+.marrison-cookie-settings .marrison-category-uncategorized {
+    background: #f6f7f7;
+    border-color: #dcdcde;
+    color: #50575e;
+}
+
+.marrison-cookie-settings .submit {
+    background: transparent;
+    border-top: 0;
+    margin: 0;
+    padding: 16px 0 0;
+}
+
+.marrison-cookie-settings .submit input[type="submit"] {
+    min-height: 32px;
+    padding: 0 12px;
+    background: #2271b1;
+    border: 1px solid #2271b1;
+    border-radius: 4px;
+    color: #fff;
+    box-shadow: none;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 2.15384615;
+    transform: none;
+}
+
+.marrison-cookie-settings .submit input[type="submit"]:hover {
+    background: #135e96;
+    border-color: #135e96;
+    box-shadow: none;
+    transform: none;
+}
+
+.marrison-cookie-settings .notice,
+.marrison-cookie-settings .notice-info,
+.marrison-cookie-settings .notice-success {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-left-width: 4px;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 8px 12px;
+}
+
+@media (max-width: 782px) {
+    .marrison-cookie-settings {
+        margin-right: 12px;
+    }
+
+    .marrison-cookie-settings .marrison-admin-header {
+        align-items: stretch;
+    }
+
+    .marrison-cookie-settings .marrison-card-header,
+    .marrison-cookie-settings .marrison-card .form-table th,
+    .marrison-cookie-settings .marrison-card .form-table td,
+    .marrison-cookie-settings .marrison-scanner-controls,
+    .marrison-cookie-settings .marrison-scanner-filters,
+    .marrison-cookie-settings .marrison-cookie-list {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+}

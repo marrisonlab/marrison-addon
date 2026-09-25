@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.25
+*   **Stable tag:** 1.3.26
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -106,6 +106,10 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.26
+*   **Enhancement:** Admin panels now share a unified Marrison Addon visual style based on the Image Sizes module, preserving existing module controls and workflows.
+*   **Change:** Main Marrison Addon dashboard no longer shows the manual GitHub update check banner or button.
 
 ### 1.3.25
 *   **New Module:** Steps adds the Marrison Steps Elementor widget as an optional module that only loads when enabled.

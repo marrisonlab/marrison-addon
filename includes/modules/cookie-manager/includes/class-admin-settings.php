@@ -75,6 +75,9 @@ class Marrison_Cookie_Admin_Settings {
         
         // Behavior settings
         register_setting('marrison_cookie_settings', 'marrison_cookie_show_banner');
+        register_setting('marrison_cookie_settings', 'marrison_cookie_closed_trigger_desktop');
+        register_setting('marrison_cookie_settings', 'marrison_cookie_closed_trigger_tablet');
+        register_setting('marrison_cookie_settings', 'marrison_cookie_closed_trigger_mobile');
         register_setting('marrison_cookie_settings', 'marrison_cookie_consent_duration');
         register_setting('marrison_cookie_settings', 'marrison_cookie_auto_scan');
         register_setting('marrison_cookie_settings', 'marrison_cookie_scan_interval');
@@ -154,6 +157,13 @@ class Marrison_Cookie_Admin_Settings {
         // Behavior settings
         update_option('marrison_cookie_show_banner', isset($_POST['show_banner']));
 
+        foreach (array('desktop', 'tablet', 'mobile') as $device) {
+            $field = 'closed_trigger_' . $device;
+            if (isset($_POST[$field])) {
+                update_option('marrison_cookie_' . $field, $this->sanitize_closed_trigger_mode(wp_unslash($_POST[$field])));
+            }
+        }
+
         if (isset($_POST['consent_duration'])) {
             update_option('marrison_cookie_consent_duration', max(1, min(365, intval($_POST['consent_duration']))));
         }
@@ -194,6 +204,9 @@ class Marrison_Cookie_Admin_Settings {
             'button_background_color',
             'button_text_color',
             'show_banner',
+            'closed_trigger_desktop',
+            'closed_trigger_tablet',
+            'closed_trigger_mobile',
             'consent_duration',
             'auto_scan',
             'scan_interval',
@@ -210,6 +223,8 @@ class Marrison_Cookie_Admin_Settings {
             
             if (in_array($key, array('show_banner', 'auto_scan'), true)) {
                 update_option($option_key, (bool) $value);
+            } elseif (in_array($key, array('closed_trigger_desktop', 'closed_trigger_tablet', 'closed_trigger_mobile'), true)) {
+                update_option($option_key, $this->sanitize_closed_trigger_mode($value));
             } elseif (in_array($key, array('consent_duration', 'scan_interval'), true)) {
                 $max = $key === 'consent_duration' ? 365 : 30;
                 update_option($option_key, max(1, min($max, intval($value))));
@@ -254,9 +269,20 @@ class Marrison_Cookie_Admin_Settings {
             'button_background_color' => get_option('marrison_cookie_button_background_color', '#0073aa'),
             'button_text_color' => get_option('marrison_cookie_button_text_color', '#ffffff'),
             'show_banner' => get_option('marrison_cookie_show_banner', true),
+            'closed_trigger_desktop' => $this->sanitize_closed_trigger_mode(get_option('marrison_cookie_closed_trigger_desktop', 'floating')),
+            'closed_trigger_tablet' => $this->sanitize_closed_trigger_mode(get_option('marrison_cookie_closed_trigger_tablet', 'floating')),
+            'closed_trigger_mobile' => $this->sanitize_closed_trigger_mode(get_option('marrison_cookie_closed_trigger_mobile', 'floating')),
             'consent_duration' => get_option('marrison_cookie_consent_duration', 30),
             'auto_scan' => get_option('marrison_cookie_auto_scan', true),
             'scan_interval' => get_option('marrison_cookie_scan_interval', 7),
         );
+    }
+
+    /**
+     * Sanitizza la modalità di accesso alle preferenze dopo la chiusura del banner.
+     */
+    private function sanitize_closed_trigger_mode($mode) {
+        $mode = sanitize_key((string) $mode);
+        return in_array($mode, array('floating', 'link'), true) ? $mode : 'floating';
     }
 }

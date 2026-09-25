@@ -249,6 +249,9 @@ class Marrison_Addon_Cookie_Manager_Module {
 			'button_text_color'        => '#ffffff',
 			'consent_duration'         => 30,
 			'show_banner'              => true,
+			'closed_trigger_desktop'   => 'floating',
+			'closed_trigger_tablet'    => 'floating',
+			'closed_trigger_mobile'    => 'floating',
 			'auto_scan'                => true,
 			'scan_interval'            => 7,
 		);

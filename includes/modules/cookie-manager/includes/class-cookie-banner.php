@@ -56,18 +56,23 @@ class Marrison_Cookie_Banner {
             return;
         }
 
+        $frontend_css_path = MARRISON_COOKIE_PLUGIN_DIR . 'assets/css/frontend.css';
+        $frontend_js_path = MARRISON_COOKIE_PLUGIN_DIR . 'assets/js/frontend.js';
+        $frontend_css_version = file_exists($frontend_css_path) ? (string) filemtime($frontend_css_path) : MARRISON_COOKIE_VERSION;
+        $frontend_js_version = file_exists($frontend_js_path) ? (string) filemtime($frontend_js_path) : MARRISON_COOKIE_VERSION;
+
         wp_enqueue_style(
             'marrison-cookie-frontend',
             MARRISON_COOKIE_PLUGIN_URL . 'assets/css/frontend.css',
             array(),
-            MARRISON_COOKIE_VERSION
+            $frontend_css_version
         );
         
         wp_enqueue_script(
             'marrison-cookie-frontend',
             MARRISON_COOKIE_PLUGIN_URL . 'assets/js/frontend.js',
             array('jquery'),
-            MARRISON_COOKIE_VERSION,
+            $frontend_js_version,
             true
         );
         
@@ -83,7 +88,27 @@ class Marrison_Cookie_Banner {
             'privacyPolicy' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Privacy Policy', 'Privacy Policy') : __('Privacy Policy', 'marrison-cookie'),
             'cookiePolicy' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Cookie Policy', 'Cookie Policy') : __('Cookie Policy', 'marrison-cookie'),
             'hasConsent' => isset($_COOKIE['marrison_cookie_consent']),
+            'closedTriggerModes' => $this->get_closed_trigger_modes(),
         ));
+    }
+
+    /**
+     * Ottiene la modalità di accesso alle preferenze a banner chiuso per device.
+     */
+    private function get_closed_trigger_modes() {
+        return array(
+            'desktop' => $this->sanitize_closed_trigger_mode(get_option('marrison_cookie_closed_trigger_desktop', 'floating')),
+            'tablet'  => $this->sanitize_closed_trigger_mode(get_option('marrison_cookie_closed_trigger_tablet', 'floating')),
+            'mobile'  => $this->sanitize_closed_trigger_mode(get_option('marrison_cookie_closed_trigger_mobile', 'floating')),
+        );
+    }
+
+    /**
+     * Sanitizza la modalità di accesso alle preferenze dopo la chiusura del banner.
+     */
+    private function sanitize_closed_trigger_mode($mode) {
+        $mode = sanitize_key((string) $mode);
+        return in_array($mode, array('floating', 'link'), true) ? $mode : 'floating';
     }
     
     /**

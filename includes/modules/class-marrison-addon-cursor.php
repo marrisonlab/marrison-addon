@@ -92,7 +92,7 @@ class Marrison_Addon_Cursor {
 
 		// Save logic is handled by WordPress options.php if we use form action="options.php"
 		?>
-		<div class="wrap">
+		<div class="wrap marrison-admin-page marrison-admin-page-cursor">
 			<h1><?php echo esc_html__( 'Impostazioni Cursore Animato', 'marrison-addon' ); ?></h1>
 			<p><?php echo esc_html__( 'Personalizza l\'aspetto del puntatore animato sul tuo sito.', 'marrison-addon' ); ?></p>
 
@@ -100,7 +100,7 @@ class Marrison_Addon_Cursor {
 				<?php settings_fields( 'marrison_addon_cursor_group' ); ?>
 				<?php do_settings_sections( 'marrison_addon_cursor_group' ); ?>
 
-				<div class="marrison-module-card" style="max-width: 600px; margin-top: 20px;">
+				<div class="marrison-module-card marrison-settings-card">
 					<div class="marrison-card-header">
 						<h2 class="marrison-card-title"><?php echo esc_html__( 'Stile e Animazione', 'marrison-addon' ); ?></h2>
 					</div>
@@ -129,7 +129,7 @@ class Marrison_Addon_Cursor {
 					</table>
 				</div>
 
-				<div class="marrison-module-card" style="max-width: 600px; margin-top: 20px;">
+				<div class="marrison-module-card marrison-settings-card">
 					<div class="marrison-card-header">
 						<h2 class="marrison-card-title"><?php echo esc_html__( 'Colori', 'marrison-addon' ); ?></h2>
 					</div>

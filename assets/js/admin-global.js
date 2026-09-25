@@ -51,48 +51,6 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Force Update Handler
-    $('.marrison-force-update').on('click', function() {
-        var $btn = $(this);
-        var $status = $('.marrison-update-status');
-        var originalText = $btn.text();
-        
-        $btn.addClass('marrison-btn-loading').prop('disabled', true);
-        $status.removeClass('success error').text('');
-        
-        $.ajax({
-            url: marrison_global.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'marrison_force_update_check',
-                nonce: marrison_global.nonce
-            },
-            success: function(response) {
-                $btn.removeClass('marrison-btn-loading').prop('disabled', false);
-                
-                if (response.success) {
-                    var isFound = response.data.found;
-                    $status.addClass(isFound ? 'success' : 'success').text(response.data.message);
-                    
-                    if (isFound) {
-                        // Optionally redirect to plugins page after a delay
-                        setTimeout(function() {
-                            if(confirm('Aggiornamento trovato! Vuoi andare alla pagina dei plugin per installarlo?')) {
-                                window.location.href = 'plugins.php';
-                            }
-                        }, 500);
-                    }
-                } else {
-                    $status.addClass('error').text('Errore: ' + (response.data.message || 'Sconosciuto'));
-                }
-            },
-            error: function() {
-                $btn.removeClass('marrison-btn-loading').prop('disabled', false);
-                $status.addClass('error').text(marrison_global.connection_error || 'Errore di connessione');
-            }
-        });
-    });
-
     function saveOption(optionName, key, value, callback) {
         $.ajax({
             url: marrison_global.ajax_url,

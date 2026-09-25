@@ -134,17 +134,26 @@ class Marrison_Addon_Calendar_Sync {
 			return;
 		}
 		?>
-		<div class="wrap">
+		<div class="wrap marrison-admin-page marrison-admin-page-calendar-sync">
 			<h1><?php esc_html_e( 'Calendar Sync', 'marrison-addon' ); ?></h1>
-			<p><code>[evento_calendario_link type="google"]</code></p>
-			<p><code>[evento_calendario_link type="ics"]</code></p>
-			<form action="options.php" method="post">
-				<?php
-				settings_fields( 'marrison_addon_calendar_sync_group' );
-				do_settings_sections( 'marrison_addon_calendar_sync' );
-				submit_button();
-				?>
-			</form>
+			<p><?php esc_html_e( 'Configura le meta key evento e usa gli shortcode nei template.', 'marrison-addon' ); ?></p>
+
+			<div class="marrison-module-card marrison-settings-card">
+				<div class="marrison-card-header">
+					<h2 class="marrison-card-title"><?php esc_html_e( 'Shortcode e impostazioni', 'marrison-addon' ); ?></h2>
+				</div>
+				<div class="marrison-admin-code-list">
+					<code>[evento_calendario_link type="google"]</code>
+					<code>[evento_calendario_link type="ics"]</code>
+				</div>
+				<form action="options.php" method="post">
+					<?php
+					settings_fields( 'marrison_addon_calendar_sync_group' );
+					do_settings_sections( 'marrison_addon_calendar_sync' );
+					submit_button();
+					?>
+				</form>
+			</div>
 		</div>
 		<?php
 	}

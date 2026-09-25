@@ -88,13 +88,15 @@ class Marrison_Addon_Video_Thumbnail {
 		$ffmpeg_status = $this->get_ffmpeg_status();
 		$destination_options = $this->get_destination_options();
 		?>
-		<div class="wrap mvt-wrap">
+		<div class="wrap mvt-wrap marrison-admin-page marrison-admin-page-video-thumbnail">
 			<h1><?php esc_html_e( 'Marrison Video Thumbnail', 'marrison-addon' ); ?></h1>
 			<p><?php esc_html_e( 'Importa miniature YouTube e genera cover automatiche per video locali caricati nella Libreria media.', 'marrison-addon' ); ?></p>
 
-			<div class="mvt-section">
-				<h2><?php esc_html_e( 'YouTube', 'marrison-addon' ); ?></h2>
-				<p><?php esc_html_e( 'Incolla un URL YouTube per recuperare le miniature disponibili.', 'marrison-addon' ); ?></p>
+			<div class="mvt-section marrison-module-card">
+				<div class="marrison-card-header">
+					<h2 class="marrison-card-title"><?php esc_html_e( 'YouTube', 'marrison-addon' ); ?></h2>
+				</div>
+				<p class="marrison-card-desc"><?php esc_html_e( 'Incolla un URL YouTube per recuperare le miniature disponibili.', 'marrison-addon' ); ?></p>
 
 				<div class="mvt-form">
 					<input type="text" id="mvt-url" class="regular-text" placeholder="https://www.youtube.com/watch?v=..." />
@@ -105,8 +107,10 @@ class Marrison_Addon_Video_Thumbnail {
 				<div id="mvt-results" class="mvt-results"></div>
 			</div>
 
-			<div class="mvt-section">
-				<h2><?php esc_html_e( 'Video locali', 'marrison-addon' ); ?></h2>
+			<div class="mvt-section marrison-module-card">
+				<div class="marrison-card-header">
+					<h2 class="marrison-card-title"><?php esc_html_e( 'Video locali', 'marrison-addon' ); ?></h2>
+				</div>
 				<div class="mvt-ffmpeg-status <?php echo $ffmpeg_status['available'] ? 'success' : 'error'; ?>">
 					<strong><?php esc_html_e( 'Stato FFmpeg:', 'marrison-addon' ); ?></strong>
 					<?php echo esc_html( $ffmpeg_status['message'] ); ?>

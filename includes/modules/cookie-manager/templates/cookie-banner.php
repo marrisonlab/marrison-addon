@@ -36,11 +36,11 @@ $layout_class = 'marrison-banner-layout-' . $banner_layout;
                 <?php echo esc_html($accept_button_text); ?>
             </button>
             
-            <button type="button" id="marrison-reject-all" class="marrison-button marrison-button-reject" style="background-color: <?php echo esc_attr($button_bg_color); ?>; color: <?php echo esc_attr($button_text_color); ?>;">
+            <button type="button" id="marrison-reject-all" class="marrison-button marrison-button-reject" style="background-color: <?php echo esc_attr($button_text_color); ?>; color: <?php echo esc_attr($button_bg_color); ?>; border: 1px solid <?php echo esc_attr($button_bg_color); ?>;">
                 <?php echo esc_html($reject_button_text); ?>
             </button>
             
-            <button type="button" id="marrison-customize" class="marrison-button marrison-button-customize" style="background-color: <?php echo esc_attr($button_bg_color); ?>; color: <?php echo esc_attr($button_text_color); ?>;">
+            <button type="button" id="marrison-customize" class="marrison-button marrison-button-customize" style="background-color: <?php echo esc_attr($button_text_color); ?>; color: <?php echo esc_attr($button_bg_color); ?>; border: 1px solid <?php echo esc_attr($button_bg_color); ?>;">
                 <?php echo esc_html($customize_button_text); ?>
             </button>
         </div>

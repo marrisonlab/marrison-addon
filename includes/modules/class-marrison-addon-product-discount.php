@@ -158,7 +158,7 @@ class Marrison_Addon_Product_Discount {
 		$frequency = get_option( self::SCHEDULE_OPTION, 'manual' );
 		$next_run = wp_next_scheduled( self::SCHEDULE_TRIGGER_HOOK );
 		?>
-		<div class="wrap">
+		<div class="wrap marrison-admin-page marrison-admin-page-product-discount">
 			<h1><?php echo esc_html__( 'Sconto Prodotto', 'marrison-addon' ); ?></h1>
 			<p><?php echo esc_html__( 'Gestisci il meta numerico usato per ordinare i prodotti per percentuale di sconto.', 'marrison-addon' ); ?></p>
 			<?php settings_errors( 'marrison_product_discount_messages' ); ?>
