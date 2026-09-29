@@ -123,6 +123,12 @@
                 return;
             }
 
+            // Intrinsic sizing depends on the source image dimensions. Replacing it
+            // with a smaller variant would visibly shrink an auto-sized background.
+            if (/\bauto\b/.test(computedStyle.backgroundSize)) {
+                return;
+            }
+
             var url = extractBackgroundUrl(backgroundImage);
             if (!url) {
                 return;

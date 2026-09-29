@@ -8,6 +8,7 @@ jQuery(document).ready(function($) {
         var key = $input.data('key');
         var isInverse = $input.data('inverse') === true;
         var shouldReload = $input.data('reload') === true;
+        var redirectUrl = $input.data('redirect');
         
         // Determine value to send
         var valueToSend;
@@ -30,7 +31,11 @@ jQuery(document).ready(function($) {
                 $input.prop('checked', !isChecked);
             } else if (shouldReload) {
                 // Reload page if required by the module (to show/hide menu items)
-                window.location.reload();
+                if (redirectUrl) {
+                    window.location.href = redirectUrl;
+                } else {
+                    window.location.reload();
+                }
             }
         });
     });

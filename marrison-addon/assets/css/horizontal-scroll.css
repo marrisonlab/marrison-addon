@@ -1,0 +1,63 @@
+.marrison-horizontal-scroll-scene {
+	position: relative;
+	width: 100%;
+	min-width: 0;
+}
+
+.marrison-horizontal-scroll-viewport {
+	width: 100%;
+	overflow: hidden;
+}
+
+.marrison-horizontal-scroll-viewport > [data-marrison-horizontal-scroll] {
+	overflow-x: hidden;
+	overflow-x: clip;
+}
+
+.marrison-horizontal-scroll-pinned > .marrison-horizontal-scroll-viewport {
+	position: sticky;
+	top: 0;
+}
+
+.marrison-horizontal-scroll-mover {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: inherit;
+	gap: inherit;
+	width: max-content;
+	min-width: 100%;
+	max-width: none;
+	position: relative;
+	z-index: 1;
+	will-change: transform;
+}
+
+.marrison-horizontal-scroll-mover > .elementor-element {
+	flex-shrink: 0;
+}
+
+.marrison-horizontal-scroll-snap-host {
+	width: 100% !important;
+	max-width: none !important;
+}
+
+.marrison-horizontal-scroll-snap-ready .marrison-horizontal-scroll-mover {
+	transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.marrison-horizontal-scroll-snap .marrison-horizontal-scroll-mover > .elementor-element {
+	flex: 0 0 auto;
+}
+
+.marrison-horizontal-scroll-bg-scale,
+.marrison-horizontal-scroll-bg-scale-video {
+	transform-origin: center center;
+	will-change: transform;
+}
+
+.marrison-horizontal-scroll-bg-scale {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+}

@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
- * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Steps, Product Discount, Listing Grid Title, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, and Video Thumbnail.
- * Version: 1.3.26
+ * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Local Google Fonts, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, and Video Thumbnail.
+ * Version: 1.3.37
  * Author: Marrisonlab
  * Author URI:  https://marrisonlab.com
  * Text Domain: marrison-addon
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.3.26';
+	const VERSION = '1.3.37';
 
 	private $elementor_modules_initialized = false;
 	private $header_animations_initialized = false;
@@ -140,6 +140,26 @@ final class Marrison_Addon {
 				'class' => 'Marrison_Addon_Wrapped_Link',
 				'file' => 'includes/modules/class-marrison-addon-wrapped-link.php',
 			],
+			'horizontal_scroll' => [
+				'icon' => 'dashicons-align-wide',
+				'title' => esc_html__( 'Scroll Orizzontale', 'marrison-addon' ),
+				'desc' => esc_html__( 'Trasforma un Container Elementor in una sezione a scorrimento orizzontale, con pin e controlli responsive.', 'marrison-addon' ),
+				'reload' => true,
+				'requires_elementor' => true,
+				'boot' => 'elementor',
+				'class' => 'Marrison_Addon_Horizontal_Scroll',
+				'file' => 'includes/modules/class-marrison-addon-horizontal-scroll.php',
+			],
+			'liquid_background' => [
+				'icon' => 'dashicons-art',
+				'title' => esc_html__( 'Liquid Background', 'marrison-addon' ),
+				'desc' => esc_html__( 'Aggiunge uno sfondo organico animato ai Container Elementor selezionati, con controlli e preset dedicati.', 'marrison-addon' ),
+				'reload' => true,
+				'requires_elementor' => true,
+				'boot' => 'elementor',
+				'class' => 'Marrison_Addon_Liquid_Background',
+				'file' => 'includes/modules/class-marrison-addon-liquid-background.php',
+			],
 			'ticker' => [
 				'icon' => 'dashicons-controls-forward',
 				'title' => esc_html__( 'Ticker', 'marrison-addon' ),
@@ -194,6 +214,17 @@ final class Marrison_Addon {
 				'class' => 'Marrison_Addon_Listing_Title',
 				'file' => 'includes/modules/class-marrison-addon-listing-title.php',
 			],
+			'dynamic_svg' => [
+				'icon' => 'dashicons-format-image',
+				'title' => esc_html__( 'Dynamic SVG', 'marrison-addon' ),
+				'desc' => esc_html__( 'Consente di visualizzare SVG dinamici JetEngine inline e controllarne il colore tramite CSS.', 'marrison-addon' ),
+				'reload' => false,
+				'requires_elementor' => false,
+				'requires_jet_engine' => true,
+				'boot' => 'independent',
+				'class' => 'Marrison_Addon_Dynamic_SVG',
+				'file' => 'includes/modules/class-marrison-addon-dynamic-svg.php',
+			],
 			'header_animations' => [
 				'icon' => 'dashicons-format-status',
 				'title' => esc_html__( 'Animazioni Header', 'marrison-addon' ),
@@ -223,6 +254,27 @@ final class Marrison_Addon {
 				'boot' => 'independent',
 				'class' => 'Marrison_Addon_Image_Sizes',
 				'file' => 'includes/modules/class-marrison-addon-image-sizes.php',
+			],
+			'local_google_fonts' => [
+				'icon' => 'dashicons-editor-textcolor',
+				'title' => esc_html__( 'Local Google Fonts', 'marrison-addon' ),
+				'desc' => esc_html__( 'Scansiona i font Google usati dal sito, scarica i WOFF2 localmente e blocca le stylesheet remote solo quando la copia locale e valida.', 'marrison-addon' ),
+				'reload' => true,
+				'requires_elementor' => false,
+				'boot' => 'independent',
+				'class' => 'Marrison_Addon_Local_Google_Fonts',
+				'file' => 'includes/modules/class-marrison-addon-local-google-fonts.php',
+			],
+			'browser_cache' => [
+				'icon' => 'dashicons-performance',
+				'title' => esc_html__( 'Browser Cache', 'marrison-addon' ),
+				'desc' => esc_html__( 'Configura header HTTP per la cache browser degli asset statici senza rimuovere il versioning WordPress.', 'marrison-addon' ),
+				'reload' => true,
+				'requires_elementor' => false,
+				'boot' => 'independent',
+				'class' => 'Marrison_Addon_Browser_Cache',
+				'file' => 'includes/modules/class-marrison-addon-browser-cache.php',
+				'settings_page' => 'marrison_addon_browser_cache',
 			],
 			'cursor' => [
 				'icon' => 'dashicons-arrow-right-alt2',

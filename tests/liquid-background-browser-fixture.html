@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Marrison Liquid Background Fixture</title>
+	<link rel="stylesheet" href="../marrison-addon/assets/css/marrison-liquid-background.css">
+	<style>
+		body {
+			margin: 0;
+			background: #050507;
+			font-family: Arial, sans-serif;
+		}
+		.test-container {
+			min-height: 320px;
+			margin: 24px;
+			padding: 40px;
+			border-radius: 18px;
+			color: #fff;
+			background: #000;
+		}
+		#result {
+			position: fixed;
+			right: 12px;
+			bottom: 12px;
+			z-index: 10;
+			max-width: 460px;
+			padding: 12px;
+			color: #fff;
+			background: #111;
+			font: 12px/1.4 Consolas, monospace;
+			white-space: pre-wrap;
+		}
+	</style>
+</head>
+<body>
+	<section id="hero-a" class="test-container" data-marrison-liquid-background='{"preset":"deep-purple","background":"#000000","primary":"#6C3BFF","secondary":"#321875","speed":{"desktop":0.35,"tablet":0.3,"mobile":0.25},"scale":{"desktop":1,"tablet":1,"mobile":1},"complexity":3,"distortion":0.5,"softness":0.45,"contrast":1,"opacity":{"desktop":1,"tablet":1,"mobile":1},"mouse":false,"mouseInfluence":0.2,"direction":"natural","disableMobile":false,"reducedMotion":"static","seed":1234,"breakpoints":{"mobile":767,"tablet":1024}}'>
+		<h1>Liquid A</h1>
+	</section>
+	<section id="hero-b" class="test-container" data-marrison-liquid-background='{"preset":"blue-ink","background":"#020712","primary":"#2869DA","secondary":"#102C77","speed":{"desktop":0.5,"tablet":0.4,"mobile":0.35},"scale":{"desktop":1.35,"tablet":1.2,"mobile":1.1},"complexity":4,"distortion":0.8,"softness":0.55,"contrast":1.2,"opacity":{"desktop":0.85,"tablet":0.85,"mobile":0.8},"mouse":true,"mouseInfluence":0.12,"direction":"horizontal","disableMobile":false,"reducedMotion":"static","seed":5678,"breakpoints":{"mobile":767,"tablet":1024}}'>
+		<h2>Liquid B</h2>
+	</section>
+	<section id="mobile-off" class="test-container" data-marrison-liquid-background='{"preset":"monochrome","background":"#000000","primary":"#D9DCE5","secondary":"#555B69","speed":{"desktop":0.3,"tablet":0.3,"mobile":0.3},"scale":{"desktop":1,"tablet":1,"mobile":1},"complexity":2,"distortion":0.4,"softness":0.5,"contrast":1,"opacity":{"desktop":1,"tablet":1,"mobile":1},"mouse":false,"mouseInfluence":0,"direction":"vertical","disableMobile":true,"reducedMotion":"static","seed":9012,"breakpoints":{"mobile":767,"tablet":1024}}'>
+		<h2>Mobile Disabled</h2>
+	</section>
+	<pre id="result">RUNNING</pre>
+	<script src="../marrison-addon/assets/js/marrison-liquid-background.js"></script>
+	<script>
+		(function () {
+			function layers( id ) {
+				return document.querySelectorAll( id + ' .marrison-liquid-background-canvas,' + id + ' .marrison-liquid-background-fallback' );
+			}
+			function canvasHasPixels( canvas ) {
+				var gl;
+				var pixels;
+				var i;
+				if ( ! canvas ) {
+					return false;
+				}
+				gl = canvas.getContext( 'webgl' );
+				if ( ! gl ) {
+					return true;
+				}
+				pixels = new Uint8Array( 16 );
+				gl.readPixels( Math.max( 0, Math.floor( canvas.width / 2 ) - 1 ), Math.max( 0, Math.floor( canvas.height / 2 ) - 1 ), 2, 2, gl.RGBA, gl.UNSIGNED_BYTE, pixels );
+				for ( i = 0; i < pixels.length; i++ ) {
+					if ( pixels[ i ] !== 0 ) {
+						return true;
+					}
+				}
+				return false;
+			}
+			window.setTimeout( function () {
+				var mobile = window.innerWidth <= 767;
+				var a = layers( '#hero-a' );
+				var b = layers( '#hero-b' );
+				var m = layers( '#mobile-off' );
+				var firstCanvas = document.querySelector( '#hero-a .marrison-liquid-background-canvas' );
+				var checks = [
+					a.length === 1,
+					b.length === 1,
+					m.length === ( mobile ? 0 : 1 ),
+					document.querySelectorAll( '.marrison-liquid-background-host' ).length === ( mobile ? 2 : 3 ),
+					canvasHasPixels( firstCanvas )
+				];
+				document.body.setAttribute( 'data-test-result', checks.indexOf( false ) === -1 ? 'PASS' : 'FAIL' );
+				document.getElementById( 'result' ).textContent = JSON.stringify( {
+					result: document.body.getAttribute( 'data-test-result' ),
+					width: window.innerWidth,
+					heroA: a.length,
+					heroB: b.length,
+					mobileOff: m.length,
+					pixels: checks[ 4 ]
+				} );
+			}, 900 );
+		} )();
+	</script>
+</body>
+</html>

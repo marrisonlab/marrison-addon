@@ -6,11 +6,11 @@
 *   **Plugin URI:** https://github.com/marrisonlab/marrison-addon
 *   **Author:** Angelo Marra
 *   **Author URI:** https://marrisonlab.com
-*   **Tags:** elementor, container, link, wrapper, steps, anchor, ticker, discount, woocommerce, cursor, preloader, logout, video thumbnail, cookie, calendar, marrison
+*   **Tags:** elementor, container, link, wrapper, steps, anchor, ticker, discount, woocommerce, cursor, preloader, logout, video thumbnail, cookie, calendar, liquid background, dynamic svg, marrison
 *   **Requires at least:** 6.0
 *   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.26
+*   **Stable tag:** 1.3.37
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -57,46 +57,81 @@
     *   Includes title text, optional link, HTML tag, typography, colors, alignment, background, border, radius, shadow, padding, and margin controls.
     *   To center Listing Grid items when a row has fewer elements, add `selector .jet-listing-grid__items { justify-content: center; }` to the Listing Grid custom CSS.
 
-8.  **Anchor Offset:**
+8.  **Dynamic SVG (JetEngine):**
+    *   Adds Marrison callbacks to JetEngine Dynamic Field output filters for SVG media fields.
+    *   Converts local SVG attachment IDs or upload URLs into sanitized inline SVG markup.
+    *   Includes a Current Color callback that converts fill and stroke colors to `currentColor` while preserving `none`.
+    *   Does not load frontend CSS or JavaScript.
+
+9.  **Anchor Offset:**
     *   Corrects same-page anchor scroll when the site header uses the `hdr` ID.
     *   Uses the live height of `#hdr` so linked sections are not hidden under a fixed or sticky header.
     *   Applies to anchor clicks, direct page loads with a hash, and hash changes.
 
-9.  **Preloader:**
+10. **Preloader:**
     *   Add a professional loading screen to your site.
     *   **Animations:** Fade, Slide Up, Slide Left, Split (Curtain), Shutter (Vertical).
     *   **Spinners:** Circle, Dots, Double Ring, Wave, Pulse (Logo).
     *   **Customization:** Upload your logo, choose colors, and set transition duration.
     *   **Progress Bar:** Optional progress bar with percentage display.
 
-10. **Custom Cursor:**
+11. **Custom Cursor:**
     *   Replace the default system cursor with a custom follower.
     *   Customizable colors, size, and hover effects (scale, magnetic).
     *   "Exclusion" blending mode for high visibility on any background.
     *   **Frontend Only:** Skips backend, preview, and Elementor Editor contexts.
 
-11. **Image Sizes:**
+12. **Image Sizes:**
     *   Define custom image sizes for your theme directly from the dashboard.
     *   Control cropping and dimensions without editing code.
 
-12. **Fast Logout:**
+13. **Fast Logout:**
     *   Automatically redirects users to the home page after logging out, bypassing the default WordPress login screen.
 
-13. **Calendar Sync:**
+14. **Calendar Sync:**
     *   Generate Google Calendar and ICS event links from post meta.
     *   Configurable meta keys for start and end dates.
     *   Includes shortcode support for templates and dynamic content.
 
-14. **Cookie Manager:**
+15. **Cookie Manager:**
     *   Cookie banner, floating widget, preferences modal, and setup wizard.
     *   Automatic cookie scanning and category management.
     *   Frontend UI only loads when the module is active and in a real frontend context.
 
-15. **Video Thumbnail:**
+16. **Video Thumbnail:**
     *   Fetch YouTube thumbnails and import them directly into the WordPress Media Library.
     *   Automatically generate JPG covers from uploaded MP4/WebM videos using FFmpeg.
     *   Configure capture second, cover destination, and optional FFmpeg binary path from the admin page.
     *   Keeps the original admin workflow while living as a module inside Marrison Addon.
+
+17. **Local Google Fonts:**
+    *   Scan Elementor, generated CSS, theme/plugin CSS, theme/plugin source files, inline CSS, and WordPress custom CSS for Google Fonts candidates.
+    *   Download Google Fonts WOFF2 files locally and generate a local `@font-face` stylesheet without modifying Elementor content or saved CSS.
+    *   Reuse Elementor's local Google Fonts by family, weight, and style when Elementor already provides the requested local variant.
+    *   Dequeue remote Google Fonts stylesheets only when the matching local families and variants are available.
+
+18. **Browser Cache:**
+    *   Configure browser cache headers for static CSS, JavaScript, fonts, and images while preserving WordPress `?ver=` cache busting.
+    *   Uses long TTL plus `immutable` only for versioned or hashed assets, with a safer default TTL for unversioned assets.
+    *   Manages an isolated Apache/LiteSpeed `.htaccess` block when available and provides copy-ready Nginx configuration otherwise.
+    *   Includes manual diagnostics that verify real HTTP response headers for actual site assets.
+
+19. **Scroll Orizzontale (Elementor):**
+    *   Adds **Marrison — Scroll Orizzontale** to the Advanced tab of ordinary Elementor Containers; no separate widget is required.
+    *   Put the content in a child Container arranged as a horizontal row and give its children the widths you want in Elementor. The module measures the actual overflow and supports either movement direction, optional pin, and independent desktop/tablet/mobile switches (mobile is off by default).
+    *   With Pin, vertical scroll distance equals horizontal overflow multiplied by **Durata scroll** (1 is natural distance). Without Pin, the duration scales the section's passage through the viewport.
+    *   Optional **Snap per slide** shows one child Container at a time instead of moving continuously through partial slides.
+    *   Optional **Scala sfondo** can scale the outer Container background image, video, or color from an initial percentage to a final percentage while the horizontal scroll progresses.
+    *   The editor keeps a normal, editable layout. On the frontend, reduced-motion visitors get a regular horizontally scrollable container.
+    *   Pin requires a section no taller than the viewport and a document path without an ancestor that clips or scrolls vertically; otherwise movement runs without pin to avoid an unusable clipped section.
+    *   CSS and JavaScript are requested only when an enabled Container is actually rendered on the public frontend; the module's PHP and Elementor hooks are absent when its dashboard toggle is off.
+
+20. **Liquid Background (Elementor):**
+    *   Adds **Marrison — Liquid Background** to the Advanced tab of ordinary Elementor Containers; no separate widget is required.
+    *   Generates a procedural WebGL background with soft organic masses, Deep Purple, Blue Ink, Monochrome, and Custom presets, plus responsive speed, scale, and opacity controls.
+    *   Includes an optional bottom blend gradient so the animated Container can fade into the color of the following section without a hard edge.
+    *   Supports subtle mouse influence, stable seeds, reduced-motion behavior, mobile disable before WebGL initialization, WebGL context loss handling, and a static CSS fallback when WebGL is unavailable.
+    *   CSS and JavaScript are requested only when an enabled Container is actually rendered on the public frontend; the module's PHP and Elementor hooks are absent when its dashboard toggle is off.
 
 ## Installation
 
@@ -106,6 +141,52 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.37
+*   **New Module:** Dynamic SVG adds JetEngine Dynamic Field callbacks to output local SVG media fields as sanitized inline SVG, with an optional Current Color variant for CSS-controlled icon color.
+
+### 1.3.36
+*   **Fix:** Liquid Background bottom blend now reaches the selected color earlier and keeps a solid final band, preventing high-contrast fluid settings from tinting the section transition.
+
+### 1.3.35
+*   **Enhancement:** Liquid Background now includes an optional bottom blend gradient with color and responsive height controls, allowing smooth transitions into the following section.
+
+### 1.3.34
+*   **New Module:** Liquid Background adds procedural WebGL organic backgrounds to ordinary Elementor Containers, with presets, responsive controls, reduced-motion handling, mobile disable, and a lightweight CSS fallback.
+*   **New Module:** Scroll Orizzontale adds scroll-linked horizontal movement to ordinary Elementor Containers, with optional pin, both directions, responsive switches, and a reduced-motion fallback.
+*   **UI:** The Marrison Addon dashboard now displays module cards in alphabetical order by module title.
+*   **Enhancement:** Scroll Orizzontale can now snap between child Containers instead of moving continuously.
+*   **Enhancement:** Scroll Orizzontale can now scale the outer Container background image, video, or color during the scroll using an optional background layer.
+
+### 1.3.33
+*   **New Module:** Browser Cache configures browser cache headers for static assets without removing WordPress, Elementor, WooCommerce, or plugin version query strings.
+*   **Enhancement:** Browser Cache separates Apache/LiteSpeed `.htaccess` management from copy-ready Nginx configuration and verifies real response headers only on manual diagnostic runs.
+
+### 1.3.32
+*   **Enhancement:** Local Google Fonts now reuses Elementor's local Google Fonts by family, weight, and style, avoiding duplicate Marrison downloads and duplicate `@font-face` output when Elementor already covers a requested variant.
+*   **Fix:** Remote Google Fonts stylesheets can now be removed when coverage is split between Elementor local fonts and Marrison local fonts.
+
+### 1.3.31
+*   **Fix:** Local Google Fonts now scans active theme/plugin source files for `fonts.googleapis.com` URLs registered through code, so variants declared by `wp_enqueue_style()` Google Fonts URLs are downloaded locally.
+*   **Fix:** Google Fonts URL variants are now added to the scan result even when no matching CSS declaration repeats every requested weight.
+
+### 1.3.30
+*   **Fix:** Local Google Fonts now also filters the final WordPress style tag output, suppressing covered Google Fonts links even when a dependency resolver still reaches the remote handle.
+*   **Fix:** Local Google Fonts can process late style queues more than once per request, so styles discovered after the first print pass are still evaluated safely.
+*   **Fix:** Local Google Fonts can verify coverage from the generated local CSS file when an older manifest is missing a variant entry.
+
+### 1.3.29
+*   **Fix:** Local Google Fonts now removes covered remote Google Fonts stylesheets even when they are dependencies of another enqueued stylesheet, while preserving the dependent stylesheet and all unrelated dependencies.
+*   **Fix:** Local Google Fonts now requires complete local coverage for every family, weight, and style requested by a Google Fonts URL before removing the remote stylesheet.
+*   **Enhancement:** Local Google Fonts diagnostics now report requested remote Google Fonts variants and whether local coverage is complete or incomplete.
+
+### 1.3.28
+*   **Fix:** Local Google Fonts now ignores revisions/autosaves, separates current font usage from local `@font-face` declarations, and downloads only Google Fonts confirmed by explicit Google sources or Elementor's Google font registry.
+*   **Fix:** Local Google Fonts now parses `font-family` values more strictly, discarding CSS keywords and invalid fragments such as unbalanced quote values.
+*   **Fix:** Local Google Fonts can dequeue covered Google Fonts stylesheets even when the remote URL declares broader variant ranges than the variants actually needed locally.
+
+### 1.3.27
+*   **New Module:** Local Google Fonts scans existing font usage, downloads Google Fonts WOFF2 files into uploads storage, generates local `@font-face` CSS, and safely removes covered Google Fonts stylesheets on the frontend.
 
 ### 1.3.26
 *   **Enhancement:** Admin panels now share a unified Marrison Addon visual style based on the Image Sizes module, preserving existing module controls and workflows.

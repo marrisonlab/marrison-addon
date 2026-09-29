@@ -1,0 +1,48 @@
+[data-marrison-liquid-background].marrison-liquid-background-host {
+	isolation: isolate;
+}
+
+.marrison-liquid-background-canvas,
+.marrison-liquid-background-fallback,
+.marrison-liquid-background-blend {
+	position: absolute;
+	display: block;
+	width: 100%;
+	border-radius: inherit;
+	pointer-events: none;
+}
+
+.marrison-liquid-background-canvas,
+.marrison-liquid-background-fallback {
+	inset: 0;
+	z-index: 0;
+	height: 100%;
+}
+
+.marrison-liquid-background-canvas {
+	contain: layout paint style;
+}
+
+.marrison-liquid-background-blend {
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+	height: var(--marrison-liquid-blend-height, 45%);
+	background: linear-gradient(to bottom, transparent 0%, var(--marrison-liquid-blend-color, #000) 68%, var(--marrison-liquid-blend-color, #000) 100%);
+}
+
+.marrison-liquid-background-fallback {
+	overflow: hidden;
+	background-color: var(--marrison-liquid-background, #000);
+	background-image:
+		radial-gradient(72% 76% at 25% 38%, var(--marrison-liquid-primary, #6c3bff) 0%, transparent 58%),
+		radial-gradient(66% 72% at 72% 62%, var(--marrison-liquid-secondary, #321875) 0%, transparent 62%),
+		radial-gradient(58% 70% at 48% 84%, var(--marrison-liquid-primary, #6c3bff) 0%, transparent 64%);
+	opacity: var(--marrison-liquid-opacity, 1);
+}
+
+.marrison-liquid-background-host > :where(:not(.marrison-liquid-background-canvas):not(.marrison-liquid-background-fallback):not(.marrison-liquid-background-blend):not(.elementor-background-video-container):not(.elementor-background-overlay)) {
+	position: relative;
+	z-index: 2;
+}

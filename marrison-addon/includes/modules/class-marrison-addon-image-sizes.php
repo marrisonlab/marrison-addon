@@ -167,12 +167,13 @@ class Marrison_Addon_Image_Sizes {
 		}
 
 		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
+		$background_script_path = dirname( dirname( dirname( __FILE__ ) ) ) . '/assets/js/marrison-bg-webp.js';
 
 		wp_enqueue_script(
 			'marrison-background-webp',
 			plugins_url( 'assets/js/marrison-bg-webp.js', $plugin_root_file ),
 			[],
-			Marrison_Addon::VERSION,
+			file_exists( $background_script_path ) ? (string) filemtime( $background_script_path ) : Marrison_Addon::VERSION,
 			true
 		);
 
@@ -416,12 +417,37 @@ class Marrison_Addon_Image_Sizes {
 		$supported = $wp_editor_supports_avif || $gd_supports_avif;
 
 		$details = [];
+		$details[] = __( 'Pipeline alpha AVIF: attiva', 'marrison-addon' );
 		$details[] = $wp_editor_supports_avif ? __( 'WP_Image_Editor: supportato', 'marrison-addon' ) : __( 'WP_Image_Editor: non supportato', 'marrison-addon' );
 		$details[] = $gd_supports_avif ? __( 'GD imageavif(): disponibile', 'marrison-addon' ) : __( 'GD imageavif(): non disponibile', 'marrison-addon' );
 
-		if ( $supported ) {
+		$alpha_test = $this->test_avif_alpha_support();
+		$alpha_blocks_support = is_wp_error( $alpha_test ) && in_array(
+			$alpha_test->get_error_code(),
+			[ 'avif_alpha_conversion_failed', 'avif_alpha_read_failed', 'avif_alpha_lost' ],
+			true
+		);
+
+		if ( is_wp_error( $alpha_test ) ) {
+			$details[] = sprintf(
+				/* translators: %s: diagnostic message. */
+				__( 'Trasparenza AVIF: %s', 'marrison-addon' ),
+				$alpha_test->get_error_message()
+			);
+		} else {
+			$details[] = __( 'Trasparenza AVIF: verificata', 'marrison-addon' );
+		}
+
+		if ( $supported && ! $alpha_blocks_support ) {
 			wp_send_json_success( [
 				'message' => __( 'AVIF supportato dal server. Puoi abilitarlo e rigenerare le miniature.', 'marrison-addon' ),
+				'details' => $details,
+			] );
+		}
+
+		if ( $supported ) {
+			wp_send_json_error( [
+				'message' => __( 'AVIF disponibile, ma la trasparenza non viene preservata correttamente. Non rigenerare immagini trasparenti in AVIF finché lo stack server non viene corretto.', 'marrison-addon' ),
 				'details' => $details,
 			] );
 		}
@@ -707,7 +733,12 @@ class Marrison_Addon_Image_Sizes {
 			return new WP_Error( 'unsupported_format', __( 'Formato immagine non supportato.', 'marrison-addon' ) );
 		}
 
-		if ( $wp_editor_supports_format ) {
+		$prefer_alpha_safe_gd = 'image/avif' === $mime_type
+			&& $this->source_mime_type_supports_transparency( $source_mime_type )
+			&& '' !== $gd_callback
+			&& function_exists( $gd_callback );
+
+		if ( $wp_editor_supports_format && ! $prefer_alpha_safe_gd ) {
 			$editor = wp_get_image_editor( $file_path );
 			if ( ! is_wp_error( $editor ) ) {
 				$editor->set_quality( $quality );
@@ -726,34 +757,38 @@ class Marrison_Addon_Image_Sizes {
 		// Create image from source
 		switch ( $source_mime_type ) {
 			case 'image/jpeg':
+				if ( ! function_exists( 'imagecreatefromjpeg' ) ) {
+					return new WP_Error( 'unsupported_format', __( 'JPEG non è supportato dallo stack GD di questo server.', 'marrison-addon' ) );
+				}
 				$image = imagecreatefromjpeg( $file_path );
 				break;
 			case 'image/png':
+				if ( ! function_exists( 'imagecreatefrompng' ) ) {
+					return new WP_Error( 'unsupported_format', __( 'PNG non è supportato dallo stack GD di questo server.', 'marrison-addon' ) );
+				}
 				$image = imagecreatefrompng( $file_path );
 				break;
 			case 'image/gif':
+				if ( ! function_exists( 'imagecreatefromgif' ) ) {
+					return new WP_Error( 'unsupported_format', __( 'GIF non è supportato dallo stack GD di questo server.', 'marrison-addon' ) );
+				}
 				$image = imagecreatefromgif( $file_path );
+				break;
+			case 'image/webp':
+				if ( ! function_exists( 'imagecreatefromwebp' ) ) {
+					return new WP_Error( 'unsupported_format', __( 'WebP non è supportato dallo stack GD di questo server.', 'marrison-addon' ) );
+				}
+				$image = imagecreatefromwebp( $file_path );
 				break;
 			default:
 				return new WP_Error( 'unsupported_format', __( 'Formato immagine non supportato.', 'marrison-addon' ) );
 		}
 
 		if ( ! $image ) {
-				return new WP_Error( 'image_creation_failed', __( 'Impossibile creare l\'immagine.', 'marrison-addon' ) );
+			return new WP_Error( 'image_creation_failed', __( 'Impossibile creare l\'immagine.', 'marrison-addon' ) );
 		}
 
-		// Preserve transparency where the GD encoder supports it.
-		if ( in_array( $source_mime_type, [ 'image/png', 'image/gif' ], true ) ) {
-			if ( function_exists( 'imagepalettetotruecolor' ) ) {
-				imagepalettetotruecolor( $image );
-			}
-			if ( function_exists( 'imagealphablending' ) ) {
-				imagealphablending( $image, true );
-			}
-			if ( function_exists( 'imagesavealpha' ) ) {
-				imagesavealpha( $image, true );
-			}
-		}
+		$image = $this->prepare_gd_image_for_modern_format( $image, $source_mime_type );
 
 		$result = $gd_callback( $image, $output_path, $quality );
 		imagedestroy( $image );
@@ -763,6 +798,167 @@ class Marrison_Addon_Image_Sizes {
 		}
 
 		return $output_path;
+	}
+
+	private function prepare_gd_image_for_modern_format( $image, $source_mime_type ) {
+		if ( ! $this->source_mime_type_supports_transparency( $source_mime_type ) ) {
+			return $image;
+		}
+
+		if (
+			! function_exists( 'imagecreatetruecolor' )
+			|| ! function_exists( 'imagecolorallocatealpha' )
+			|| ! function_exists( 'imagefilledrectangle' )
+			|| ! function_exists( 'imagecopy' )
+			|| ! function_exists( 'imagesx' )
+			|| ! function_exists( 'imagesy' )
+		) {
+			return $image;
+		}
+
+		$width = imagesx( $image );
+		$height = imagesy( $image );
+
+		if ( $width <= 0 || $height <= 0 ) {
+			return $image;
+		}
+
+		$canvas = imagecreatetruecolor( $width, $height );
+		if ( ! $canvas ) {
+			return $image;
+		}
+
+		if ( function_exists( 'imagealphablending' ) ) {
+			imagealphablending( $canvas, false );
+		}
+
+		if ( function_exists( 'imagesavealpha' ) ) {
+			imagesavealpha( $canvas, true );
+		}
+
+		$transparent = imagecolorallocatealpha( $canvas, 0, 0, 0, 127 );
+		if ( false !== $transparent ) {
+			imagefilledrectangle( $canvas, 0, 0, $width - 1, $height - 1, $transparent );
+		}
+
+		imagecopy( $canvas, $image, 0, 0, 0, 0, $width, $height );
+		imagedestroy( $image );
+
+		return $canvas;
+	}
+
+	private function source_mime_type_supports_transparency( $mime_type ) {
+		return in_array( $mime_type, [ 'image/png', 'image/gif', 'image/webp' ], true );
+	}
+
+	private function test_avif_alpha_support() {
+		if (
+			! function_exists( 'imageavif' )
+			|| ! function_exists( 'imagecreatefromavif' )
+			|| ! function_exists( 'imagecreatetruecolor' )
+			|| ! function_exists( 'imagecolorallocatealpha' )
+			|| ! function_exists( 'imagefilledrectangle' )
+			|| ! function_exists( 'imagealphablending' )
+			|| ! function_exists( 'imagesetpixel' )
+			|| ! function_exists( 'imagesavealpha' )
+			|| ! function_exists( 'imagepng' )
+			|| ! function_exists( 'imagecolorat' )
+			|| ! function_exists( 'imagecreatefrompng' )
+		) {
+			return new WP_Error( 'avif_alpha_unverifiable', __( 'test non verificabile su questo stack GD', 'marrison-addon' ) );
+		}
+
+		$temp_dir = trailingslashit( get_temp_dir() );
+		if ( ! wp_is_writable( $temp_dir ) ) {
+			return new WP_Error( 'avif_alpha_temp_unwritable', __( 'cartella temporanea non scrivibile', 'marrison-addon' ) );
+		}
+
+		$png_path = $this->create_alpha_test_image( $temp_dir, 'png' );
+		if ( is_wp_error( $png_path ) ) {
+			return $png_path;
+		}
+
+		$png_alpha_test = $this->assert_avif_alpha_preserved( $png_path );
+		if ( is_wp_error( $png_alpha_test ) ) {
+			return $png_alpha_test;
+		}
+
+		if ( function_exists( 'imagewebp' ) && function_exists( 'imagecreatefromwebp' ) ) {
+			$webp_path = $this->create_alpha_test_image( $temp_dir, 'webp' );
+			if ( is_wp_error( $webp_path ) ) {
+				return $webp_path;
+			}
+
+			$webp_alpha_test = $this->assert_avif_alpha_preserved( $webp_path );
+			if ( is_wp_error( $webp_alpha_test ) ) {
+				return $webp_alpha_test;
+			}
+		}
+
+		return true;
+	}
+
+	private function create_alpha_test_image( $temp_dir, $extension ) {
+		$path = $temp_dir . wp_unique_filename( $temp_dir, 'marrison-avif-alpha-test.' . $extension );
+		$image = imagecreatetruecolor( 2, 1 );
+
+		if ( ! $image ) {
+			return new WP_Error( 'avif_alpha_image_failed', __( 'impossibile creare il test', 'marrison-addon' ) );
+		}
+
+		imagealphablending( $image, false );
+		imagesavealpha( $image, true );
+
+		$transparent = imagecolorallocatealpha( $image, 0, 0, 0, 127 );
+		$opaque = imagecolorallocatealpha( $image, 255, 0, 0, 0 );
+
+		if ( false === $transparent || false === $opaque ) {
+			imagedestroy( $image );
+			return new WP_Error( 'avif_alpha_color_failed', __( 'impossibile preparare i pixel alpha', 'marrison-addon' ) );
+		}
+
+		imagefilledrectangle( $image, 0, 0, 1, 0, $transparent );
+		imagesetpixel( $image, 1, 0, $opaque );
+
+		$saved = 'webp' === $extension ? imagewebp( $image, $path, 80 ) : imagepng( $image, $path );
+		if ( ! $saved ) {
+			imagedestroy( $image );
+			return new WP_Error( 'avif_alpha_source_failed', __( 'impossibile scrivere la sorgente alpha di test', 'marrison-addon' ) );
+		}
+
+		imagedestroy( $image );
+
+		return $path;
+	}
+
+	private function assert_avif_alpha_preserved( $source_path ) {
+		$converted_path = $this->convert_to_format( $source_path, 'image/avif', 80 );
+		if ( is_wp_error( $converted_path ) ) {
+			wp_delete_file( $source_path );
+			return new WP_Error( 'avif_alpha_conversion_failed', __( 'conversione alpha fallita', 'marrison-addon' ) );
+		}
+
+		$converted = imagecreatefromavif( $converted_path );
+		if ( ! $converted ) {
+			wp_delete_file( $source_path );
+			wp_delete_file( $converted_path );
+			return new WP_Error( 'avif_alpha_read_failed', __( 'AVIF generato ma non leggibile', 'marrison-addon' ) );
+		}
+
+		$transparent_pixel = imagecolorat( $converted, 0, 0 );
+		$opaque_pixel = imagecolorat( $converted, 1, 0 );
+		$transparent_alpha = ( $transparent_pixel & 0x7F000000 ) >> 24;
+		$opaque_alpha = ( $opaque_pixel & 0x7F000000 ) >> 24;
+
+		imagedestroy( $converted );
+		wp_delete_file( $source_path );
+		wp_delete_file( $converted_path );
+
+		if ( $transparent_alpha < 100 || $opaque_alpha > 20 ) {
+			return new WP_Error( 'avif_alpha_lost', __( 'alpha non preservato', 'marrison-addon' ) );
+		}
+
+		return true;
 	}
 
 	private function image_editor_supports_mime_type( $mime_type ) {

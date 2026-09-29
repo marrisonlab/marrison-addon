@@ -252,6 +252,193 @@ input:checked + .marrison-slider:before {
     color: #d63638;
 }
 
+.marrison-admin-page-local-google-fonts .marrison-lgf-summary-grid,
+.marrison-admin-page-local-google-fonts .marrison-lgf-diagnostics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-label {
+    color: #646970;
+    display: block;
+    font-size: 12px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-status {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 5px 8px;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-status.success {
+    background: #edfaef;
+    color: #008a20;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-status.warning {
+    background: #fff8e5;
+    color: #996800;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-status.muted {
+    background: #f6f7f7;
+    color: #646970;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-notice {
+    display: none;
+    margin-top: 14px;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-result {
+    border-left: 4px solid #2271b1;
+    background: #f6f7f7;
+    padding: 12px;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-result.success {
+    border-left-color: #00a32a;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-result.error {
+    border-left-color: #d63638;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-result ul,
+.marrison-admin-page-local-google-fonts .marrison-lgf-log {
+    margin: 10px 0 0;
+    padding-left: 18px;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-log .warning {
+    color: #996800;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-log .error {
+    color: #d63638;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-code-list {
+    margin: 0;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-code-list li {
+    margin-bottom: 6px;
+    overflow-wrap: anywhere;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-diagnostic-line {
+    color: #646970;
+    display: block;
+    margin-top: 4px;
+}
+
+.marrison-admin-page-local-google-fonts .marrison-lgf-table td,
+.marrison-admin-page-local-google-fonts .marrison-lgf-table th {
+    vertical-align: middle;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-label {
+    color: #646970;
+    display: block;
+    font-size: 12px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-status {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 5px 8px;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-status.success {
+    background: #edfaef;
+    color: #008a20;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-status.warning {
+    background: #fff8e5;
+    color: #996800;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-status.error {
+    background: #fcf0f1;
+    color: #d63638;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-status.muted {
+    background: #f6f7f7;
+    color: #646970;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-state-message {
+    margin: 14px 0 0;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-check-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-actions form,
+.marrison-admin-page-browser-cache .marrison-browser-cache-diagnostics-form {
+    margin: 0;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-code {
+    margin-top: 8px;
+    min-height: 220px;
+    white-space: pre;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-diagnostic-result {
+    margin-top: 16px;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-diagnostics-table td,
+.marrison-admin-page-browser-cache .marrison-browser-cache-diagnostics-table th {
+    vertical-align: top;
+}
+
+.marrison-admin-page-browser-cache .marrison-browser-cache-diagnostics-table code {
+    display: block;
+    margin-top: 6px;
+    max-width: 320px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
 @media (max-width: 782px) {
     .marrison-admin-page {
         max-width: none;
