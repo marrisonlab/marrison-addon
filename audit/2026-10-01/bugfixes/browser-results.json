@@ -1,0 +1,468 @@
+{
+  "publicPage": "https://www.marrisonlab.com/elementor-4251/",
+  "before": {
+    "publicChildren": [
+      8003.625,
+      4054.84375
+    ],
+    "publicRootHeight": 4074.84375,
+    "publicPinned": false,
+    "localCloneChildren": [
+      7379,
+      3738
+    ],
+    "localClonePinned": false,
+    "cookieTitle": "rgb(255, 255, 255)"
+  },
+  "after": {
+    "desktop": {
+      "children": [
+        [
+          1245,
+          628
+        ],
+        [
+          1245,
+          628
+        ],
+        [
+          1245,
+          628
+        ],
+        [
+          1245,
+          628
+        ]
+      ],
+      "invisible": 0,
+      "mover": [
+        1245,
+        5040
+      ],
+      "nextTop": 367.4375,
+      "pinned": true,
+      "root": [
+        1265,
+        707
+      ],
+      "transform": "matrix(1, 0, 0, 1, -3795, 0)",
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "cookie": {
+      "global": "rgb(255, 255, 255)",
+      "modal": "rgb(255, 255, 255)",
+      "popup": "rgb(51, 51, 51)"
+    },
+    "tablet": {
+      "active": true,
+      "children": [
+        [
+          989,
+          380
+        ],
+        [
+          989,
+          380
+        ],
+        [
+          989,
+          380
+        ],
+        [
+          989,
+          380
+        ]
+      ],
+      "mover": [
+        989,
+        4016
+      ],
+      "pinned": true,
+      "root": [
+        1009,
+        707
+      ],
+      "viewport": [
+        1024,
+        900
+      ]
+    },
+    "mobile": {
+      "active": false,
+      "children": [
+        [
+          355,
+          670
+        ],
+        [
+          355,
+          670
+        ],
+        [
+          355,
+          670
+        ],
+        [
+          355,
+          670
+        ]
+      ],
+      "mover": null,
+      "pinned": false,
+      "root": [
+        375,
+        2760
+      ],
+      "viewport": [
+        390,
+        844
+      ]
+    }
+  },
+  "variants": {
+    "percent33-50-80": {
+      "children": [
+        {
+          "desc": [],
+          "height": 340,
+          "width": 411
+        },
+        {
+          "desc": [],
+          "height": 340,
+          "width": 623
+        },
+        {
+          "desc": [],
+          "height": 340,
+          "width": 996
+        }
+      ],
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": false,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": 1265,
+      "mover": [
+        1245,
+        2069
+      ],
+      "nextTop": 479,
+      "pinned": true,
+      "rootHeight": 360,
+      "sceneHeight": 1184,
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "nested-row": {
+      "children": [
+        {
+          "desc": [
+            1280,
+            1280,
+            1280
+          ],
+          "height": 360,
+          "width": 3328
+        }
+      ],
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": false,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": 1265,
+      "mover": [
+        1245,
+        3890
+      ],
+      "nextTop": 499,
+      "pinned": true,
+      "rootHeight": 380,
+      "sceneHeight": 3025,
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "direction-ltr": {
+      "children": [
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        },
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        },
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        }
+      ],
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "ltr",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": 1265,
+      "mover": [
+        1245,
+        3775
+      ],
+      "nextTop": 479,
+      "pinned": true,
+      "rootHeight": 360,
+      "sceneHeight": 2890,
+      "transform": "translate3d(-2530px, 0px, 0px)",
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "pin-false": {
+      "children": [
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        },
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        },
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        }
+      ],
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": false,
+        "snap": false,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": 1265,
+      "mover": [
+        1245,
+        3775
+      ],
+      "nextTop": 480,
+      "pinned": false,
+      "rootHeight": 360,
+      "sceneHeight": 360,
+      "transform": "translate3d(-1405.56px, 0px, 0px)",
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "snapboxed": {
+      "children": [
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        },
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        },
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        }
+      ],
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": 1245,
+      "mover": [
+        1245,
+        3775
+      ],
+      "nextTop": 479,
+      "pinned": true,
+      "rootHeight": 360,
+      "sceneHeight": 2890,
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "snapfull": {
+      "children": [
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        },
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        },
+        {
+          "desc": [],
+          "height": 340,
+          "width": 1245
+        }
+      ],
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": 1265,
+      "mover": [
+        1245,
+        3775
+      ],
+      "nextTop": 359,
+      "pinned": true,
+      "rootHeight": 360,
+      "sceneHeight": 2890,
+      "transform": "translate3d(-1265px, 0px, 0px)",
+      "viewport": [
+        1280,
+        720
+      ]
+    }
+  },
+  "snapWheelBefore": {
+    "y": 963,
+    "x": "translate3d(-1255px, 0px, 0px)",
+    "positions": [
+      0,
+      1255,
+      2520,
+      2530
+    ]
+  },
+  "snapWheelAfter": {
+    "childOffsets": [
+      0,
+      1265,
+      2530
+    ],
+    "x": "translate3d(-1265px, 0px, 0px)",
+    "y": 1385
+  },
+  "snapLast": {
+    "x": "translate3d(-2530px, 0px, 0px)",
+    "y": 2590
+  }
+}

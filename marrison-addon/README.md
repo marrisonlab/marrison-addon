@@ -6,11 +6,11 @@
 *   **Plugin URI:** https://github.com/marrisonlab/marrison-addon
 *   **Author:** Angelo Marra
 *   **Author URI:** https://marrisonlab.com
-*   **Tags:** elementor, container, link, wrapper, steps, anchor, ticker, discount, woocommerce, cursor, preloader, logout, video thumbnail, cookie, calendar, liquid background, dynamic svg, marrison
+*   **Tags:** elementor, container, link, wrapper, read more, steps, anchor, ticker, discount, woocommerce, cursor, preloader, logout, video thumbnail, cookie, calendar, liquid background, dynamic svg, marrison
 *   **Requires at least:** 6.0
 *   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.37
+*   **Stable tag:** 1.3.44
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -63,70 +63,77 @@
     *   Includes a Current Color callback that converts fill and stroke colors to `currentColor` while preserving `none`.
     *   Does not load frontend CSS or JavaScript.
 
-9.  **Anchor Offset:**
+9.  **Leggi di più (Elementor + JetEngine):**
+    *   Adds a "Marrison — Leggi di più" section to Elementor Text Editor and JetEngine Dynamic Field widgets.
+    *   Collapses long text to the selected number of visible lines and shows a `....` suffix while closed.
+    *   Includes custom Leggi di più/Leggi di meno labels plus typography, color, alignment, background, border, radius, padding, and margin controls for the toggle.
+
+10. **Anchor Offset:**
     *   Corrects same-page anchor scroll when the site header uses the `hdr` ID.
     *   Uses the live height of `#hdr` so linked sections are not hidden under a fixed or sticky header.
     *   Applies to anchor clicks, direct page loads with a hash, and hash changes.
 
-10. **Preloader:**
+11. **Preloader:**
     *   Add a professional loading screen to your site.
     *   **Animations:** Fade, Slide Up, Slide Left, Split (Curtain), Shutter (Vertical).
     *   **Spinners:** Circle, Dots, Double Ring, Wave, Pulse (Logo).
     *   **Customization:** Upload your logo, choose colors, and set transition duration.
     *   **Progress Bar:** Optional progress bar with percentage display.
 
-11. **Custom Cursor:**
+12. **Custom Cursor:**
     *   Replace the default system cursor with a custom follower.
     *   Customizable colors, size, and hover effects (scale, magnetic).
     *   "Exclusion" blending mode for high visibility on any background.
     *   **Frontend Only:** Skips backend, preview, and Elementor Editor contexts.
 
-12. **Image Sizes:**
+13. **Image Sizes:**
     *   Define custom image sizes for your theme directly from the dashboard.
     *   Control cropping and dimensions without editing code.
 
-13. **Fast Logout:**
+14. **Fast Logout:**
     *   Automatically redirects users to the home page after logging out, bypassing the default WordPress login screen.
 
-14. **Calendar Sync:**
+15. **Calendar Sync:**
     *   Generate Google Calendar and ICS event links from post meta.
     *   Configurable meta keys for start and end dates.
     *   Includes shortcode support for templates and dynamic content.
 
-15. **Cookie Manager:**
+16. **Cookie Manager:**
     *   Cookie banner, floating widget, preferences modal, and setup wizard.
     *   Automatic cookie scanning and category management.
     *   Frontend UI only loads when the module is active and in a real frontend context.
 
-16. **Video Thumbnail:**
+17. **Video Thumbnail:**
     *   Fetch YouTube thumbnails and import them directly into the WordPress Media Library.
     *   Automatically generate JPG covers from uploaded MP4/WebM videos using FFmpeg.
     *   Configure capture second, cover destination, and optional FFmpeg binary path from the admin page.
     *   Keeps the original admin workflow while living as a module inside Marrison Addon.
 
-17. **Local Google Fonts:**
+18. **Local Google Fonts:**
     *   Scan Elementor, generated CSS, theme/plugin CSS, theme/plugin source files, inline CSS, and WordPress custom CSS for Google Fonts candidates.
     *   Download Google Fonts WOFF2 files locally and generate a local `@font-face` stylesheet without modifying Elementor content or saved CSS.
     *   Reuse Elementor's local Google Fonts by family, weight, and style when Elementor already provides the requested local variant.
     *   Dequeue remote Google Fonts stylesheets only when the matching local families and variants are available.
 
-18. **Browser Cache:**
+19. **Browser Cache:**
     *   Configure browser cache headers for static CSS, JavaScript, fonts, and images while preserving WordPress `?ver=` cache busting.
     *   Uses long TTL plus `immutable` only for versioned or hashed assets, with a safer default TTL for unversioned assets.
     *   Manages an isolated Apache/LiteSpeed `.htaccess` block when available and provides copy-ready Nginx configuration otherwise.
     *   Includes manual diagnostics that verify real HTTP response headers for actual site assets.
 
-19. **Scroll Orizzontale (Elementor):**
+20. **Scroll Orizzontale (Elementor):**
     *   Adds **Marrison — Scroll Orizzontale** to the Advanced tab of ordinary Elementor Containers; no separate widget is required.
     *   Put the content in a child Container arranged as a horizontal row and give its children the widths you want in Elementor. The module measures the actual overflow and supports either movement direction, optional pin, and independent desktop/tablet/mobile switches (mobile is off by default).
     *   With Pin, vertical scroll distance equals horizontal overflow multiplied by **Durata scroll** (1 is natural distance). Without Pin, the duration scales the section's passage through the viewport.
     *   Optional **Snap per slide** shows one child Container at a time instead of moving continuously through partial slides.
+    *   Boxed content clips the track at its own width in both continuous and Snap mode. Snap preserves Elementor's content width and starts after the parent reaches the viewport top, including when pin is unavailable.
+    *   With Snap and Pin enabled, images automatically fit the available viewport height, accounting for container spacing and other vertical content; their proportions are preserved. Image constraints are restored when Snap or the module is disabled. Other content can still make a section too tall to pin.
     *   Optional **Scala sfondo** can scale the outer Container background image, video, or color from an initial percentage to a final percentage while the horizontal scroll progresses.
     *   The editor keeps a normal, editable layout. On the frontend, reduced-motion visitors get a regular horizontally scrollable container.
     *   Pin requires a section no taller than the viewport and a document path without an ancestor that clips or scrolls vertically; otherwise movement runs without pin to avoid an unusable clipped section.
     *   CSS and JavaScript are requested only when an enabled Container is actually rendered on the public frontend; the module's PHP and Elementor hooks are absent when its dashboard toggle is off.
 
-20. **Liquid Background (Elementor):**
+21. **Liquid Background (Elementor):**
     *   Adds **Marrison — Liquid Background** to the Advanced tab of ordinary Elementor Containers; no separate widget is required.
     *   Generates a procedural WebGL background with soft organic masses, Deep Purple, Blue Ink, Monochrome, and Custom presets, plus responsive speed, scale, and opacity controls.
     *   Includes an optional bottom blend gradient so the animated Container can fade into the color of the following section without a hard edge.
@@ -141,6 +148,37 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.44
+*   **Audit fixes:** Calendar ICS downloads enforce WordPress read permissions and password protection, preserve signed shortcode date keys and location, and recover empty date keys or invalid legacy timezones.
+*   **Audit fixes:** GitHub updates select and verify the actual plugin directory in nested repository archives, and report filesystem failures instead of returning an unusable directory.
+*   **Audit fixes:** Cookie Manager blocks quoted and unquoted iframe/script sources, restores the original script type after consent, and keeps the preferences title readable under global heading colors.
+*   **Audit fixes:** Header Animations follow Elementor's active responsive settings and preserve inline markup/line breaks in letter effects. Wrapped Link applies custom attributes; Preloader respects cancelled clicks and empty anchors.
+*   **Audit fixes:** Image Sizes registers newly generated base sizes before adding WebP/AVIF metadata; Cursor accepts hex hover colors. Removed the image admin debug log and repaired the font parser test path.
+*   **Audit fixes:** Horizontal Scroll clips Boxed slides, corrects Snap coordinates/entry, and fits images to keep Snap pinning available within the viewport.
+*   **Robustness:** Ticker skips malformed non-scalar text values instead of raising a TypeError.
+
+### 1.3.43
+*   **Performance:** Image Sizes now limits dynamic background scans, reuses browser session cache, and caches background WebP/AVIF resolution server-side to avoid repeated metadata lookups.
+*   **Fix:** GitHub updater now negative-caches failed version checks, clears the active release-info transient, and only runs in admin/cron contexts.
+*   **Performance:** Header Animations assets now load on the frontend only when a Marrison Heading animation is rendered; static plugin asset versions now use the plugin version in production and file mtimes only in debug.
+*   **Fix:** Cookie Manager can refresh stale frontend nonces from cached pages, and Product Discount clears scheduled jobs when the module is disabled.
+
+### 1.3.42
+*   **New Module:** Leggi di più adds collapsible long text controls to Elementor Text Editor and JetEngine Dynamic Field widgets, with selectable visible lines, a `....` collapsed suffix, and styled Leggi di più/Leggi di meno toggles.
+
+### 1.3.41
+*   **Fix:** Liquid Background bottom blend now resolves Elementor global color references saved in `__globals__`, including responsive global colors, instead of falling back when the visible color value is empty.
+
+### 1.3.40
+*   **Fix:** Liquid Background now gives the secondary liquid color its own visible WebGL structure, so custom palettes such as black background, purple primary, and lilac secondary render all three selected colors.
+
+### 1.3.39
+*   **Fix:** Liquid Background now applies the selected bottom blend color correctly, including Elementor global CSS colors, and makes the blend color responsive for desktop, tablet, and mobile.
+*   **Fix:** Empty Liquid Background seeds now use one shared standard pattern, so Containers with identical settings render consistently across a site; enter a Seed number only when a deliberate variant is needed.
+
+### 1.3.38
+*   **Fix:** Liquid Background no longer changes Elementor shape divider positioning, preserving full-width separators on boxed and full-width Containers.
 
 ### 1.3.37
 *   **New Module:** Dynamic SVG adds JetEngine Dynamic Field callbacks to output local SVG media fields as sanitized inline SVG, with an optional Current Color variant for CSS-controlled icon color.

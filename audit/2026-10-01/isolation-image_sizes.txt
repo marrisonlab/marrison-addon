@@ -1,0 +1,322 @@
+
+Warning: PHP Startup: Unable to load dynamic library 'php_imagick.dll' (tried: C:/Users/Angelo/AppData/Roaming/Local/lightning-services/php-8.2.29+0/bin/win64/ext\php_imagick.dll (Impossibile trovare il modulo specificato), C:/Users/Angelo/AppData/Roaming/Local/lightning-services/php-8.2.29+0/bin/win64/ext\php_php_imagick.dll.dll (Impossibile trovare il modulo specificato)) in Unknown on line 0
+
+AUDIT_JSON
+{
+    "mode": "isolation",
+    "module": "image_sizes",
+    "versions": {
+        "php": "8.2.29",
+        "wordpress": "7.1.2",
+        "addon": "1.3.43",
+        "elementor": "4.3.3",
+        "jetengine": null,
+        "woocommerce": "10.9.4"
+    },
+    "modules": {
+        "wrapped_link": {
+            "title": "Wrapped Link",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "read_more": {
+            "title": "Leggi di più",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "horizontal_scroll": {
+            "title": "Scroll Orizzontale",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "liquid_background": {
+            "title": "Liquid Background",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "ticker": {
+            "title": "Ticker",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "steps": {
+            "title": "Steps",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "product_discount": {
+            "title": "Sconto Prodotto",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "recently_viewed_products": {
+            "title": "Visualizzati di recente",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "listing_title": {
+            "title": "Titolo Listing",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "dynamic_svg": {
+            "title": "Dynamic SVG",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "header_animations": {
+            "title": "Animazioni Header",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "anchor_offset": {
+            "title": "Anchor Offset",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "image_sizes": {
+            "title": "Dimensioni Immagini",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "local_google_fonts": {
+            "title": "Local Google Fonts",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "browser_cache": {
+            "title": "Browser Cache",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "cursor": {
+            "title": "Cursore Animato",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "preloader": {
+            "title": "Preloader",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "fast_logout": {
+            "title": "Fast Logout",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "calendar_sync": {
+            "title": "Calendar Sync",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "cookie_manager": {
+            "title": "Cookie Manager",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "video_thumbnail": {
+            "title": "Video Thumbnail",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        }
+    },
+    "hooks": [
+        {
+            "tag": "admin_init",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "register_settings",
+            "priority": 10
+        },
+        {
+            "tag": "template_redirect",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "start_frontend_webp_rewrite",
+            "priority": 1
+        },
+        {
+            "tag": "wp_enqueue_scripts",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "enqueue_frontend_scripts",
+            "priority": 10
+        },
+        {
+            "tag": "admin_enqueue_scripts",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "enqueue_admin_scripts",
+            "priority": 10
+        },
+        {
+            "tag": "after_setup_theme",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "register_image_sizes",
+            "priority": 10
+        },
+        {
+            "tag": "admin_menu",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "add_admin_menu",
+            "priority": 10
+        },
+        {
+            "tag": "image_size_names_choose",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "add_to_media_selector",
+            "priority": 10
+        },
+        {
+            "tag": "image_size_names_choose",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "remove_disabled_from_media_selector",
+            "priority": 20
+        },
+        {
+            "tag": "intermediate_image_sizes_advanced",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "filter_intermediate_image_sizes",
+            "priority": 10
+        },
+        {
+            "tag": "intermediate_image_sizes_advanced",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "force_upscale_sizes",
+            "priority": 999
+        },
+        {
+            "tag": "intermediate_image_sizes",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "filter_intermediate_image_sizes_list",
+            "priority": 10
+        },
+        {
+            "tag": "image_resize_dimensions",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "enable_upscaling",
+            "priority": 10
+        },
+        {
+            "tag": "image_downsize",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "force_downsize_upscale",
+            "priority": 10
+        },
+        {
+            "tag": "image_downsize",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "serve_webp_downsize",
+            "priority": 20
+        },
+        {
+            "tag": "wp_calculate_image_srcset",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "serve_webp_srcset",
+            "priority": 20
+        },
+        {
+            "tag": "wp_generate_attachment_metadata",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "add_modern_formats_to_generated_metadata",
+            "priority": 20
+        },
+        {
+            "tag": "elementor/files/css/property",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "filter_elementor_css_property_value",
+            "priority": 20
+        },
+        {
+            "tag": "elementor/element/container/section_layout/after_section_end",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "register_lcp_hero_controls",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/container/before_render",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "before_render_lcp_hero_container",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/container/after_render",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "after_render_lcp_hero_container",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/loaded",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "maybe_clear_elementor_css_cache",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/loaded",
+            "class": "Marrison_Addon",
+            "method": "init_elementor_modules",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_get_image_ids",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_get_image_ids",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_regenerate_single_image",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_regenerate_single_image",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_clear_elementor_css_cache",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_clear_elementor_css_cache",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_test_avif_support",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_test_avif_support",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_resolve_background_webp",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_resolve_background_webp",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_nopriv_marrison_resolve_background_webp",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_resolve_background_webp",
+            "priority": 10
+        },
+        {
+            "tag": "plugin_action_links_marrison-addon/marrison-addon.php",
+            "class": "Marrison_Addon",
+            "method": "plugin_action_links",
+            "priority": 10
+        }
+    ],
+    "public_frontend": true,
+    "errors": []
+}

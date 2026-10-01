@@ -1,0 +1,13 @@
+{
+  "all_six_owned_fixtures_removed": true,
+  "removed": [
+    "marrison-audit-p2-preloader.html",
+    "marrison-audit-p2-destination.html",
+    "marrison-audit-p2-elementor.html",
+    "marrison-audit-p2-responsive.html",
+    "marrison-audit-p2-cookie.html",
+    "marrison-audit-p2-youtube.com.html"
+  ],
+  "hash_verified_before_removal": true,
+  "source_artifacts_preserved": true
+}

@@ -1,0 +1,33 @@
+{
+  "environment": "LocalWP http://localhost:10004, desktop viewport actually observed 1280x720",
+  "admin_panels": {
+    "checked": ["main dashboard", "product_discount", "image_sizes", "local_google_fonts", "browser_cache", "cursor", "preloader", "calendar_sync", "cookie_manager", "video_thumbnail"],
+    "fatal_errors": 0,
+    "console_errors_observed": 0,
+    "all_21_module_switches_enabled": true
+  },
+  "real_site": {
+    "preloader_after_load": {"opacity": "0", "visibility": "hidden", "pointerEvents": "none"},
+    "cursor_dot_and_follower_created": true,
+    "cookie_optional_categories_initially_unchecked": true,
+    "cookie_necessary_category_checked_disabled": true,
+    "reject_all_hides_banner": true,
+    "reject_all_persists_after_reload": true
+  },
+  "elementor_rendered_fixture": {
+    "read_more": {"collapsedHeight": 58, "expandedHeight": 90, "expandedAria": "true", "collapsedAria": "false", "labels_switch": true},
+    "header_tablet_only_animation_on_desktop": "marrisonDropSoft",
+    "letter_animation": {"sourceStrong": 1, "sourceEm": 1, "sourceBr": 1, "renderedStrong": 0, "renderedEm": 0, "renderedBr": 0, "letters": 24},
+    "horizontal_scroll": {"slideCount": 3, "pinned": true, "viewportHeight": 336, "sceneHeight": 3979, "wheel_moves_to_next_slide": true, "transform_after_gesture": "translate3d(-1221px, 0px, 0px)"},
+    "liquid_background": {"webgl_canvas_created": true, "complete_visual_result_on_saved_elementor_document_verified": false},
+    "steps": {"items": 8, "layout": "grid"},
+    "ticker": {"animationName": "ticker-infinite-left", "repeater_rendered": true},
+    "wrapped_link": {"click_changes_hash_to_target": true},
+    "anchor_offset": {"measuredHeader": 88, "cssOffset": "88px", "target_remains_below_header": true}
+  },
+  "limitations": [
+    "Fixtures use real Elementor PHP rendering with explicit test layout CSS; no saved Elementor document was added.",
+    "Browser viewport override did not change the observed viewport; mobile visual tests are not claimed.",
+    "No WebGL context-loss simulation, browser reduced-motion override, or external tracker execution was performed."
+  ]
+}

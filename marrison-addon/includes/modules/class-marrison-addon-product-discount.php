@@ -33,6 +33,7 @@ class Marrison_Addon_Product_Discount {
 		add_filter( 'cron_schedules', [ $this, 'add_cron_schedules' ] );
 		add_action( 'init', [ $this, 'maybe_schedule_backfill' ], 20 );
 		add_action( 'init', [ $this, 'sync_recurring_schedule' ], 25 );
+		add_action( 'marrison_addon/module_status_changed', [ $this, 'handle_module_status_change' ], 10, 2 );
 		add_action( self::BACKFILL_HOOK, [ $this, 'run_backfill_batch' ] );
 		add_action( self::SCHEDULE_TRIGGER_HOOK, [ $this, 'start_scheduled_sync' ] );
 		add_action( self::SCHEDULE_BATCH_HOOK, [ $this, 'run_scheduled_sync_batch' ] );
@@ -81,8 +82,8 @@ class Marrison_Addon_Product_Discount {
 			return;
 		}
 
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_script( 'marrison-admin-product-discount', plugins_url( 'assets/js/admin-product-discount.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::VERSION, true );
+		$plugin_root_file = Marrison_Addon::plugin_file();
+		wp_enqueue_script( 'marrison-admin-product-discount', plugins_url( 'assets/js/admin-product-discount.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::asset_version( 'assets/js/admin-product-discount.js' ), true );
 		wp_localize_script(
 			'marrison-admin-product-discount',
 			'marrisonProductDiscount',
@@ -360,6 +361,17 @@ class Marrison_Addon_Product_Discount {
 		update_option( self::SCHEDULED_FREQUENCY_OPTION, $frequency );
 	}
 
+	public function handle_module_status_change( $module_id, $enabled ) {
+		if ( 'product_discount' !== $module_id || $enabled ) {
+			return;
+		}
+
+		$this->clear_recurring_schedule();
+		$this->clear_backfill_schedule();
+		update_option( self::SCHEDULED_FREQUENCY_OPTION, 'manual' );
+		delete_option( self::SCHEDULE_PAGE_OPTION );
+	}
+
 	public function start_scheduled_sync() {
 		if ( false !== get_option( self::SCHEDULE_PAGE_OPTION, false ) ) {
 			$this->schedule_single_scheduled_sync_batch();
@@ -550,6 +562,18 @@ class Marrison_Addon_Product_Discount {
 	private function clear_recurring_schedule() {
 		wp_clear_scheduled_hook( self::SCHEDULE_TRIGGER_HOOK );
 		wp_clear_scheduled_hook( self::SCHEDULE_BATCH_HOOK );
+
+		if ( function_exists( 'as_unschedule_all_actions' ) ) {
+			as_unschedule_all_actions( self::SCHEDULE_BATCH_HOOK, array(), self::BACKFILL_GROUP );
+		}
+	}
+
+	private function clear_backfill_schedule() {
+		wp_clear_scheduled_hook( self::BACKFILL_HOOK );
+
+		if ( function_exists( 'as_unschedule_all_actions' ) ) {
+			as_unschedule_all_actions( self::BACKFILL_HOOK, array(), self::BACKFILL_GROUP );
+		}
 	}
 
 	private function schedule_single_scheduled_sync_batch() {

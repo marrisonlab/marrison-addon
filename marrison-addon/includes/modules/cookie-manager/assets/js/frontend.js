@@ -69,6 +69,58 @@
             });
         },
 
+        ajax: function(options, retried) {
+            var request = $.extend({}, options);
+            var originalSuccess = options.success || function() {};
+            var originalError = options.error || function() {};
+
+            request.data = $.extend({}, options.data || {}, {
+                nonce: marrisonCookie.nonce
+            });
+            request.error = function(xhr, status, error) {
+                if (!retried && MarrisonCookie.isNonceFailure(xhr)) {
+                    MarrisonCookie.refreshNonce(function() {
+                        MarrisonCookie.ajax(options, true);
+                    }, function() {
+                        originalError(xhr, status, error);
+                    });
+                    return;
+                }
+
+                originalError(xhr, status, error);
+            };
+            request.success = originalSuccess;
+
+            $.ajax(request);
+        },
+
+        isNonceFailure: function(xhr) {
+            return xhr && (xhr.status === 403 || $.trim(xhr.responseText || '') === '-1');
+        },
+
+        refreshNonce: function(done, fail) {
+            $.ajax({
+                url: marrisonCookie.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'marrison_cookie_refresh_nonce'
+                },
+                success: function(response) {
+                    if (response && response.success && response.data && response.data.nonce) {
+                        marrisonCookie.nonce = response.data.nonce;
+                        done();
+                    } else if (fail) {
+                        fail();
+                    }
+                },
+                error: function() {
+                    if (fail) {
+                        fail();
+                    }
+                }
+            });
+        },
+
         checkExistingConsent: function() {
             // hasConsent copre anche i cookie HttpOnly creati dalle versioni precedenti.
             var consent = MarrisonCookie.getCookie('marrison_cookie_consent') || (marrisonCookie.hasConsent ? 'stored' : null);
@@ -195,12 +247,11 @@
             $modalBody.find('.marrison-category-cookie-list').empty();
             $modalBody.prepend($('<p class="marrison-cookie-list-loading"></p>').text(marrisonCookie.loadingText));
 
-            $.ajax({
+            MarrisonCookie.ajax({
                 url: marrisonCookie.ajaxUrl,
                 type: 'POST',
                 data: {
-                    action: 'marrison_get_cookie_list',
-                    nonce: marrisonCookie.nonce
+                    action: 'marrison_get_cookie_list'
                 },
                 success: function(response) {
                     $modalBody.find('.marrison-cookie-list-loading').remove();
@@ -279,12 +330,11 @@
         },
 
         saveConsent: function(consentType, categories) {
-            $.ajax({
+            MarrisonCookie.ajax({
                 url: marrisonCookie.ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'marrison_save_consent',
-                    nonce: marrisonCookie.nonce,
                     consent_type: consentType,
                     categories: categories
                 },
@@ -343,6 +393,7 @@
         activateBlockedScript: function(element) {
             var replacement = document.createElement('script');
             var blockedSrc = element.getAttribute('data-marrison-blocked-src');
+            var originalType = element.getAttribute('data-marrison-script-type');
 
             $.each(element.attributes, function(index, attr) {
                 if (!attr || attr.name === 'type' || attr.name.indexOf('data-marrison-') === 0) {
@@ -351,6 +402,10 @@
 
                 replacement.setAttribute(attr.name, attr.value);
             });
+
+            if (originalType !== null) {
+                replacement.setAttribute('type', originalType);
+            }
 
             if (blockedSrc) {
                 replacement.src = blockedSrc;
@@ -388,12 +443,11 @@
         },
 
         updatePreferences: function(categories) {
-            $.ajax({
+            MarrisonCookie.ajax({
                 url: marrisonCookie.ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'marrison_update_preferences',
-                    nonce: marrisonCookie.nonce,
                     categories: categories
                 },
                 success: function(response) {

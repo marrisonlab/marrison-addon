@@ -1,6 +1,4 @@
 jQuery(document).ready(function($) {
-    console.log('Marrison Addon: Image Sizes Script Loaded');
-    // alert('Marrison Addon: Script Loaded'); // Debug
     var $regenerateBtn = $('#marrison-regenerate-btn');
     var $progressBar = $('#marrison-progress-bar');
     var $progressFill = $('#marrison-progress-fill');

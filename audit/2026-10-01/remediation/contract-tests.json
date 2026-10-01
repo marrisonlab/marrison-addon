@@ -1,0 +1,72 @@
+[
+  {
+    "test": "cookie-consent-php-test.php",
+    "exit": 0,
+    "output": "PASS cookie quoted/unquoted src and module type, entities, nonce and selective consent"
+  },
+  {
+    "test": "dynamic-svg-php-test.php",
+    "exit": 0,
+    "output": "Dynamic SVG PHP contract: PASS"
+  },
+  {
+    "test": "header-animations-js-test.js",
+    "exit": 0,
+    "output": "PASS Header pre-init custom breakpoints, responsive inheritance, explicit none and widescreen"
+  },
+  {
+    "test": "horizontal-scroll-js-test.js",
+    "exit": 0,
+    "output": "Horizontal scroll JS snap wheel contract: PASS"
+  },
+  {
+    "test": "horizontal-scroll-php-test.php",
+    "exit": 0,
+    "output": "Horizontal scroll PHP contract: PASS"
+  },
+  {
+    "test": "image-sizes-modern-upload-test.php",
+    "exit": 0,
+    "output": "Image Sizes automatic modern upload generation: PASS"
+  },
+  {
+    "test": "liquid-background-js-test.js",
+    "exit": 0,
+    "output": "Liquid background JS fallback/mobile contract: PASS"
+  },
+  {
+    "test": "liquid-background-php-test.php",
+    "exit": 0,
+    "output": "Liquid background PHP contract: PASS"
+  },
+  {
+    "test": "local-google-fonts-parser-test.php",
+    "exit": 0,
+    "output": "Local Google Fonts parser tests passed."
+  },
+  {
+    "test": "module-definitions-i18n-test.php",
+    "exit": 0,
+    "output": "Module definitions i18n contract: PASS"
+  },
+  {
+    "test": "preloader-js-test.js",
+    "exit": 0,
+    "output": "PASS preloader empty/normal anchors, cancelled click, modifiers, download, target, external and normal navigation"
+  },
+  {
+    "test": "read-more-js-test.js",
+    "exit": 0,
+    "output": "Read More JS contract: PASS"
+  },
+  {
+    "test": "read-more-php-test.php",
+    "exit": 0,
+    "output": "Read More PHP contract: PASS"
+  },
+  {
+    "test": "updater-layout-test.php",
+    "exit": 0,
+    "output": "PASS updater layouts, collision, missing entry, failed move and unrelated plugin"
+  }
+]

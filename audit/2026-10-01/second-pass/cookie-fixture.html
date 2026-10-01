@@ -1,0 +1,112 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Cookie functional audit</title><link rel="stylesheet" href="/wp-content/plugins/marrison-addon/includes/modules/cookie-manager/assets/css/frontend.css"><style>body{font:18px Arial;margin:30px}.audit-state{display:block;margin:8px}iframe{height:100px;width:450px}button{margin:8px;padding:12px}</style></head><body><h1>Cookie activation and blocking audit</h1><button id="audit-reset">Reset audit consent and reload</button><output id="analytics-state" class="audit-state">analytics: 0</output><output id="marketing-state" class="audit-state">marketing: 0</output><output id="module-state" class="audit-state">module: 0</output><h2>Quoted iframe</h2><iframe data-marrison-cookie-blocked="iframe" data-marrison-cookie-category="marketing" id="quoted-iframe" data-marrison-blocked-src="/marrison-audit-p2-youtube.com.html"></iframe><h2>Unquoted iframe</h2><iframe data-marrison-cookie-blocked="iframe" data-marrison-cookie-category="marketing" id="unquoted-iframe" src=/marrison-audit-p2-youtube.com.html></iframe><script type="text/plain" data-marrison-cookie-blocked="script" data-marrison-cookie-category="analytics">/* gtag( audit marker */ document.getElementById("analytics-state").textContent="analytics: 1";</script><script type="text/plain" data-marrison-cookie-blocked="script" data-marrison-cookie-category="marketing">/* fbq( audit marker */ document.getElementById("marketing-state").textContent="marketing: 1";</script><script type="text/plain" data-marrison-cookie-blocked="script" data-marrison-cookie-category="analytics" id="module-analytics">/* gtag( audit marker */ export const auditModuleLoaded=true;document.getElementById("module-state").textContent="module: 1";</script><div id="marrison-cookie-banner" class="marrison-cookie-banner marrison-banner-layout-bar marrison-banner-bottom" style="background-color: #ffffff; color: #333333;">
+    <div class="marrison-banner-container">
+        <div class="marrison-banner-content">
+            <h3 class="marrison-banner-title">Cookie Management</h3>
+            <p class="marrison-banner-description">We use cookies to improve your experience. For more information, read our privacy policy.</p>
+            
+                    </div>
+        
+        <div class="marrison-banner-buttons">
+            <button type="button" id="marrison-accept-all" class="marrison-button marrison-button-accept" style="background-color: #0073aa; color: #ffffff;">
+                Accept all            </button>
+            
+            <button type="button" id="marrison-reject-all" class="marrison-button marrison-button-reject" style="background-color: #ffffff; color: #0073aa; border: 1px solid #0073aa;">
+                Reject all            </button>
+            
+            <button type="button" id="marrison-customize" class="marrison-button marrison-button-customize" style="background-color: #ffffff; color: #0073aa; border: 1px solid #0073aa;">
+                Customize            </button>
+        </div>
+    </div>
+    
+    <!-- Modal per personalizzazione -->
+    <div id="marrison-cookie-modal" class="marrison-modal" style="display: none;">
+        <div class="marrison-modal-content" style="background-color: #ffffff; color: #333333;">
+            <div class="marrison-modal-header">
+                <h3>Personalizza Cookie</h3>
+                <button type="button" id="marrison-close-modal" class="marrison-close-button">&times;</button>
+            </div>
+            
+            <div class="marrison-modal-body">
+                                
+                                                        <div class="marrison-cookie-category" data-category="necessary">
+                        <div class="marrison-category-header">
+                            <div class="marrison-category-info">
+                                <h4>Necessary</h4>
+                                <p>Essential cookies required for the website to function</p>
+                            </div>
+                            <label class="marrison-switch">
+                                <input type="checkbox" 
+                                       class="marrison-category-checkbox" 
+                                       data-category="necessary"
+                                        checked='checked'                                        disabled='disabled'>
+                                <span class="marrison-slider"></span>
+                            </label>
+                        </div>
+                        <div class="marrison-category-cookie-list" data-cookie-list="necessary"></div>
+                    </div>
+                                                        <div class="marrison-cookie-category" data-category="functional">
+                        <div class="marrison-category-header">
+                            <div class="marrison-category-info">
+                                <h4>Functional</h4>
+                                <p>Cookies that improve website functionality</p>
+                            </div>
+                            <label class="marrison-switch">
+                                <input type="checkbox" 
+                                       class="marrison-category-checkbox" 
+                                       data-category="functional"
+                                                                              >
+                                <span class="marrison-slider"></span>
+                            </label>
+                        </div>
+                        <div class="marrison-category-cookie-list" data-cookie-list="functional"></div>
+                    </div>
+                                                        <div class="marrison-cookie-category" data-category="analytics">
+                        <div class="marrison-category-header">
+                            <div class="marrison-category-info">
+                                <h4>Analytics</h4>
+                                <p>Cookies used to analyze website traffic</p>
+                            </div>
+                            <label class="marrison-switch">
+                                <input type="checkbox" 
+                                       class="marrison-category-checkbox" 
+                                       data-category="analytics"
+                                                                              >
+                                <span class="marrison-slider"></span>
+                            </label>
+                        </div>
+                        <div class="marrison-category-cookie-list" data-cookie-list="analytics"></div>
+                    </div>
+                                                        <div class="marrison-cookie-category" data-category="marketing">
+                        <div class="marrison-category-header">
+                            <div class="marrison-category-info">
+                                <h4>Marketing</h4>
+                                <p>Cookies used for marketing and advertising</p>
+                            </div>
+                            <label class="marrison-switch">
+                                <input type="checkbox" 
+                                       class="marrison-category-checkbox" 
+                                       data-category="marketing"
+                                                                              >
+                                <span class="marrison-slider"></span>
+                            </label>
+                        </div>
+                        <div class="marrison-category-cookie-list" data-cookie-list="marketing"></div>
+                    </div>
+                            </div>
+            
+            <div class="marrison-modal-footer">
+                <button type="button" id="marrison-save-preferences" class="marrison-button marrison-button-save" style="background-color: #0073aa; color: #ffffff;">
+                    Salva Preferenze                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="marrison-floating-widget" class="marrison-floating-widget" style="display: none;">
+    <button type="button" id="marrison-widget-button" class="marrison-widget-button" aria-label="Gestione Cookie">
+        <svg class="marrison-widget-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+        <span class="marrison-widget-tooltip">Gestione Cookie</span>
+    </button>
+</div>
+<script src="/wp-includes/js/jquery/jquery.min.js"></script><script>var marrisonCookie={ajaxUrl:"http://localhost:10004/wp-admin/admin-ajax.php",nonce:"audit-stale-nonce",consentDuration:30,loadingText:"Loading",customizeTitle:"Personalizza Cookie",acceptAll:"Accetta tutti",rejectAll:"Rifiuta tutti",savePreferences:"Salva Preferenze",hasConsent:false,closedTriggerModes:{desktop:"floating",tablet:"floating",mobile:"floating"}};document.getElementById("audit-reset").addEventListener("click",function(){document.cookie="marrison_cookie_consent=; Max-Age=0; path=/";document.cookie="marrison_cookie_categories=; Max-Age=0; path=/";location.reload();});</script><script src="/wp-content/plugins/marrison-addon/includes/modules/cookie-manager/assets/js/frontend.js"></script></body></html>

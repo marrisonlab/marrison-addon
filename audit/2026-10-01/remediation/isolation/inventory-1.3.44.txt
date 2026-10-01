@@ -1,0 +1,1280 @@
+
+Warning: PHP Startup: Unable to load dynamic library 'php_imagick.dll' (tried: C:/Users/Angelo/AppData/Roaming/Local/lightning-services/php-8.2.29+0/bin/win64/ext\php_imagick.dll (Impossibile trovare il modulo specificato), C:/Users/Angelo/AppData/Roaming/Local/lightning-services/php-8.2.29+0/bin/win64/ext\php_php_imagick.dll.dll (Impossibile trovare il modulo specificato)) in Unknown on line 0
+
+AUDIT_JSON
+{
+    "mode": "inventory",
+    "module": "",
+    "versions": {
+        "php": "8.2.29",
+        "wordpress": "7.1.2",
+        "addon": "1.3.44",
+        "elementor": "4.3.3",
+        "jetengine": null,
+        "woocommerce": "10.9.4"
+    },
+    "modules": {
+        "wrapped_link": {
+            "title": "Wrapped Link",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "read_more": {
+            "title": "Leggi di più",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "horizontal_scroll": {
+            "title": "Scroll Orizzontale",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "liquid_background": {
+            "title": "Liquid Background",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "ticker": {
+            "title": "Ticker",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "steps": {
+            "title": "Steps",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "product_discount": {
+            "title": "Sconto Prodotto",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "recently_viewed_products": {
+            "title": "Visualizzati di recente",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "listing_title": {
+            "title": "Titolo Listing",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "dynamic_svg": {
+            "title": "Dynamic SVG",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "header_animations": {
+            "title": "Animazioni Header",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "anchor_offset": {
+            "title": "Anchor Offset",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "image_sizes": {
+            "title": "Dimensioni Immagini",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "local_google_fonts": {
+            "title": "Local Google Fonts",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "browser_cache": {
+            "title": "Browser Cache",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "cursor": {
+            "title": "Cursore Animato",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "preloader": {
+            "title": "Preloader",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "fast_logout": {
+            "title": "Fast Logout",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "calendar_sync": {
+            "title": "Calendar Sync",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "cookie_manager": {
+            "title": "Cookie Manager",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "video_thumbnail": {
+            "title": "Video Thumbnail",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        }
+    },
+    "hooks": [
+        {
+            "tag": "init",
+            "class": "Marrison_Addon_Cookie_Manager_Module",
+            "method": "load_textdomain",
+            "priority": 10
+        },
+        {
+            "tag": "init",
+            "class": "Marrison_Cookie_Scanner",
+            "method": "maybe_auto_scan",
+            "priority": 10
+        },
+        {
+            "tag": "init",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "maybe_schedule_backfill",
+            "priority": 20
+        },
+        {
+            "tag": "init",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_recurring_schedule",
+            "priority": 25
+        },
+        {
+            "tag": "admin_init",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "register_settings",
+            "priority": 10
+        },
+        {
+            "tag": "admin_init",
+            "class": "Marrison_Addon_Cursor",
+            "method": "register_settings",
+            "priority": 10
+        },
+        {
+            "tag": "admin_init",
+            "class": "Marrison_Addon_Preloader",
+            "method": "register_settings",
+            "priority": 10
+        },
+        {
+            "tag": "admin_init",
+            "class": "Marrison_Addon_Calendar_Sync",
+            "method": "register_settings",
+            "priority": 10
+        },
+        {
+            "tag": "admin_init",
+            "class": "Marrison_Cookie_Admin_Settings",
+            "method": "register_settings",
+            "priority": 10
+        },
+        {
+            "tag": "admin_init",
+            "class": "Marrison_Setup_Wizard",
+            "method": "check_wizard_activation",
+            "priority": 10
+        },
+        {
+            "tag": "admin_init",
+            "class": "Marrison_Addon_Video_Thumbnail",
+            "method": "register_settings",
+            "priority": 10
+        },
+        {
+            "tag": "added_post_meta",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_price_meta_product_sync",
+            "priority": 20
+        },
+        {
+            "tag": "updated_post_meta",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_price_meta_product_sync",
+            "priority": 20
+        },
+        {
+            "tag": "deleted_post_meta",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_price_meta_product_sync",
+            "priority": 20
+        },
+        {
+            "tag": "wp_head",
+            "class": "Marrison_Cookie_Banner",
+            "method": "maybe_hide_banner_css",
+            "priority": 10
+        },
+        {
+            "tag": "template_redirect",
+            "class": "Marrison_Cookie_Consent",
+            "method": "start_output_buffer",
+            "priority": 0
+        },
+        {
+            "tag": "template_redirect",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "start_frontend_webp_rewrite",
+            "priority": 1
+        },
+        {
+            "tag": "template_redirect",
+            "class": "Marrison_Addon_Calendar_Sync",
+            "method": "download_ics",
+            "priority": 10
+        },
+        {
+            "tag": "template_redirect",
+            "class": "Marrison_Addon_Recently_Viewed_Products",
+            "method": "track_product_view",
+            "priority": 20
+        },
+        {
+            "tag": "wp_footer",
+            "class": "Marrison_Cookie_Banner",
+            "method": "render_banner",
+            "priority": 10
+        },
+        {
+            "tag": "wp_footer",
+            "class": "Marrison_Cookie_Banner",
+            "method": "render_floating_widget",
+            "priority": 20
+        },
+        {
+            "tag": "wp_print_footer_scripts",
+            "class": "Marrison_Addon_Local_Google_Fonts",
+            "method": "dequeue_google_font_styles",
+            "priority": 0
+        },
+        {
+            "tag": "wp_enqueue_scripts",
+            "class": "Marrison_Addon_Read_More",
+            "method": "enqueue_assets",
+            "priority": 10
+        },
+        {
+            "tag": "wp_enqueue_scripts",
+            "class": "Marrison_Addon_Anchor_Offset",
+            "method": "enqueue_scripts",
+            "priority": 10
+        },
+        {
+            "tag": "wp_enqueue_scripts",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "enqueue_frontend_scripts",
+            "priority": 10
+        },
+        {
+            "tag": "wp_enqueue_scripts",
+            "class": "Marrison_Addon_Cursor",
+            "method": "enqueue_scripts",
+            "priority": 10
+        },
+        {
+            "tag": "wp_enqueue_scripts",
+            "class": "Marrison_Addon_Preloader",
+            "method": "enqueue_scripts",
+            "priority": 10
+        },
+        {
+            "tag": "wp_enqueue_scripts",
+            "class": "Marrison_Cookie_Banner",
+            "method": "enqueue_assets",
+            "priority": 10
+        },
+        {
+            "tag": "wp_enqueue_scripts",
+            "class": "Marrison_Addon_Local_Google_Fonts",
+            "method": "enqueue_local_css",
+            "priority": 20
+        },
+        {
+            "tag": "wp_enqueue_scripts",
+            "class": "Marrison_Cookie_Consent",
+            "method": "manage_scripts",
+            "priority": 999
+        },
+        {
+            "tag": "wp_print_styles",
+            "class": "Marrison_Addon_Local_Google_Fonts",
+            "method": "dequeue_google_font_styles",
+            "priority": 1000
+        },
+        {
+            "tag": "shutdown",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_queued_products",
+            "priority": 10
+        },
+        {
+            "tag": "transition_post_status",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "handle_post_status_transition",
+            "priority": 20
+        },
+        {
+            "tag": "admin_enqueue_scripts",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "enqueue_admin_assets",
+            "priority": 10
+        },
+        {
+            "tag": "admin_enqueue_scripts",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "enqueue_admin_scripts",
+            "priority": 10
+        },
+        {
+            "tag": "admin_enqueue_scripts",
+            "class": "Marrison_Addon_Local_Google_Fonts",
+            "method": "enqueue_admin_assets",
+            "priority": 10
+        },
+        {
+            "tag": "admin_enqueue_scripts",
+            "class": "Marrison_Addon_Cursor",
+            "method": "enqueue_admin_scripts",
+            "priority": 10
+        },
+        {
+            "tag": "admin_enqueue_scripts",
+            "class": "Marrison_Addon_Preloader",
+            "method": "enqueue_admin_scripts",
+            "priority": 10
+        },
+        {
+            "tag": "admin_enqueue_scripts",
+            "class": "Marrison_Addon_Cookie_Manager_Module",
+            "method": "enqueue_admin_assets",
+            "priority": 10
+        },
+        {
+            "tag": "admin_enqueue_scripts",
+            "class": "Marrison_Setup_Wizard",
+            "method": "enqueue_wizard_assets",
+            "priority": 10
+        },
+        {
+            "tag": "admin_enqueue_scripts",
+            "class": "Marrison_Addon_Video_Thumbnail",
+            "method": "enqueue_assets",
+            "priority": 10
+        },
+        {
+            "tag": "after_setup_theme",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "register_image_sizes",
+            "priority": 10
+        },
+        {
+            "tag": "admin_menu",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "add_admin_menu",
+            "priority": 10
+        },
+        {
+            "tag": "admin_menu",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "add_admin_menu",
+            "priority": 10
+        },
+        {
+            "tag": "admin_menu",
+            "class": "Marrison_Addon_Local_Google_Fonts",
+            "method": "add_admin_menu",
+            "priority": 10
+        },
+        {
+            "tag": "admin_menu",
+            "class": "Marrison_Addon_Cursor",
+            "method": "add_admin_menu",
+            "priority": 10
+        },
+        {
+            "tag": "admin_menu",
+            "class": "Marrison_Addon_Preloader",
+            "method": "add_admin_menu",
+            "priority": 10
+        },
+        {
+            "tag": "admin_menu",
+            "class": "Marrison_Addon_Calendar_Sync",
+            "method": "add_admin_menu",
+            "priority": 10
+        },
+        {
+            "tag": "admin_menu",
+            "class": "Marrison_Cookie_Admin_Settings",
+            "method": "add_admin_menu",
+            "priority": 10
+        },
+        {
+            "tag": "admin_menu",
+            "class": "Marrison_Addon_Video_Thumbnail",
+            "method": "add_admin_page",
+            "priority": 10
+        },
+        {
+            "tag": "before_delete_post",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_deleted_product_parent",
+            "priority": 10
+        },
+        {
+            "tag": "wp_body_open",
+            "class": "Marrison_Addon_Preloader",
+            "method": "render_preloader",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/widgets/register",
+            "class": "Marrison_Addon_Ticker",
+            "method": "register_widgets",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/widgets/register",
+            "class": "Marrison_Steps_Plugin",
+            "method": "register_widgets",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/widgets/register",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "register_widgets",
+            "priority": 10
+        },
+        {
+            "tag": "wp",
+            "class": "Marrison_Cookie_Scanner",
+            "method": "schedule_cron",
+            "priority": 10
+        },
+        {
+            "tag": "wc_product_start_scheduled_sale",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_product_id",
+            "priority": 20
+        },
+        {
+            "tag": "wc_product_end_scheduled_sale",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_product_id",
+            "priority": 20
+        },
+        {
+            "tag": "add_attachment",
+            "class": "Marrison_Addon_Video_Thumbnail",
+            "method": "maybe_generate_local_video_cover",
+            "priority": 20
+        },
+        {
+            "tag": "admin_footer",
+            "class": "Marrison_Setup_Wizard",
+            "method": "output_wizard_popup",
+            "priority": 10
+        },
+        {
+            "tag": "cron_schedules",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "add_cron_schedules",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/controls/animations/additional_animations",
+            "class": "Marrison_Addon_Header_Animations",
+            "method": "add_additional_animations",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/element/heading/_section_effects/before_section_end",
+            "class": "Marrison_Addon_Header_Animations",
+            "method": "register_animations",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/element/heading/_section_effects/before_section_end",
+            "class": "Marrison_Addon_Header_Animations",
+            "method": "register_fallback_control",
+            "priority": 20
+        },
+        {
+            "tag": "elementor/element/common/_section_effects/before_section_end",
+            "class": "Marrison_Addon_Header_Animations",
+            "method": "register_animations",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/element/after_section_end",
+            "class": "Marrison_Addon_Header_Animations",
+            "method": "limit_animations_to_heading",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/element/after_section_end",
+            "class": "Marrison_Addon_Read_More",
+            "method": "maybe_register_controls",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/widget/before_render",
+            "class": "Marrison_Addon_Header_Animations",
+            "method": "before_render",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/widget/before_render",
+            "class": "Marrison_Addon_Wrapped_Link",
+            "method": "before_render",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/editor/after_enqueue_styles",
+            "class": "Marrison_Addon_Header_Animations",
+            "method": "enqueue_styles",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/editor/after_enqueue_scripts",
+            "class": "Marrison_Addon_Header_Animations",
+            "method": "enqueue_scripts",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/element/container/section_layout/after_section_end",
+            "class": "Marrison_Addon_Wrapped_Link",
+            "method": "register_controls",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/element/container/section_layout/after_section_end",
+            "class": "Marrison_Addon_Horizontal_Scroll",
+            "method": "register_controls",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/element/container/section_layout/after_section_end",
+            "class": "Marrison_Addon_Liquid_Background",
+            "method": "register_controls",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/element/container/section_layout/after_section_end",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "register_lcp_hero_controls",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/container/before_render",
+            "class": "Marrison_Addon_Wrapped_Link",
+            "method": "before_render",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/container/before_render",
+            "class": "Marrison_Addon_Horizontal_Scroll",
+            "method": "before_render",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/container/before_render",
+            "class": "Marrison_Addon_Liquid_Background",
+            "method": "before_render",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/container/before_render",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "before_render_lcp_hero_container",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/element/common/_section_style/after_section_end",
+            "class": "Marrison_Addon_Wrapped_Link",
+            "method": "register_controls",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/widget/render_content",
+            "class": "Marrison_Addon_Read_More",
+            "method": "render_read_more",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/widget/render_content",
+            "class": "Marrison_Addon_Listing_Title",
+            "method": "prepend_listing_title",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/builder_content_data",
+            "class": "Marrison_Addon_Read_More",
+            "method": "maybe_enqueue_assets_from_data",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/builder_content_data",
+            "class": "Marrison_Addon_Horizontal_Scroll",
+            "method": "maybe_enqueue_assets_from_data",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/builder_content_data",
+            "class": "Marrison_Addon_Liquid_Background",
+            "method": "maybe_enqueue_assets_from_data",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/preview/enqueue_scripts",
+            "class": "Marrison_Addon_Liquid_Background",
+            "method": "enqueue_preview_assets",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/frontend/after_register_styles",
+            "class": "Marrison_Steps_Plugin",
+            "method": "register_styles",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/element/jet-listing-grid/section_general/after_section_end",
+            "class": "Marrison_Addon_Listing_Title",
+            "method": "register_controls",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_product_discount_batch_start",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "ajax_batch_start",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_product_discount_batch_step",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "ajax_batch_step",
+            "priority": 10
+        },
+        {
+            "tag": "marrison_addon/module_status_changed",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "handle_module_status_change",
+            "priority": 10
+        },
+        {
+            "tag": "marrison_addon/module_status_changed",
+            "class": "Marrison_Addon_Cookie_Manager_Module",
+            "method": "handle_module_status_change",
+            "priority": 10
+        },
+        {
+            "tag": "marrison_product_discount_backfill_batch",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "run_backfill_batch",
+            "priority": 10
+        },
+        {
+            "tag": "marrison_product_discount_scheduled_sync",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "start_scheduled_sync",
+            "priority": 10
+        },
+        {
+            "tag": "marrison_product_discount_scheduled_sync_batch",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "run_scheduled_sync_batch",
+            "priority": 10
+        },
+        {
+            "tag": "woocommerce_after_product_object_save",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_saved_product",
+            "priority": 20
+        },
+        {
+            "tag": "woocommerce_updated_product_price",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_product_id",
+            "priority": 20
+        },
+        {
+            "tag": "woocommerce_save_product_variation",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_variation_parent_sync",
+            "priority": 20
+        },
+        {
+            "tag": "woocommerce_before_delete_product_variation",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_variation_parent_sync",
+            "priority": 20
+        },
+        {
+            "tag": "woocommerce_trash_product_variation",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_variation_parent_sync",
+            "priority": 20
+        },
+        {
+            "tag": "wc_after_products_starting_sales",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_product_ids",
+            "priority": 20
+        },
+        {
+            "tag": "wc_after_products_ending_sales",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_product_ids",
+            "priority": 20
+        },
+        {
+            "tag": "jet-engine/register-macros",
+            "class": "Marrison_Addon_Recently_Viewed_Products",
+            "method": "register_macros",
+            "priority": 10
+        },
+        {
+            "tag": "jet-engine/callbacks/register",
+            "class": "Marrison_Addon_Dynamic_SVG",
+            "method": "register_callbacks",
+            "priority": 10
+        },
+        {
+            "tag": "jet-engine/listings/allowed-callbacks",
+            "class": "Marrison_Addon_Dynamic_SVG",
+            "method": "register_allowed_callbacks",
+            "priority": 10
+        },
+        {
+            "tag": "image_size_names_choose",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "add_to_media_selector",
+            "priority": 10
+        },
+        {
+            "tag": "image_size_names_choose",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "remove_disabled_from_media_selector",
+            "priority": 20
+        },
+        {
+            "tag": "intermediate_image_sizes_advanced",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "filter_intermediate_image_sizes",
+            "priority": 10
+        },
+        {
+            "tag": "intermediate_image_sizes_advanced",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "force_upscale_sizes",
+            "priority": 999
+        },
+        {
+            "tag": "intermediate_image_sizes",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "filter_intermediate_image_sizes_list",
+            "priority": 10
+        },
+        {
+            "tag": "image_resize_dimensions",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "enable_upscaling",
+            "priority": 10
+        },
+        {
+            "tag": "image_downsize",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "force_downsize_upscale",
+            "priority": 10
+        },
+        {
+            "tag": "image_downsize",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "serve_webp_downsize",
+            "priority": 20
+        },
+        {
+            "tag": "wp_calculate_image_srcset",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "serve_webp_srcset",
+            "priority": 20
+        },
+        {
+            "tag": "wp_generate_attachment_metadata",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "add_modern_formats_to_generated_metadata",
+            "priority": 20
+        },
+        {
+            "tag": "elementor/files/css/property",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "filter_elementor_css_property_value",
+            "priority": 20
+        },
+        {
+            "tag": "elementor/frontend/container/after_render",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "after_render_lcp_hero_container",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/loaded",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "maybe_clear_elementor_css_cache",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/loaded",
+            "class": "Marrison_Addon",
+            "method": "init_elementor_modules",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_get_image_ids",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_get_image_ids",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_regenerate_single_image",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_regenerate_single_image",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_clear_elementor_css_cache",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_clear_elementor_css_cache",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_test_avif_support",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_test_avif_support",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_resolve_background_webp",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_resolve_background_webp",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_nopriv_marrison_resolve_background_webp",
+            "class": "Marrison_Addon_Image_Sizes",
+            "method": "ajax_resolve_background_webp",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_local_google_fonts_scan",
+            "class": "Marrison_Addon_Local_Google_Fonts",
+            "method": "ajax_scan_fonts",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_local_google_fonts_update",
+            "class": "Marrison_Addon_Local_Google_Fonts",
+            "method": "ajax_update_fonts",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_local_google_fonts_scan_update",
+            "class": "Marrison_Addon_Local_Google_Fonts",
+            "method": "ajax_scan_and_update_fonts",
+            "priority": 10
+        },
+        {
+            "tag": "style_loader_tag",
+            "class": "Marrison_Addon_Local_Google_Fonts",
+            "method": "filter_google_font_style_tag",
+            "priority": 10
+        },
+        {
+            "tag": "wp_resource_hints",
+            "class": "Marrison_Addon_Local_Google_Fonts",
+            "method": "filter_google_font_resource_hints",
+            "priority": 10
+        },
+        {
+            "tag": "logout_redirect",
+            "class": "Marrison_Addon_Fast_Logout",
+            "method": "custom_logout_redirect",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_repair_cookie_table",
+            "class": "Marrison_Addon_Cookie_Manager_Module",
+            "method": "ajax_repair_cookie_table",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_scan_cookies",
+            "class": "Marrison_Cookie_Scanner",
+            "method": "ajax_scan_cookies",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_get_scanned_cookies",
+            "class": "Marrison_Cookie_Scanner",
+            "method": "ajax_get_scanned_cookies",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_delete_cookie",
+            "class": "Marrison_Cookie_Scanner",
+            "method": "ajax_delete_cookie",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_update_cookie_category",
+            "class": "Marrison_Cookie_Scanner",
+            "method": "ajax_update_cookie_category",
+            "priority": 10
+        },
+        {
+            "tag": "marrison_cookie_daily_scan",
+            "class": "Marrison_Cookie_Scanner",
+            "method": "perform_scan",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_save_consent",
+            "class": "Marrison_Cookie_Banner",
+            "method": "ajax_save_consent",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_nopriv_marrison_save_consent",
+            "class": "Marrison_Cookie_Banner",
+            "method": "ajax_save_consent",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_get_cookie_list",
+            "class": "Marrison_Cookie_Banner",
+            "method": "ajax_get_cookie_list",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_nopriv_marrison_get_cookie_list",
+            "class": "Marrison_Cookie_Banner",
+            "method": "ajax_get_cookie_list",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_cookie_refresh_nonce",
+            "class": "Marrison_Cookie_Banner",
+            "method": "ajax_refresh_nonce",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_nopriv_marrison_cookie_refresh_nonce",
+            "class": "Marrison_Cookie_Banner",
+            "method": "ajax_refresh_nonce",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_save_settings",
+            "class": "Marrison_Cookie_Admin_Settings",
+            "method": "ajax_save_settings",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_update_preferences",
+            "class": "Marrison_Cookie_Consent",
+            "method": "ajax_update_preferences",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_nopriv_marrison_update_preferences",
+            "class": "Marrison_Cookie_Consent",
+            "method": "ajax_update_preferences",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_wizard_scan_cookies",
+            "class": "Marrison_Setup_Wizard",
+            "method": "ajax_scan_cookies",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_wizard_save_step",
+            "class": "Marrison_Setup_Wizard",
+            "method": "ajax_save_step",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_wizard_create_pages",
+            "class": "Marrison_Setup_Wizard",
+            "method": "ajax_create_pages",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_wizard_finish",
+            "class": "Marrison_Setup_Wizard",
+            "method": "ajax_finish",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_wizard_dismiss",
+            "class": "Marrison_Setup_Wizard",
+            "method": "ajax_dismiss",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_wizard_open",
+            "class": "Marrison_Setup_Wizard",
+            "method": "ajax_open",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_mvt_get_thumbnails",
+            "class": "Marrison_Addon_Video_Thumbnail",
+            "method": "ajax_get_thumbnails",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_mvt_import_thumbnail",
+            "class": "Marrison_Addon_Video_Thumbnail",
+            "method": "ajax_import_thumbnail",
+            "priority": 10
+        },
+        {
+            "tag": "plugin_action_links_marrison-addon/marrison-addon.php",
+            "class": "Marrison_Addon",
+            "method": "plugin_action_links",
+            "priority": 10
+        }
+    ],
+    "public_frontend": true,
+    "errors": [],
+    "posts": [
+        94,
+        81,
+        79,
+        30,
+        27,
+        29,
+        22,
+        15,
+        12,
+        13,
+        14,
+        11,
+        3,
+        2
+    ],
+    "image_support": {
+        "gd": true,
+        "imagick": false,
+        "webp": true,
+        "avif": true
+    },
+    "widgets": [
+        "nested-tabs",
+        "nested-accordion",
+        "common-base",
+        "common",
+        "common-optimized",
+        "inner-section",
+        "heading",
+        "image",
+        "text-editor",
+        "video",
+        "button",
+        "divider",
+        "spacer",
+        "image-box",
+        "google_maps",
+        "icon",
+        "icon-box",
+        "star-rating",
+        "image-carousel",
+        "image-gallery",
+        "icon-list",
+        "counter",
+        "progress",
+        "testimonial",
+        "tabs",
+        "accordion",
+        "toggle",
+        "social-icons",
+        "alert",
+        "audio",
+        "shortcode",
+        "html",
+        "menu-anchor",
+        "sidebar",
+        "read-more",
+        "rating",
+        "wp-widget-pages",
+        "wp-widget-calendar",
+        "wp-widget-archives",
+        "wp-widget-media_audio",
+        "wp-widget-media_image",
+        "wp-widget-media_gallery",
+        "wp-widget-media_video",
+        "wp-widget-meta",
+        "wp-widget-search",
+        "wp-widget-text",
+        "wp-widget-categories",
+        "wp-widget-recent-posts",
+        "wp-widget-recent-comments",
+        "wp-widget-rss",
+        "wp-widget-tag_cloud",
+        "wp-widget-nav_menu",
+        "wp-widget-custom_html",
+        "wp-widget-block",
+        "wp-widget-woocommerce_widget_cart",
+        "wp-widget-woocommerce_layered_nav_filters",
+        "wp-widget-woocommerce_layered_nav",
+        "wp-widget-woocommerce_price_filter",
+        "wp-widget-woocommerce_product_categories",
+        "wp-widget-woocommerce_product_search",
+        "wp-widget-woocommerce_product_tag_cloud",
+        "wp-widget-woocommerce_products",
+        "wp-widget-woocommerce_recently_viewed_products",
+        "wp-widget-woocommerce_top_rated_products",
+        "wp-widget-woocommerce_recent_reviews",
+        "wp-widget-woocommerce_rating_filter",
+        "wp-widget-wc_brands_brand_description",
+        "wp-widget-woocommerce_brand_nav",
+        "wp-widget-wc_brands_brand_thumbnails",
+        "ticker",
+        "marrison_steps",
+        "marrison_product_discount",
+        "jet-listing-dynamic-field",
+        "jet-listing-dynamic-image",
+        "jet-listing-dynamic-link",
+        "jet-listing-dynamic-meta",
+        "jet-listing-dynamic-repeater",
+        "jet-listing-dynamic-terms",
+        "jet-listing-grid",
+        "jet-listing-woo-data",
+        "text-path",
+        "search",
+        "posts",
+        "link-in-bio-var-2",
+        "portfolio",
+        "link-in-bio-var-3",
+        "mega-menu",
+        "link-in-bio-var-4",
+        "form",
+        "link-in-bio-var-5",
+        "loop-grid",
+        "link-in-bio-var-6",
+        "loop-carousel",
+        "link-in-bio-var-7",
+        "gallery",
+        "animated-headline",
+        "price-list",
+        "price-table",
+        "flip-box",
+        "call-to-action",
+        "media-carousel",
+        "nested-carousel",
+        "off-canvas",
+        "countdown",
+        "share-buttons",
+        "blockquote",
+        "lottie",
+        "hotspot",
+        "paypal-button",
+        "code-highlight",
+        "video-playlist",
+        "template",
+        "stripe-button",
+        "progress-tracker",
+        "nav-menu",
+        "table-of-contents",
+        "login",
+        "slides",
+        "testimonial-carousel",
+        "reviews",
+        "facebook-button",
+        "facebook-comments",
+        "facebook-embed",
+        "facebook-page",
+        "theme-site-logo",
+        "theme-site-title",
+        "theme-page-title",
+        "theme-post-title",
+        "theme-post-excerpt",
+        "theme-post-featured-image",
+        "theme-archive-title",
+        "archive-posts",
+        "author-box",
+        "post-comments",
+        "post-navigation",
+        "post-info",
+        "sitemap",
+        "breadcrumbs",
+        "woocommerce-menu-cart",
+        "wc-archive-products",
+        "woocommerce-archive-description",
+        "woocommerce-products",
+        "woocommerce-breadcrumb",
+        "wc-add-to-cart",
+        "wc-elements",
+        "wc-categories",
+        "woocommerce-product-title",
+        "woocommerce-product-images",
+        "woocommerce-product-price",
+        "woocommerce-product-add-to-cart",
+        "woocommerce-product-rating",
+        "woocommerce-product-stock",
+        "woocommerce-product-meta",
+        "woocommerce-product-short-description",
+        "woocommerce-product-data-tabs",
+        "woocommerce-product-additional-information",
+        "woocommerce-product-related",
+        "woocommerce-product-upsell",
+        "woocommerce-checkout-page",
+        "woocommerce-cart",
+        "woocommerce-my-account",
+        "woocommerce-purchase-summary",
+        "woocommerce-notices",
+        "link-in-bio",
+        "contact-buttons",
+        "floating-bars-var-1",
+        "e-heading",
+        "e-image",
+        "e-paragraph",
+        "e-svg",
+        "e-button",
+        "e-youtube",
+        "e-divider",
+        "e-self-hosted-video",
+        "e-component"
+    ],
+    "shortcodes": [
+        "marrison_cookie_preferences"
+    ]
+}

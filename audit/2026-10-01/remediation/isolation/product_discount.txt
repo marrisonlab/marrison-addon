@@ -1,0 +1,322 @@
+
+Warning: PHP Startup: Unable to load dynamic library 'php_imagick.dll' (tried: C:/Users/Angelo/AppData/Roaming/Local/lightning-services/php-8.2.29+0/bin/win64/ext\php_imagick.dll (Impossibile trovare il modulo specificato), C:/Users/Angelo/AppData/Roaming/Local/lightning-services/php-8.2.29+0/bin/win64/ext\php_php_imagick.dll.dll (Impossibile trovare il modulo specificato)) in Unknown on line 0
+
+AUDIT_JSON
+{
+    "mode": "isolation",
+    "module": "product_discount",
+    "versions": {
+        "php": "8.2.29",
+        "wordpress": "7.1.2",
+        "addon": "1.3.43",
+        "elementor": "4.3.3",
+        "jetengine": null,
+        "woocommerce": "10.9.4"
+    },
+    "modules": {
+        "wrapped_link": {
+            "title": "Wrapped Link",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "read_more": {
+            "title": "Leggi di più",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "horizontal_scroll": {
+            "title": "Scroll Orizzontale",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "liquid_background": {
+            "title": "Liquid Background",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "ticker": {
+            "title": "Ticker",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "steps": {
+            "title": "Steps",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "product_discount": {
+            "title": "Sconto Prodotto",
+            "enabled": true,
+            "loaded": true,
+            "dependencies": true
+        },
+        "recently_viewed_products": {
+            "title": "Visualizzati di recente",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "listing_title": {
+            "title": "Titolo Listing",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "dynamic_svg": {
+            "title": "Dynamic SVG",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "header_animations": {
+            "title": "Animazioni Header",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "anchor_offset": {
+            "title": "Anchor Offset",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "image_sizes": {
+            "title": "Dimensioni Immagini",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "local_google_fonts": {
+            "title": "Local Google Fonts",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "browser_cache": {
+            "title": "Browser Cache",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "cursor": {
+            "title": "Cursore Animato",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "preloader": {
+            "title": "Preloader",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "fast_logout": {
+            "title": "Fast Logout",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "calendar_sync": {
+            "title": "Calendar Sync",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "cookie_manager": {
+            "title": "Cookie Manager",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        },
+        "video_thumbnail": {
+            "title": "Video Thumbnail",
+            "enabled": false,
+            "loaded": false,
+            "dependencies": true
+        }
+    },
+    "hooks": [
+        {
+            "tag": "init",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "maybe_schedule_backfill",
+            "priority": 20
+        },
+        {
+            "tag": "init",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_recurring_schedule",
+            "priority": 25
+        },
+        {
+            "tag": "added_post_meta",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_price_meta_product_sync",
+            "priority": 20
+        },
+        {
+            "tag": "updated_post_meta",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_price_meta_product_sync",
+            "priority": 20
+        },
+        {
+            "tag": "deleted_post_meta",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_price_meta_product_sync",
+            "priority": 20
+        },
+        {
+            "tag": "shutdown",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_queued_products",
+            "priority": 10
+        },
+        {
+            "tag": "transition_post_status",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "handle_post_status_transition",
+            "priority": 20
+        },
+        {
+            "tag": "admin_enqueue_scripts",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "enqueue_admin_assets",
+            "priority": 10
+        },
+        {
+            "tag": "admin_menu",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "add_admin_menu",
+            "priority": 10
+        },
+        {
+            "tag": "before_delete_post",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_deleted_product_parent",
+            "priority": 10
+        },
+        {
+            "tag": "elementor/widgets/register",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "register_widgets",
+            "priority": 10
+        },
+        {
+            "tag": "wc_product_start_scheduled_sale",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_product_id",
+            "priority": 20
+        },
+        {
+            "tag": "wc_product_end_scheduled_sale",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_product_id",
+            "priority": 20
+        },
+        {
+            "tag": "cron_schedules",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "add_cron_schedules",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_product_discount_batch_start",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "ajax_batch_start",
+            "priority": 10
+        },
+        {
+            "tag": "wp_ajax_marrison_product_discount_batch_step",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "ajax_batch_step",
+            "priority": 10
+        },
+        {
+            "tag": "marrison_addon/module_status_changed",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "handle_module_status_change",
+            "priority": 10
+        },
+        {
+            "tag": "marrison_product_discount_backfill_batch",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "run_backfill_batch",
+            "priority": 10
+        },
+        {
+            "tag": "marrison_product_discount_scheduled_sync",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "start_scheduled_sync",
+            "priority": 10
+        },
+        {
+            "tag": "marrison_product_discount_scheduled_sync_batch",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "run_scheduled_sync_batch",
+            "priority": 10
+        },
+        {
+            "tag": "woocommerce_after_product_object_save",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_saved_product",
+            "priority": 20
+        },
+        {
+            "tag": "woocommerce_updated_product_price",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_product_id",
+            "priority": 20
+        },
+        {
+            "tag": "woocommerce_save_product_variation",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_variation_parent_sync",
+            "priority": 20
+        },
+        {
+            "tag": "woocommerce_before_delete_product_variation",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_variation_parent_sync",
+            "priority": 20
+        },
+        {
+            "tag": "woocommerce_trash_product_variation",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "queue_variation_parent_sync",
+            "priority": 20
+        },
+        {
+            "tag": "wc_after_products_starting_sales",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_product_ids",
+            "priority": 20
+        },
+        {
+            "tag": "wc_after_products_ending_sales",
+            "class": "Marrison_Addon_Product_Discount",
+            "method": "sync_product_ids",
+            "priority": 20
+        },
+        {
+            "tag": "elementor/loaded",
+            "class": "Marrison_Addon",
+            "method": "init_elementor_modules",
+            "priority": 10
+        },
+        {
+            "tag": "plugin_action_links_marrison-addon/marrison-addon.php",
+            "class": "Marrison_Addon",
+            "method": "plugin_action_links",
+            "priority": 10
+        }
+    ],
+    "public_frontend": true,
+    "errors": []
+}

@@ -18,17 +18,16 @@ class Marrison_Addon_Admin {
 		if ( ! $this->is_marrison_admin_page() ) {
 			return;
 		}
-		// Point to the root plugin file to get the correct base URL
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_style( 'marrison-admin-css', plugins_url( 'assets/css/admin.css', $plugin_root_file ), [], Marrison_Addon::VERSION );
+		$plugin_root_file = Marrison_Addon::plugin_file();
+		wp_enqueue_style( 'marrison-admin-css', plugins_url( 'assets/css/admin.css', $plugin_root_file ), [], Marrison_Addon::asset_version( 'assets/css/admin.css' ) );
 	}
 
 	public function enqueue_scripts( $hook ) {
 		if ( ! $this->is_marrison_admin_page() ) {
 			return;
 		}
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_script( 'marrison-admin-global', plugins_url( 'assets/js/admin-global.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::VERSION, true );
+		$plugin_root_file = Marrison_Addon::plugin_file();
+		wp_enqueue_script( 'marrison-admin-global', plugins_url( 'assets/js/admin-global.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::asset_version( 'assets/js/admin-global.js' ), true );
 		
 		wp_localize_script( 'marrison-admin-global', 'marrison_global', [
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
@@ -102,6 +101,9 @@ class Marrison_Addon_Admin {
 			}
 			
 			update_option( $option_name, $current_value );
+			if ( class_exists( 'Marrison_Addon' ) ) {
+				Marrison_Addon::clear_runtime_caches();
+			}
 
 			if ( 'marrison_addon_modules' === $option_name ) {
 				if ( 'browser_cache' === $key && empty( $current_value[ $key ] ) ) {

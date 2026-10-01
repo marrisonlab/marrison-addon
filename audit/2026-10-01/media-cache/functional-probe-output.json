@@ -1,0 +1,67 @@
+{
+    "conversion": {
+        "image/webp": {
+            "return": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\media-cache/functional-fixtures/alpha-source.webp",
+            "exists": true,
+            "decoded": true,
+            "transparent_alpha": 127
+        },
+        "image/avif": {
+            "return": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\media-cache/functional-fixtures/alpha-source.avif",
+            "exists": true,
+            "decoded": true,
+            "transparent_alpha": 127
+        }
+    },
+    "ffmpeg": {
+        "available": false,
+        "message": "non trovato. Inserisci il percorso assoluto di FFmpeg oppure installalo nel PATH del server."
+    },
+    "svg": {
+        "has_script": false,
+        "has_event": false,
+        "has_external": false,
+        "has_current_color": true,
+        "has_none": true
+    },
+    "fonts_coverage": {
+        "partial": {
+            "covered": false,
+            "requested": {
+                "Poppins": [
+                    {
+                        "style": "normal",
+                        "weight": "400"
+                    },
+                    {
+                        "style": "normal",
+                        "weight": "700"
+                    }
+                ]
+            },
+            "missing": [
+                {
+                    "family": "Poppins",
+                    "style": "normal",
+                    "weight": "700"
+                }
+            ]
+        },
+        "full": {
+            "covered": true,
+            "requested": {
+                "Poppins": [
+                    {
+                        "style": "normal",
+                        "weight": "400"
+                    },
+                    {
+                        "style": "normal",
+                        "weight": "700"
+                    }
+                ]
+            },
+            "missing": []
+        }
+    }
+}

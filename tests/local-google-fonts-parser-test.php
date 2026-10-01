@@ -87,7 +87,7 @@ if ( ! class_exists( 'Marrison_Addon_Context' ) ) {
 	}
 }
 
-require_once __DIR__ . '/../includes/modules/class-marrison-addon-local-google-fonts.php';
+require_once __DIR__ . '/../marrison-addon/includes/modules/class-marrison-addon-local-google-fonts.php';
 
 function lgf_invoke( $object, $method, array $args = array() ) {
 	$reflection = new ReflectionMethod( $object, $method );
@@ -369,7 +369,7 @@ lgf_assert(
 	'Variable weight ranges should stay remote unless every requested static weight is local.'
 );
 
-$source = file_get_contents( __DIR__ . '/../includes/modules/class-marrison-addon-local-google-fonts.php' );
+$source = file_get_contents( __DIR__ . '/../marrison-addon/includes/modules/class-marrison-addon-local-google-fonts.php' );
 lgf_assert( false !== strpos( $source, "post_type <> %s" ) && false !== strpos( $source, "'revision'" ), 'Scanner queries should explicitly exclude revision post types.' );
 
 echo "Local Google Fonts parser tests passed.\n";

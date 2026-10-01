@@ -107,6 +107,7 @@ namespace {
 	check( '' === $control_container->controls['marrison_horizontal_scroll_enabled']['default'], 'The per-container control should default off.' );
 	check( 'yes' === $control_container->controls['marrison_horizontal_scroll_pin']['default'], 'Pin should default on.' );
 	check( '' === $control_container->controls['marrison_horizontal_scroll_snap']['default'], 'Snap should default off.' );
+	check( 220 === $control_container->controls['marrison_horizontal_scroll_snap_threshold']['default'], 'Snap wheel threshold should default to 220.' );
 	check( '' === $control_container->controls['marrison_horizontal_scroll_background_scale']['default'], 'Background scale should default off.' );
 	check( 0 === $control_container->controls['marrison_horizontal_scroll_background_scale_from']['default'], 'Background scale should start from 0 by default.' );
 	check( 100 === $control_container->controls['marrison_horizontal_scroll_background_scale_to']['default'], 'Background scale should end at 100 by default.' );
@@ -126,6 +127,7 @@ namespace {
 		'marrison_horizontal_scroll_direction' => 'ltr',
 		'marrison_horizontal_scroll_speed' => 2,
 		'marrison_horizontal_scroll_snap' => 'yes',
+		'marrison_horizontal_scroll_snap_threshold' => 260,
 		'marrison_horizontal_scroll_background_scale' => 'yes',
 		'marrison_horizontal_scroll_background_scale_from' => 0,
 		'marrison_horizontal_scroll_background_scale_to' => 100,
@@ -134,6 +136,7 @@ namespace {
 	$config = json_decode( $container->attributes['data-marrison-horizontal-scroll'] ?? '', true );
 	check( is_array( $config ) && 'ltr' === $config['direction'], 'Enabled container has no usable configuration.' );
 	check( true === $config['snap'], 'Snap config differs.' );
+	check( 260 === $config['snapThreshold'], 'Snap wheel threshold config differs.' );
 	check( 2.0 === (float) $config['speed'] && true === $config['devices']['desktop'] && true === $config['devices']['tablet'] && false === $config['devices']['mobile'], 'Speed or responsive defaults differ.' );
 	check( true === $config['backgroundScale']['enabled'] && 0.0 === (float) $config['backgroundScale']['from'] && 1.0 === (float) $config['backgroundScale']['to'], 'Background scale config differs.' );
 	check( 760 === $config['breakpoints']['mobile'] && 1030 === $config['breakpoints']['tablet'], 'Elementor breakpoints were not used.' );
@@ -146,6 +149,7 @@ namespace {
 		'marrison_horizontal_scroll_speed' => 100,
 		'marrison_horizontal_scroll_pin' => '',
 		'marrison_horizontal_scroll_snap' => '',
+		'marrison_horizontal_scroll_snap_threshold' => 999,
 		'marrison_horizontal_scroll_device' => '',
 		'marrison_horizontal_scroll_background_scale' => '',
 		'marrison_horizontal_scroll_background_scale_from' => -50,
@@ -155,6 +159,7 @@ namespace {
 	$invalid_config = json_decode( $invalid_container->attributes['data-marrison-horizontal-scroll'], true );
 	check( 'rtl' === $invalid_config['direction'] && 4 === $invalid_config['speed'] && false === $invalid_config['pin'] && false === $invalid_config['devices']['desktop'], 'Invalid settings were not normalized.' );
 	check( false === $invalid_config['snap'], 'Snap should normalize to false when disabled.' );
+	check( 600 === $invalid_config['snapThreshold'], 'Snap wheel threshold bounds were not normalized.' );
 	check( false === $invalid_config['backgroundScale']['enabled'] && 0.0 === (float) $invalid_config['backgroundScale']['from'] && 2.0 === (float) $invalid_config['backgroundScale']['to'], 'Background scale bounds were not normalized.' );
 
 	$cached_module = new \Marrison_Addon_Horizontal_Scroll();

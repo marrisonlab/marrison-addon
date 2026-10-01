@@ -1,0 +1,27 @@
+{
+  "fixtures": "Real plugin JS and real Elementor document settings/CSS; only localhost requests; temporary pages removed after testing",
+  "preloader": {
+    "initial_load": {"class": "marrison-anim-fade marrison-loaded", "opacity": "0", "visibility": "hidden"},
+    "empty_hash_click": {"url": "http://localhost:10004/marrison-audit-p2-preloader.html#", "class": "marrison-anim-fade", "opacity": "1", "visibility": "visible", "pointerEvents": "auto", "readyState": "complete", "result": "page remains covered"},
+    "cancelled_link": {"handler_called_preventDefault": true, "navigation_still_happened": true, "url_after": "http://localhost:10004/marrison-audit-p2-preloader.html?cancelled-navigation=1", "action_text_reset_after_navigation": "idle"},
+    "normal_navigation": "destination page reached",
+    "same_page_target": "target reached without visible loader",
+    "back": {"pageshowPersisted": false, "visibility": "hidden", "bfcache_not_exercised": true}
+  },
+  "elementor": {
+    "document_css": "generated from temporary _elementor_data using Elementor Core Files CSS Post::get_content; DB rollback",
+    "desktop": {"innerWidth": 1280, "liquidRootHeight": 360, "liquidCanvasWidth": 1265, "liquidCanvasHeight": 360, "stepsDisplay": "grid", "stepsColumns": "568.5px 80px 568.5px"},
+    "mobile_frame": {"innerWidth": 390, "liquidRootHeight": 360, "liquidCanvasWidth": 375, "liquidCanvasHeight": 360, "stepsDisplay": "flex", "stepsDirection": "column", "note": "real iframe viewport; not touch/device emulation"},
+    "wrapped_custom_attributes": {"settings_contain_data_audit_and_aria_label": true, "rendered_data_audit": null, "rendered_aria_label": null},
+    "read_more_expanded_complex_html": {"ariaExpanded": "true", "strong": 1, "em": 5, "listItems": 2, "links": 1, "collapse_returns_to_original_closed_state": true}
+  },
+  "cookie_manager": {
+    "nonce": "Fixture starts with deliberately invalid audit-stale-nonce; save actions recover successfully",
+    "before_consent": {"analytics": 0, "marketing": 0, "module": 0, "quotedIframeSrc": null, "unquotedIframeSrc": "/marrison-audit-p2-youtube.com.html", "unquotedIframeLoaded": true},
+    "reject_all": {"analytics": 0, "marketing": 0, "module": 0, "bannerDisplay": "none", "unquotedIframeLoaded": true},
+    "accept_all": {"analytics": 1, "marketing": 1, "module": 0, "bannerDisplay": "none", "quotedIframeSrc": "/marrison-audit-p2-youtube.com.html", "module_type_after_activation": null},
+    "custom_necessary_analytics": {"analytics": 1, "marketing": 0, "module": 0, "bannerDisplay": "none", "quotedIframeSrc": null, "unquotedIframeSrc": "/marrison-audit-p2-youtube.com.html"},
+    "confirmed_module_error": "SyntaxError: Failed to execute 'replaceChild' on 'Node': Unexpected token 'export' at activateBlockedScript frontend.js:411; original valid type=module is discarded",
+    "all_trackers": "local harmless counters/iframe; no third-party tracker was contacted"
+  }
+}

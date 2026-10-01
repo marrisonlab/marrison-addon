@@ -1,0 +1,17 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//tesy//Event Calendar//IT
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-TIMEZONE:+00:00
+BEGIN:VEVENT
+UID:134-1748fe6a3c78f500fc384f7908fd911a@localhost
+DTSTAMP:20261001T123650Z
+DTSTART;TZID=+00:00:20261002T080000
+DTEND;TZID=+00:00:20261002T090000
+SUMMARY:Remediation calendar fixture
+DESCRIPTION:Disposable test event\n\nhttp://localhost:10004/remediation-calendar-fixture/
+LOCATION:Roma\, Sala\; 1
+URL:http://localhost:10004/remediation-calendar-fixture/
+END:VEVENT
+END:VCALENDAR

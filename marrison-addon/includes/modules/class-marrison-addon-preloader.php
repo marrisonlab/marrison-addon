@@ -47,8 +47,8 @@ class Marrison_Addon_Preloader {
 		wp_enqueue_media(); // Core media uploader
 		wp_enqueue_style( 'wp-color-picker' );
 		
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_script( 'marrison-admin-preloader', plugins_url( 'assets/js/admin-preloader.js', $plugin_root_file ), [ 'jquery', 'wp-color-picker' ], Marrison_Addon::VERSION, true );
+		$plugin_root_file = Marrison_Addon::plugin_file();
+		wp_enqueue_script( 'marrison-admin-preloader', plugins_url( 'assets/js/admin-preloader.js', $plugin_root_file ), [ 'jquery', 'wp-color-picker' ], Marrison_Addon::asset_version( 'assets/js/admin-preloader.js' ), true );
 	}
 
 	public function enqueue_scripts() {
@@ -56,13 +56,14 @@ class Marrison_Addon_Preloader {
 			return;
 		}
 
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_style( 'marrison-preloader', plugins_url( 'assets/css/marrison-preloader.css', $plugin_root_file ), [], Marrison_Addon::VERSION );
-		wp_enqueue_script( 'marrison-preloader', plugins_url( 'assets/js/marrison-preloader.js', $plugin_root_file ), [], Marrison_Addon::VERSION, true );
+		$plugin_root_file = Marrison_Addon::plugin_file();
+		wp_enqueue_style( 'marrison-preloader', plugins_url( 'assets/css/marrison-preloader.css', $plugin_root_file ), [], Marrison_Addon::asset_version( 'assets/css/marrison-preloader.css' ) );
+		wp_enqueue_script( 'marrison-preloader', plugins_url( 'assets/js/marrison-preloader.js', $plugin_root_file ), [], Marrison_Addon::asset_version( 'assets/js/marrison-preloader.js' ), true );
 		
 		$settings = wp_parse_args( get_option( 'marrison_addon_preloader_settings', [] ), $this->get_default_settings() );
 		wp_localize_script( 'marrison-preloader', 'marrison_preloader_settings', [
 			'transition_duration' => $settings['transition_duration'],
+			'max_wait' => 8000,
 		] );
 	}
 

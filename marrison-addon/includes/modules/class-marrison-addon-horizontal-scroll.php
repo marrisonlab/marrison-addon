@@ -88,6 +88,23 @@ class Marrison_Addon_Horizontal_Scroll {
 		);
 
 		$container->add_control(
+			'marrison_horizontal_scroll_snap_threshold',
+			[
+				'label'       => esc_html__( 'Soglia snap rotella', 'marrison-addon' ),
+				'type'        => \Elementor\Controls_Manager::NUMBER,
+				'min'         => 40,
+				'max'         => 600,
+				'step'        => 10,
+				'default'     => 220,
+				'description' => esc_html__( 'Aumenta il valore se lo snap scatta troppo facilmente. Valori più bassi rendono il cambio slide più immediato.', 'marrison-addon' ),
+				'condition'   => [
+					'marrison_horizontal_scroll_enabled' => 'yes',
+					'marrison_horizontal_scroll_snap'    => 'yes',
+				],
+			]
+		);
+
+		$container->add_control(
 			'marrison_horizontal_scroll_background_scale',
 			[
 				'label'        => esc_html__( 'Scala sfondo', 'marrison-addon' ),
@@ -173,6 +190,7 @@ class Marrison_Addon_Horizontal_Scroll {
 			'pin'       => 'yes' === ( $settings['marrison_horizontal_scroll_pin'] ?? 'yes' ),
 			'speed'     => max( 0.25, min( 4, $speed ) ),
 			'snap'      => 'yes' === ( $settings['marrison_horizontal_scroll_snap'] ?? '' ),
+			'snapThreshold' => $this->normalize_snap_threshold( $settings['marrison_horizontal_scroll_snap_threshold'] ?? 220 ),
 			'backgroundScale' => [
 				'enabled' => 'yes' === ( $settings['marrison_horizontal_scroll_background_scale'] ?? '' ),
 				'from'    => $this->normalize_scale_percent( $settings['marrison_horizontal_scroll_background_scale_from'] ?? 0 ),
@@ -193,6 +211,11 @@ class Marrison_Addon_Horizontal_Scroll {
 	private function normalize_scale_percent( $value ) {
 		$value = is_numeric( $value ) ? (float) $value : 0.0;
 		return max( 0, min( 2, $value / 100 ) );
+	}
+
+	private function normalize_snap_threshold( $value ) {
+		$value = is_numeric( $value ) ? (int) $value : 220;
+		return max( 40, min( 600, $value ) );
 	}
 
 	/**
@@ -247,21 +270,19 @@ class Marrison_Addon_Horizontal_Scroll {
 		}
 
 		$this->assets_enqueued = true;
-		$plugin_root_file = dirname( __DIR__, 2 ) . '/marrison-addon.php';
-		$css_path = dirname( __DIR__, 2 ) . '/assets/css/horizontal-scroll.css';
-		$js_path = dirname( __DIR__, 2 ) . '/assets/js/horizontal-scroll.js';
+		$plugin_root_file = Marrison_Addon::plugin_file();
 
 		wp_enqueue_style(
 			'marrison-addon-horizontal-scroll',
 			plugins_url( 'assets/css/horizontal-scroll.css', $plugin_root_file ),
 			[],
-			file_exists( $css_path ) ? (string) filemtime( $css_path ) : Marrison_Addon::VERSION
+			Marrison_Addon::asset_version( 'assets/css/horizontal-scroll.css' )
 		);
 		wp_enqueue_script(
 			'marrison-addon-horizontal-scroll',
 			plugins_url( 'assets/js/horizontal-scroll.js', $plugin_root_file ),
 			[ 'elementor-frontend' ],
-			file_exists( $js_path ) ? (string) filemtime( $js_path ) : Marrison_Addon::VERSION,
+			Marrison_Addon::asset_version( 'assets/js/horizontal-scroll.js' ),
 			true
 		);
 	}

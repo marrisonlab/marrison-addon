@@ -86,8 +86,8 @@ class Marrison_Addon_Calendar_Sync {
 		$selected_timezone = isset( $input['ics_timezone'] ) ? sanitize_text_field( wp_unslash( $input['ics_timezone'] ) ) : $defaults['ics_timezone'];
 
 		return array(
-			'start_meta'   => isset( $input['start_meta'] ) ? sanitize_text_field( wp_unslash( $input['start_meta'] ) ) : $defaults['start_meta'],
-			'end_meta'     => isset( $input['end_meta'] ) ? sanitize_text_field( wp_unslash( $input['end_meta'] ) ) : $defaults['end_meta'],
+			'start_meta'   => $this->normalize_meta_key( isset( $input['start_meta'] ) ? wp_unslash( $input['start_meta'] ) : '', $defaults['start_meta'] ),
+			'end_meta'     => $this->normalize_meta_key( isset( $input['end_meta'] ) ? wp_unslash( $input['end_meta'] ) : '', $defaults['end_meta'] ),
 			'ics_timezone' => array_key_exists( $selected_timezone, $timezone_options ) ? $selected_timezone : $defaults['ics_timezone'],
 		);
 	}
@@ -183,8 +183,8 @@ class Marrison_Addon_Calendar_Sync {
 			return '';
 		}
 
-		$start_meta = '' !== trim( (string) $atts['start_meta'] ) ? sanitize_text_field( wp_unslash( $atts['start_meta'] ) ) : $settings['start_meta'];
-		$end_meta = '' !== trim( (string) $atts['end_meta'] ) ? sanitize_text_field( wp_unslash( $atts['end_meta'] ) ) : $settings['end_meta'];
+		$start_meta = $this->normalize_meta_key( wp_unslash( $atts['start_meta'] ), $settings['start_meta'] );
+		$end_meta = $this->normalize_meta_key( wp_unslash( $atts['end_meta'] ), $settings['end_meta'] );
 		$location = sanitize_text_field( wp_unslash( $atts['location'] ) );
 		$type = sanitize_key( $atts['type'] );
 		$links = $this->get_event_links( $post_id, $start_meta, $end_meta, $location );
@@ -202,14 +202,30 @@ class Marrison_Addon_Calendar_Sync {
 		}
 
 		$post_id = absint( wp_unslash( $_GET['marrison_event_ics'] ) );
+		$post = get_post( $post_id );
 
-		if ( ! $post_id || ! get_post( $post_id ) ) {
+		if ( ! $post_id || ! $post ) {
 			wp_die( esc_html__( 'Evento non valido.', 'marrison-addon' ) );
+		}
+		if ( post_password_required( $post ) || ( ! is_post_publicly_viewable( $post ) && ! current_user_can( 'read_post', $post_id ) ) ) {
+			wp_die( esc_html__( 'Evento non disponibile.', 'marrison-addon' ), '', array( 'response' => 403 ) );
 		}
 
 		$settings = $this->get_settings();
-		$start_value = get_post_meta( $post_id, $settings['start_meta'], true );
-		$end_value = get_post_meta( $post_id, $settings['end_meta'], true );
+		$start_meta = $settings['start_meta'];
+		$end_meta = $settings['end_meta'];
+		$location = '';
+		if ( isset( $_GET['marrison_ics_context'] ) ) {
+			$start_meta = $this->normalize_meta_key( isset( $_GET['marrison_ics_start'] ) ? wp_unslash( $_GET['marrison_ics_start'] ) : '', $start_meta );
+			$end_meta = $this->normalize_meta_key( isset( $_GET['marrison_ics_end'] ) ? wp_unslash( $_GET['marrison_ics_end'] ) : '', $end_meta );
+			$location = isset( $_GET['marrison_ics_location'] ) ? sanitize_text_field( wp_unslash( $_GET['marrison_ics_location'] ) ) : '';
+			$signature = is_string( $_GET['marrison_ics_context'] ) ? wp_unslash( $_GET['marrison_ics_context'] ) : '';
+			if ( ! hash_equals( $this->sign_ics_context( $post_id, $start_meta, $end_meta, $location ), $signature ) ) {
+				wp_die( esc_html__( 'Collegamento calendario non valido.', 'marrison-addon' ), '', array( 'response' => 403 ) );
+			}
+		}
+		$start_value = get_post_meta( $post_id, $start_meta, true );
+		$end_value = get_post_meta( $post_id, $end_meta, true );
 		$start_timestamp = $this->get_timestamp( $start_value );
 		$end_timestamp = $this->get_timestamp( $end_value );
 		$ics_timezone_id = isset( $settings['ics_timezone'] ) ? (string) $settings['ics_timezone'] : 'site';
@@ -248,7 +264,7 @@ class Marrison_Addon_Calendar_Sync {
 
 		$ics .= 'SUMMARY:' . $this->ics_escape( $title ) . "\r\n";
 		$ics .= 'DESCRIPTION:' . $this->ics_escape( trim( $description . "\n\n" . $event_url ) ) . "\r\n";
-		$ics .= 'LOCATION:' . $this->ics_escape( '' ) . "\r\n";
+		$ics .= 'LOCATION:' . $this->ics_escape( $location ) . "\r\n";
 		$ics .= 'URL:' . $this->ics_escape( $event_url ) . "\r\n";
 		$ics .= "END:VEVENT\r\n";
 		$ics .= "END:VCALENDAR\r\n";
@@ -280,7 +296,16 @@ class Marrison_Addon_Calendar_Sync {
 			$settings = array();
 		}
 
-		return wp_parse_args( $settings, $this->get_default_settings() );
+		$defaults = $this->get_default_settings();
+		$settings = wp_parse_args( $settings, $defaults );
+		$settings['start_meta'] = $this->normalize_meta_key( $settings['start_meta'], $defaults['start_meta'] );
+		$settings['end_meta'] = $this->normalize_meta_key( $settings['end_meta'], $defaults['end_meta'] );
+		return $settings;
+	}
+
+	private function normalize_meta_key( $value, $fallback ) {
+		$value = is_scalar( $value ) ? trim( sanitize_text_field( (string) $value ) ) : '';
+		return '' !== $value ? $value : $fallback;
 	}
 
 	private function get_timestamp( $value ) {
@@ -332,11 +357,19 @@ class Marrison_Addon_Calendar_Sync {
 	private function get_ics_timezone_object( $timezone_id ) {
 		$timezone_id = (string) $timezone_id;
 
-		if ( 'site' === $timezone_id || '' === $timezone_id ) {
-			return $this->get_site_timezone();
+		try {
+			if ( 'site' !== $timezone_id && '' !== $timezone_id ) {
+				return new DateTimeZone( $timezone_id );
+			}
+		} catch ( Exception $exception ) {
+			// Legacy settings can predate the timezone sanitizer.
 		}
 
-		return new DateTimeZone( $timezone_id );
+		try {
+			return $this->get_site_timezone();
+		} catch ( Exception $exception ) {
+			return new DateTimeZone( 'UTC' );
+		}
 	}
 
 	private function format_ics_datetime( $timestamp, $timezone_id ) {
@@ -384,10 +417,18 @@ class Marrison_Addon_Calendar_Sync {
 		return $value;
 	}
 
-	private function get_ics_url( $post_id ) {
+	private function sign_ics_context( $post_id, $start_meta, $end_meta, $location ) {
+		return wp_hash( wp_json_encode( array( absint( $post_id ), $start_meta, $end_meta, $location ) ), 'auth' );
+	}
+
+	private function get_ics_url( $post_id, $start_meta, $end_meta, $location ) {
 		return add_query_arg(
 			array(
 				'marrison_event_ics' => absint( $post_id ),
+				'marrison_ics_start' => $start_meta,
+				'marrison_ics_end' => $end_meta,
+				'marrison_ics_location' => $location,
+				'marrison_ics_context' => $this->sign_ics_context( $post_id, $start_meta, $end_meta, $location ),
 			),
 			home_url( '/' )
 		);
@@ -430,7 +471,7 @@ class Marrison_Addon_Calendar_Sync {
 				$start_timestamp,
 				$end_timestamp
 			),
-			'ics'    => $this->get_ics_url( $post_id ),
+			'ics'    => $this->get_ics_url( $post_id, $start_meta, $end_meta, $location ),
 		);
 	}
 }

@@ -50,6 +50,7 @@ namespace {
 	function sanitize_hex_color( $value ) {
 		return is_string( $value ) && preg_match( '/^#([A-Fa-f0-9]{3}){1,2}$/', $value ) ? $value : null;
 	}
+	function wp_parse_url( $url ) { return parse_url( $url ); }
 	function wp_json_encode( $value ) { return json_encode( $value ); }
 	function plugins_url( $path ) { return $path; }
 	function wp_enqueue_style( $handle ) { $GLOBALS['marrison_test_assets'][] = $handle; }
@@ -128,6 +129,7 @@ namespace {
 	check( '#321875' === $control_container->controls['marrison_liquid_secondary']['default'], 'Secondary liquid color default differs.' );
 	check( '' === $control_container->controls['marrison_liquid_blend_gradient']['default'], 'Bottom blend gradient should default off.' );
 	check( '#000000' === $control_container->controls['marrison_liquid_blend_color']['default'], 'Blend color default differs.' );
+	check( [ 'desktop', 'tablet', 'mobile' ] === $control_container->controls['marrison_liquid_blend_color']['devices'], 'Blend color should be responsive.' );
 	check( [ 'desktop', 'tablet', 'mobile' ] === $control_container->controls['marrison_liquid_blend_height']['devices'], 'Blend height should be responsive.' );
 	check( '' === $control_container->controls['marrison_liquid_disable_mobile']['default'], 'Disable on Mobile should default off.' );
 	check( 'static' === $control_container->controls['marrison_liquid_reduced_motion']['default'], 'Reduced motion should default to Static.' );
@@ -155,6 +157,8 @@ namespace {
 		'marrison_liquid_opacity' => [ 'size' => 0.7 ],
 		'marrison_liquid_blend_gradient' => 'yes',
 		'marrison_liquid_blend_color' => '#222222',
+		'marrison_liquid_blend_color_tablet' => '',
+		'marrison_liquid_blend_color_mobile' => 'rgb(12 34 56 / 80%)',
 		'marrison_liquid_blend_height' => [ 'size' => 150 ],
 		'marrison_liquid_blend_height_tablet' => [ 'size' => 5 ],
 		'marrison_liquid_blend_height_mobile' => [ 'size' => 66 ],
@@ -164,6 +168,10 @@ namespace {
 		'marrison_liquid_disable_mobile' => 'yes',
 		'marrison_liquid_reduced_motion' => 'disable',
 		'marrison_liquid_seed' => '',
+		'__globals__' => [
+			'marrison_liquid_blend_color_tablet' => 'globals/colors?id=accent',
+			'marrison_liquid_blend_color_mobile' => 'globals/colors?id=custom_lilac',
+		],
 	], 'liquid-main' );
 	$before_render( $container );
 	$config = json_decode( $container->attributes['data-marrison-liquid-background'] ?? '', true );
@@ -173,11 +181,19 @@ namespace {
 	check( 1.4 === (float) $config['scale']['desktop'] && 1.4 === (float) $config['scale']['tablet'] && 1.8 === (float) $config['scale']['mobile'], 'Responsive scale fallback differs.' );
 	check( 4 === $config['complexity'] && 0.0 === (float) $config['distortion'] && 0.1 === (float) $config['softness'], 'Numeric bounds were not normalized.' );
 	check( 2.0 === (float) $config['contrast'] && 0.5 === (float) $config['mouseInfluence'], 'Contrast or mouse influence bounds differ.' );
-	check( true === $config['blendGradient']['enabled'] && '#222222' === $config['blendGradient']['color'], 'Blend gradient config differs.' );
+	check( true === $config['blendGradient']['enabled'], 'Blend gradient config differs.' );
+	check( '#222222' === $config['blendGradient']['color']['desktop'] && 'var(--e-global-color-accent)' === $config['blendGradient']['color']['tablet'] && 'var(--e-global-color-custom_lilac)' === $config['blendGradient']['color']['mobile'], 'Responsive global blend color config differs.' );
 	check( 100.0 === (float) $config['blendGradient']['height']['desktop'] && 10.0 === (float) $config['blendGradient']['height']['tablet'] && 66.0 === (float) $config['blendGradient']['height']['mobile'], 'Blend gradient height was not bounded.' );
 	check( 'natural' === $config['direction'] && true === $config['disableMobile'] && 'disable' === $config['reducedMotion'], 'Enum settings were not normalized.' );
 	check( 760 === $config['breakpoints']['mobile'] && 1030 === $config['breakpoints']['tablet'], 'Elementor breakpoints were not used.' );
-	check( is_int( $config['seed'] ) && $config['seed'] >= 0 && $config['seed'] <= 99999, 'Stable generated seed is out of bounds.' );
+	check( 24680 === $config['seed'], 'Empty seed should use the shared standard Liquid pattern.' );
+	$second_container = new Fake_Liquid_Container( [
+		'marrison_liquid_enabled' => 'yes',
+		'marrison_liquid_seed' => '',
+	], 'liquid-other-id' );
+	$before_render( $second_container );
+	$second_config = json_decode( $second_container->attributes['data-marrison-liquid-background'] ?? '', true );
+	check( $config['seed'] === $second_config['seed'], 'Empty seeds should not vary by Container ID.' );
 	check( 2 === count( $GLOBALS['marrison_test_assets'] ), 'CSS and JS were not enqueued once.' );
 	$before_render( new Fake_Liquid_Container( [ 'marrison_liquid_enabled' => 'yes' ] ) );
 	check( 2 === count( $GLOBALS['marrison_test_assets'] ), 'Multiple instances enqueued assets twice.' );

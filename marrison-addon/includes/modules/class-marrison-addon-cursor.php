@@ -45,8 +45,8 @@ class Marrison_Addon_Cursor {
 		
 		// Load wp-color-picker
 		wp_enqueue_style( 'wp-color-picker' );
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_script( 'marrison-admin-cursor', plugins_url( 'assets/js/admin-cursor.js', $plugin_root_file ), [ 'wp-color-picker' ], Marrison_Addon::VERSION, true );
+		$plugin_root_file = Marrison_Addon::plugin_file();
+		wp_enqueue_script( 'marrison-admin-cursor', plugins_url( 'assets/js/admin-cursor.js', $plugin_root_file ), [ 'wp-color-picker' ], Marrison_Addon::asset_version( 'assets/js/admin-cursor.js' ), true );
 	}
 
 	public function enqueue_scripts() {
@@ -56,17 +56,10 @@ class Marrison_Addon_Cursor {
 
 		$settings = wp_parse_args( get_option( 'marrison_addon_cursor_settings', [] ), $this->get_default_settings() );
 		
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		$cursor_css_path = plugin_dir_path( $plugin_root_file ) . 'assets/css/marrison-cursor.css';
-		$cursor_js_path = plugin_dir_path( $plugin_root_file ) . 'assets/js/marrison-cursor.js';
-		$asset_version = Marrison_Addon::VERSION;
+		$plugin_root_file = Marrison_Addon::plugin_file();
 
-		if ( file_exists( $cursor_css_path ) && file_exists( $cursor_js_path ) ) {
-			$asset_version .= '.' . max( filemtime( $cursor_css_path ), filemtime( $cursor_js_path ) );
-		}
-
-		wp_enqueue_style( 'marrison-cursor', plugins_url( 'assets/css/marrison-cursor.css', $plugin_root_file ), [], $asset_version );
-		wp_enqueue_script( 'marrison-cursor', plugins_url( 'assets/js/marrison-cursor.js', $plugin_root_file ), [], $asset_version, true );
+		wp_enqueue_style( 'marrison-cursor', plugins_url( 'assets/css/marrison-cursor.css', $plugin_root_file ), [], Marrison_Addon::asset_version( 'assets/css/marrison-cursor.css' ) );
+		wp_enqueue_script( 'marrison-cursor', plugins_url( 'assets/js/marrison-cursor.js', $plugin_root_file ), [], Marrison_Addon::asset_version( 'assets/js/marrison-cursor.js' ), true );
 
 		// Pass settings to JS
 		wp_localize_script( 'marrison-cursor', 'marrison_cursor_settings', [
@@ -176,7 +169,7 @@ class Marrison_Addon_Cursor {
 		return [
 			'dot_color' => sanitize_hex_color( $settings['dot_color'] ?? $defaults['dot_color'] ) ?: $defaults['dot_color'],
 			'circle_color' => sanitize_hex_color( $settings['circle_color'] ?? $defaults['circle_color'] ) ?: $defaults['circle_color'],
-			'hover_color' => preg_match( '/^rgba?\(([^)]+)\)$/', $hover_color ) ? $hover_color : $defaults['hover_color'],
+			'hover_color' => sanitize_hex_color( $hover_color ) ?: ( preg_match( '/^rgba?\(([^)]+)\)$/', $hover_color ) ? $hover_color : $defaults['hover_color'] ),
 			'shape' => in_array( $settings['shape'] ?? '', $shapes, true ) ? $settings['shape'] : $defaults['shape'],
 			'animation' => in_array( $settings['animation'] ?? '', $animations, true ) ? $settings['animation'] : $defaults['animation'],
 		];

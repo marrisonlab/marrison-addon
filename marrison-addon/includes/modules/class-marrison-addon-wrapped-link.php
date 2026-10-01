@@ -43,15 +43,24 @@ class Marrison_Addon_Wrapped_Link {
 
 		$settings = $element->get_settings_for_display();
 
-		if ( ! empty( $settings['marrison_addon_url']['url'] ) ) {
+		if ( ! empty( $settings['marrison_addon_url']['url'] ) && '#' !== trim( $settings['marrison_addon_url']['url'] ) ) {
 			$this->enqueue_scripts();
 			$element->add_render_attribute( '_wrapper', 'data-marrison-addon', wp_json_encode( $settings['marrison_addon_url'] ) );
 			$element->add_render_attribute( '_wrapper', 'style', 'cursor: pointer;' );
+			if ( ! empty( $settings['marrison_addon_url']['custom_attributes'] ) ) {
+				$attributes = \Elementor\Utils::parse_custom_attributes( $settings['marrison_addon_url']['custom_attributes'] );
+				foreach ( $attributes as $name => $value ) {
+					// Keep the module's navigation configuration and Elementor identity intact.
+					if ( 'data-marrison-addon' !== $name && 'data-settings' !== $name && 'data-id' !== $name ) {
+						$element->add_render_attribute( '_wrapper', $name, $value );
+					}
+				}
+			}
 		}
 	}
 
 	public function enqueue_scripts() {
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_script( 'marrison-addon', plugins_url( 'assets/js/marrison-addon.js', $plugin_root_file ), [], Marrison_Addon::VERSION, true );
+		$plugin_root_file = Marrison_Addon::plugin_file();
+		wp_enqueue_script( 'marrison-addon', plugins_url( 'assets/js/marrison-addon.js', $plugin_root_file ), [], Marrison_Addon::asset_version( 'assets/js/marrison-addon.js' ), true );
 	}
 }

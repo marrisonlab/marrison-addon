@@ -332,8 +332,9 @@
     background: linear-gradient(to bottom, #fff, #f9f9f9);
 }
 
-.marrison-modal-header h3 {
+#marrison-cookie-modal .marrison-modal-header h3 {
     margin: 0;
+    color: #333;
     font-size: 1.5em;
     font-weight: 700;
     letter-spacing: 0;

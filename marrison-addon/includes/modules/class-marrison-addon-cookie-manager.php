@@ -141,8 +141,8 @@ class Marrison_Addon_Cookie_Manager_Module {
 
 		$admin_css_path = MARRISON_COOKIE_PLUGIN_DIR . 'assets/css/admin.css';
 		$admin_js_path = MARRISON_COOKIE_PLUGIN_DIR . 'assets/js/admin.js';
-		$admin_css_version = file_exists( $admin_css_path ) ? (string) filemtime( $admin_css_path ) : MARRISON_COOKIE_VERSION;
-		$admin_js_version = file_exists( $admin_js_path ) ? (string) filemtime( $admin_js_path ) : MARRISON_COOKIE_VERSION;
+		$admin_css_version = class_exists( 'Marrison_Addon' ) ? Marrison_Addon::asset_version( 'includes/modules/cookie-manager/assets/css/admin.css' ) : ( file_exists( $admin_css_path ) ? (string) filemtime( $admin_css_path ) : MARRISON_COOKIE_VERSION );
+		$admin_js_version = class_exists( 'Marrison_Addon' ) ? Marrison_Addon::asset_version( 'includes/modules/cookie-manager/assets/js/admin.js' ) : ( file_exists( $admin_js_path ) ? (string) filemtime( $admin_js_path ) : MARRISON_COOKIE_VERSION );
 
 		wp_enqueue_style(
 			'marrison-cookie-admin',

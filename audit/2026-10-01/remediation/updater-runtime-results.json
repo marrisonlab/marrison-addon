@@ -1,0 +1,17 @@
+{
+    "github": {
+        "ok": true,
+        "main_at_root": true,
+        "selected": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\remediation/updater-fixture-67bb0b/github/marrison-addon/"
+    },
+    "release": {
+        "ok": true,
+        "main_at_root": true,
+        "selected": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\remediation/updater-fixture-67bb0b/release/marrison-addon/"
+    },
+    "already_correct": {
+        "ok": true,
+        "main_at_root": true,
+        "selected": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\remediation/updater-fixture-67bb0b/already_correct/marrison-addon/"
+    }
+}

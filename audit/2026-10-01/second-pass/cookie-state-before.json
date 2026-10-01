@@ -1,0 +1,22 @@
+{
+    "user_id": 1,
+    "user_meta": [
+        {
+            "consent_type": "reject_all",
+            "categories": [
+                "necessary"
+            ],
+            "timestamp": "2026-10-01 08:35:51",
+            "user_id": 1,
+            "ip_address": "::1"
+        }
+    ],
+    "options": {
+        "_transient_marrison_consent_f528764d624db129b32c21fbca0cb8d6": null,
+        "_transient_timeout_marrison_consent_f528764d624db129b32c21fbca0cb8d6": null,
+        "_transient_marrison_consent_837ec5754f503cfaaee0929fd48974e7": null,
+        "_transient_timeout_marrison_consent_837ec5754f503cfaaee0929fd48974e7": null,
+        "_transient_marrison_consent_d41d8cd98f00b204e9800998ecf8427e": null,
+        "_transient_timeout_marrison_consent_d41d8cd98f00b204e9800998ecf8427e": null
+    }
+}

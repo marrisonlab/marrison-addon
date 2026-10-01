@@ -8,6 +8,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Marrison_Addon_Liquid_Background {
 
+	private const DEFAULT_SEED = 24680;
+
 	private $assets_enqueued = false;
 
 	public function __construct() {
@@ -95,10 +97,11 @@ class Marrison_Addon_Liquid_Background {
 			'description'        => esc_html__( 'Aggiunge un layer trasparente in alto e pieno in basso per fondere il Container successivo.', 'marrison-addon' ),
 			'frontend_available' => true,
 		] );
-		$container->add_control( 'marrison_liquid_blend_color', [
+		$container->add_responsive_control( 'marrison_liquid_blend_color', [
 			'label'              => esc_html__( 'Blend Color', 'marrison-addon' ),
 			'type'               => \Elementor\Controls_Manager::COLOR,
 			'default'            => '#000000',
+			'devices'            => [ 'desktop', 'tablet', 'mobile' ],
 			'condition'          => [
 				'marrison_liquid_enabled'        => 'yes',
 				'marrison_liquid_blend_gradient' => 'yes',
@@ -170,7 +173,7 @@ class Marrison_Addon_Liquid_Background {
 			'step'               => 1,
 			'default'            => '',
 			'condition'          => $condition,
-			'description'        => esc_html__( 'Vuoto: forma stabile generata dall’ID del Container.', 'marrison-addon' ),
+			'description'        => esc_html__( 'Vuoto: usa il disegno standard, identico tra Container con le stesse impostazioni. Inserisci un numero per creare una variante.', 'marrison-addon' ),
 			'frontend_available' => true,
 		] );
 
@@ -232,7 +235,7 @@ class Marrison_Addon_Liquid_Background {
 
 		$seed = $settings['marrison_liquid_seed'] ?? '';
 		if ( '' === $seed || null === $seed ) {
-			$seed = hexdec( substr( md5( (string) $element_id ), 0, 8 ) ) % 100000;
+			$seed = self::DEFAULT_SEED;
 		}
 
 		$direction = $settings['marrison_liquid_direction'] ?? 'natural';
@@ -254,7 +257,7 @@ class Marrison_Addon_Liquid_Background {
 			'opacity'          => $this->responsive_slider( $settings, 'marrison_liquid_opacity', 0, 1, 1 ),
 			'blendGradient'    => [
 				'enabled' => 'yes' === ( $settings['marrison_liquid_blend_gradient'] ?? '' ),
-				'color'   => $this->color( $settings['marrison_liquid_blend_color'] ?? '', '#000000' ),
+				'color'   => $this->responsive_color( $settings, 'marrison_liquid_blend_color', '#000000' ),
 				'height'  => $this->responsive_slider( $settings, 'marrison_liquid_blend_height', 10, 100, 45 ),
 			],
 			'mouse'            => 'yes' === ( $settings['marrison_liquid_mouse'] ?? '' ),
@@ -276,6 +279,71 @@ class Marrison_Addon_Liquid_Background {
 		return $color ?: $fallback;
 	}
 
+	private function css_color( $value, $fallback, array $settings = [], $key = '' ) {
+		if ( $key ) {
+			$global = $this->global_color_from_settings( $settings, $key );
+			if ( $global ) {
+				return $global;
+			}
+		}
+
+		$global = $this->global_color_to_css_var( $value );
+		if ( $global ) {
+			return $global;
+		}
+
+		if ( '' === $value || null === $value || ! is_string( $value ) ) {
+			return $fallback;
+		}
+
+		$color = trim( $value );
+		$hex = sanitize_hex_color( $color );
+		if ( $hex ) {
+			return $hex;
+		}
+
+		if ( preg_match( '/^var\(\s*--[a-zA-Z0-9_-]+\s*\)$/', $color ) ) {
+			return $color;
+		}
+
+		if ( preg_match( '/^(rgba?|hsla?)\(\s*[0-9.,%+\-\s\/]+\s*\)$/i', $color ) ) {
+			return $color;
+		}
+
+		return $fallback;
+	}
+
+	private function global_color_from_settings( array $settings, $key ) {
+		if ( empty( $settings['__globals__'] ) || ! is_array( $settings['__globals__'] ) || empty( $settings['__globals__'][ $key ] ) ) {
+			return '';
+		}
+
+		return $this->global_color_to_css_var( $settings['__globals__'][ $key ] );
+	}
+
+	private function global_color_to_css_var( $value ) {
+		if ( ! is_string( $value ) || false === strpos( $value, 'globals/colors' ) ) {
+			return '';
+		}
+
+		$parts = wp_parse_url( html_entity_decode( trim( $value ), ENT_QUOTES, 'UTF-8' ) );
+		if ( empty( $parts['query'] ) ) {
+			return '';
+		}
+
+		parse_str( $parts['query'], $query );
+		if ( empty( $query['id'] ) || ! is_string( $query['id'] ) ) {
+			return '';
+		}
+
+		$id = rawurldecode( $query['id'] );
+		if ( ! preg_match( '/^[a-zA-Z0-9_-]+$/', $id ) ) {
+			return '';
+		}
+
+		return 'var(--e-global-color-' . $id . ')';
+	}
+
 	private function number( $value, $min, $max, $fallback ) {
 		if ( ! is_numeric( $value ) ) {
 			return $fallback;
@@ -293,6 +361,14 @@ class Marrison_Addon_Liquid_Background {
 		$desktop = $this->slider( $settings[ $id ] ?? null, $min, $max, $fallback );
 		$tablet = $this->slider( $settings[ $id . '_tablet' ] ?? null, $min, $max, $desktop );
 		$mobile = $this->slider( $settings[ $id . '_mobile' ] ?? null, $min, $max, $tablet );
+
+		return [ 'desktop' => $desktop, 'tablet' => $tablet, 'mobile' => $mobile ];
+	}
+
+	private function responsive_color( array $settings, $id, $fallback ) {
+		$desktop = $this->css_color( $settings[ $id ] ?? '', $fallback, $settings, $id );
+		$tablet = $this->css_color( $settings[ $id . '_tablet' ] ?? '', $desktop, $settings, $id . '_tablet' );
+		$mobile = $this->css_color( $settings[ $id . '_mobile' ] ?? '', $tablet, $settings, $id . '_mobile' );
 
 		return [ 'desktop' => $desktop, 'tablet' => $tablet, 'mobile' => $mobile ];
 	}
@@ -349,21 +425,19 @@ class Marrison_Addon_Liquid_Background {
 		}
 
 		$this->assets_enqueued = true;
-		$plugin_root_file = dirname( __DIR__, 2 ) . '/marrison-addon.php';
-		$css_path = dirname( __DIR__, 2 ) . '/assets/css/marrison-liquid-background.css';
-		$js_path = dirname( __DIR__, 2 ) . '/assets/js/marrison-liquid-background.js';
+		$plugin_root_file = Marrison_Addon::plugin_file();
 
 		wp_enqueue_style(
 			'marrison-addon-liquid-background',
 			plugins_url( 'assets/css/marrison-liquid-background.css', $plugin_root_file ),
 			[],
-			file_exists( $css_path ) ? (string) filemtime( $css_path ) : Marrison_Addon::VERSION
+			Marrison_Addon::asset_version( 'assets/css/marrison-liquid-background.css' )
 		);
 		wp_enqueue_script(
 			'marrison-addon-liquid-background',
 			plugins_url( 'assets/js/marrison-liquid-background.js', $plugin_root_file ),
 			[],
-			file_exists( $js_path ) ? (string) filemtime( $js_path ) : Marrison_Addon::VERSION,
+			Marrison_Addon::asset_version( 'assets/js/marrison-liquid-background.js' ),
 			true
 		);
 	}

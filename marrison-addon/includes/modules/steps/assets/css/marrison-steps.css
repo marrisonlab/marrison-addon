@@ -1,4 +1,5 @@
 .marrison-steps {
+	--marrison-steps-marker-size: 64px;
 	--marrison-steps-connector-horizontal-length: 80px;
 	--marrison-steps-connector-vertical-length: 36px;
 	--marrison-steps-connector-width: 2px;
@@ -16,6 +17,7 @@
 
 .marrison-step {
 	display: flex;
+	align-items: stretch !important;
 	width: 100%;
 	min-width: 0;
 }
@@ -25,6 +27,7 @@
 	flex-direction: column;
 	align-items: center;
 	width: 100%;
+	height: 100%;
 	min-width: 0;
 }
 
@@ -131,6 +134,12 @@
 	right: 0;
 }
 
+.marrison-steps-layout-horizontal .marrison-step-connector {
+	align-self: start;
+	height: var(--marrison-steps-marker-size);
+	min-height: var(--marrison-steps-marker-size);
+}
+
 .marrison-steps-connector-none .marrison-step-connector {
 	display: none;
 }
@@ -147,6 +156,7 @@
 
 .marrison-steps-layout-vertical .marrison-step-connector {
 	--marrison-steps-arrow-rotation: 135deg;
+	align-self: auto;
 	flex-basis: var(--marrison-steps-connector-vertical-length);
 	width: auto;
 	height: var(--marrison-steps-connector-vertical-length);
@@ -190,9 +200,10 @@
 
 	.marrison-steps-layout-tablet-horizontal .marrison-step-connector {
 		--marrison-steps-arrow-rotation: 45deg;
+		align-self: start;
 		width: var(--marrison-steps-connector-horizontal-length);
-		height: auto;
-		min-height: 0;
+		height: var(--marrison-steps-marker-size);
+		min-height: var(--marrison-steps-marker-size);
 	}
 
 	.marrison-steps-layout-tablet-horizontal .marrison-step-connector-line {
@@ -238,6 +249,7 @@
 
 	.marrison-steps-layout-tablet-vertical .marrison-step-connector {
 		--marrison-steps-arrow-rotation: 135deg;
+		align-self: auto;
 		flex-basis: var(--marrison-steps-connector-vertical-length);
 		width: auto;
 		height: var(--marrison-steps-connector-vertical-length);
@@ -282,9 +294,10 @@
 
 	.marrison-steps-layout-mobile-horizontal .marrison-step-connector {
 		--marrison-steps-arrow-rotation: 45deg;
+		align-self: start;
 		width: var(--marrison-steps-connector-horizontal-length);
-		height: auto;
-		min-height: 0;
+		height: var(--marrison-steps-marker-size);
+		min-height: var(--marrison-steps-marker-size);
 	}
 
 	.marrison-steps-layout-mobile-horizontal .marrison-step-connector-line {
@@ -330,6 +343,7 @@
 
 	.marrison-steps-layout-mobile-vertical .marrison-step-connector {
 		--marrison-steps-arrow-rotation: 135deg;
+		align-self: auto;
 		flex-basis: var(--marrison-steps-connector-vertical-length);
 		width: auto;
 		height: var(--marrison-steps-connector-vertical-length);

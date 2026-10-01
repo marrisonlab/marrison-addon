@@ -23,11 +23,11 @@ document.addEventListener('click', function(event) {
         return;
     }
 
-    if (!settings.url) {
+    if (typeof settings.url !== 'string' || !settings.url || settings.url.trim() === '#' || event.defaultPrevented) {
         return;
     }
 
-    if (settings.is_external === 'on') {
+    if (settings.is_external === 'on' || settings.is_external === '1' || settings.is_external === 1 || settings.is_external === true) {
         window.open(settings.url, '_blank', 'noopener');
         return;
     }

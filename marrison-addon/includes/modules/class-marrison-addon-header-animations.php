@@ -11,6 +11,7 @@ class Marrison_Addon_Header_Animations {
 		'marrisonLettersFocus',
 		'marrisonLettersElastic',
 	];
+	private $assets_enqueued = false;
 
 	public function __construct() {
 		add_filter( 'elementor/controls/animations/additional_animations', [ $this, 'add_additional_animations' ] );
@@ -19,9 +20,7 @@ class Marrison_Addon_Header_Animations {
 		add_action( 'elementor/element/common/_section_effects/before_section_end', [ $this, 'register_animations' ] );
 		add_action( 'elementor/element/after_section_end', [ $this, 'limit_animations_to_heading' ], 10, 2 );
 		add_action( 'elementor/frontend/widget/before_render', [ $this, 'before_render' ] );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_styles' ] );
 		add_action( 'elementor/editor/after_enqueue_styles', [ $this, 'enqueue_styles' ] );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
@@ -131,56 +130,49 @@ class Marrison_Addon_Header_Animations {
 		}
 
 		$settings = $widget->get_settings_for_display();
-
-		if ( empty( $settings['marrison_header_animation'] ) ) {
+		$animation = $this->get_selected_animation( $settings );
+		if ( '' === $animation ) {
 			return;
 		}
-
-		$animation = sanitize_html_class( $settings['marrison_header_animation'] );
 
 		if ( ! array_key_exists( $animation, $this->get_custom_animations() ) || ! method_exists( $widget, 'add_render_attribute' ) ) {
 			return;
 		}
 
-		$widget->add_render_attribute( '_wrapper', 'class', [ 'marrison-heading-animated', $animation ] );
+		$animation_settings = array_intersect_key( $settings, array_flip( [ 'marrison_header_animation', '_animation', '_animation_widescreen', '_animation_laptop', '_animation_tablet_extra', '_animation_tablet', '_animation_mobile_extra', '_animation_mobile' ] ) );
+		$widget->add_render_attribute( '_wrapper', 'data-marrison-heading-animations', wp_json_encode( $animation_settings ) );
+		$this->enqueue_assets();
+	}
 
-		if ( $this->is_letter_animation( $animation ) ) {
-			$widget->add_render_attribute( '_wrapper', 'class', 'marrison-heading-letter-animation' );
-			$widget->add_render_attribute( '_wrapper', 'data-marrison-letter-animation', $animation );
+	public function enqueue_assets() {
+		if ( $this->assets_enqueued ) {
+			return;
 		}
+
+		$this->assets_enqueued = true;
+		$this->enqueue_styles();
+		$this->enqueue_scripts();
 	}
 
 	public function enqueue_styles() {
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		$style_path = plugin_dir_path( $plugin_root_file ) . 'assets/css/marrison-header-animations.css';
-		$version = Marrison_Addon::VERSION;
-
-		if ( file_exists( $style_path ) ) {
-			$version .= '.' . filemtime( $style_path );
-		}
+		$plugin_root_file = Marrison_Addon::plugin_file();
 
 		wp_enqueue_style(
 			'marrison-header-animations',
 			plugins_url( 'assets/css/marrison-header-animations.css', $plugin_root_file ),
 			[],
-			$version
+			Marrison_Addon::asset_version( 'assets/css/marrison-header-animations.css' )
 		);
 	}
 
 	public function enqueue_scripts() {
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		$script_path = plugin_dir_path( $plugin_root_file ) . 'assets/js/marrison-header-animations.js';
-		$version = Marrison_Addon::VERSION;
-
-		if ( file_exists( $script_path ) ) {
-			$version .= '.' . filemtime( $script_path );
-		}
+		$plugin_root_file = Marrison_Addon::plugin_file();
 
 		wp_enqueue_script(
 			'marrison-header-animations',
 			plugins_url( 'assets/js/marrison-header-animations.js', $plugin_root_file ),
 			[],
-			$version,
+			Marrison_Addon::asset_version( 'assets/js/marrison-header-animations.js' ),
 			true
 		);
 	}
@@ -218,5 +210,22 @@ class Marrison_Addon_Header_Animations {
 
 	private function is_letter_animation( $animation ) {
 		return in_array( $animation, self::LETTER_ANIMATIONS, true );
+	}
+
+	private function get_selected_animation( $settings ) {
+		$control_ids = [ 'marrison_header_animation', '_animation', '_animation_widescreen', '_animation_laptop', '_animation_tablet_extra', '_animation_tablet', '_animation_mobile_extra', '_animation_mobile' ];
+
+		foreach ( $control_ids as $control_id ) {
+			if ( empty( $settings[ $control_id ] ) ) {
+				continue;
+			}
+
+			$animation = sanitize_html_class( $settings[ $control_id ] );
+			if ( array_key_exists( $animation, $this->get_custom_animations() ) ) {
+				return $animation;
+			}
+		}
+
+		return '';
 	}
 }

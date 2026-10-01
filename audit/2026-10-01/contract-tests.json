@@ -1,0 +1,52 @@
+[
+  {
+    "test": "dynamic-svg-php-test.php",
+    "exit": 0,
+    "output": "Dynamic SVG PHP contract: PASS"
+  },
+  {
+    "test": "horizontal-scroll-js-test.js",
+    "exit": 0,
+    "output": "Horizontal scroll JS snap wheel contract: PASS"
+  },
+  {
+    "test": "horizontal-scroll-php-test.php",
+    "exit": 0,
+    "output": "Horizontal scroll PHP contract: PASS"
+  },
+  {
+    "test": "image-sizes-modern-upload-test.php",
+    "exit": 0,
+    "output": "Image Sizes automatic modern upload generation: PASS"
+  },
+  {
+    "test": "liquid-background-js-test.js",
+    "exit": 0,
+    "output": "Liquid background JS fallback/mobile contract: PASS"
+  },
+  {
+    "test": "liquid-background-php-test.php",
+    "exit": 0,
+    "output": "Liquid background PHP contract: PASS"
+  },
+  {
+    "test": "local-google-fonts-parser-test.php",
+    "exit": 255,
+    "output": "\nWarning: require_once(C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\tests/../includes/modules/class-marrison-addon-local-google-fonts.php): Failed to open stream: No such file or directory in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\tests\\local-google-fonts-parser-test.php on line 90\n\nFatal error: Uncaught Error: Failed opening required 'C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\tests/../includes/modules/class-marrison-addon-local-google-fonts.php' (include_path='.;C:\\php\\pear') in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\tests\\local-google-fonts-parser-test.php:90\nStack trace:\n#0 {main}\n  thrown in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\tests\\local-google-fonts-parser-test.php on line 90"
+  },
+  {
+    "test": "module-definitions-i18n-test.php",
+    "exit": 0,
+    "output": "Module definitions i18n contract: PASS"
+  },
+  {
+    "test": "read-more-js-test.js",
+    "exit": 0,
+    "output": "Read More JS contract: PASS"
+  },
+  {
+    "test": "read-more-php-test.php",
+    "exit": 0,
+    "output": "Read More PHP contract: PASS"
+  }
+]

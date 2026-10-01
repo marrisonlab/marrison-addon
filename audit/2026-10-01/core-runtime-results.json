@@ -1,0 +1,79 @@
+{
+    "updater_github_archive_layout": {
+        "returned_path": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01/updater-fixture-f6101d/marrison-addon/",
+        "main_file_at_selected_root": false,
+        "main_file_one_level_deeper": true,
+        "expected": "Main plugin file should be present at the selected source root."
+    },
+    "context": {
+        "public": true,
+        "editor": false,
+        "preview": false
+    },
+    "pages": [
+        {
+            "id": 94,
+            "title": "Elementor #94",
+            "status": "draft",
+            "url": "http://localhost:10004/?page_id=94",
+            "elementor_bytes": 0
+        },
+        {
+            "id": 81,
+            "title": "Diritto di recesso",
+            "status": "publish",
+            "url": "http://localhost:10004/diritto-di-recesso/",
+            "elementor_bytes": 0
+        },
+        {
+            "id": 15,
+            "title": "Refund and Returns Policy",
+            "status": "draft",
+            "url": "http://localhost:10004/?page_id=15",
+            "elementor_bytes": 0
+        },
+        {
+            "id": 12,
+            "title": "Cart",
+            "status": "publish",
+            "url": "http://localhost:10004/cart/",
+            "elementor_bytes": 0
+        },
+        {
+            "id": 13,
+            "title": "Checkout",
+            "status": "publish",
+            "url": "http://localhost:10004/checkout/",
+            "elementor_bytes": 0
+        },
+        {
+            "id": 14,
+            "title": "My account",
+            "status": "publish",
+            "url": "http://localhost:10004/my-account/",
+            "elementor_bytes": 0
+        },
+        {
+            "id": 11,
+            "title": "Shop",
+            "status": "publish",
+            "url": "http://localhost:10004/shop/",
+            "elementor_bytes": 0
+        },
+        {
+            "id": 3,
+            "title": "Privacy Policy",
+            "status": "draft",
+            "url": "http://localhost:10004/?page_id=3",
+            "elementor_bytes": 0
+        },
+        {
+            "id": 2,
+            "title": "Sample Page",
+            "status": "publish",
+            "url": "http://localhost:10004/sample-page/",
+            "elementor_bytes": 0
+        }
+    ],
+    "runtime_plugin_errors": []
+}

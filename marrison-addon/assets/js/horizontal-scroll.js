@@ -17,9 +17,164 @@
 	}
 
 	function pinnedProgress( instance ) {
+		return clamp( pinnedRawProgress( instance ) );
+	}
+
+	function pinnedRawProgress( instance ) {
 		var scrollY = window.scrollY || window.pageYOffset;
-		var sceneTop = instance.scene.getBoundingClientRect().top + scrollY;
-		return clamp( ( scrollY - sceneTop ) / instance.verticalDistance );
+		return ( scrollY - getSceneTop( instance ) ) / instance.verticalDistance;
+	}
+
+	function getSceneTop( instance ) {
+		if ( typeof instance.sceneTop === 'number' ) {
+			return instance.sceneTop;
+		}
+
+		return measureSceneTop( instance );
+	}
+
+	function measureSceneTop( instance ) {
+		instance.sceneTop = instance.scene.getBoundingClientRect().top + ( window.scrollY || window.pageYOffset );
+		return instance.sceneTop;
+	}
+
+	function snapProgressCount( instance ) {
+		return instance.snapPositions ? instance.snapPositions.length : 0;
+	}
+
+	function snapIndexFromProgress( instance ) {
+		var count = snapProgressCount( instance );
+		if ( count < 2 ) {
+			return 0;
+		}
+
+		return Math.max( 0, Math.min( count - 1, Math.round( pinnedProgress( instance ) * ( count - 1 ) ) ) );
+	}
+
+	function scrollToSnapIndex( instance, index ) {
+		var count = snapProgressCount( instance );
+		if ( count < 2 ) {
+			return;
+		}
+
+		var boundedIndex = Math.max( 0, Math.min( count - 1, index ) );
+		var progress = boundedIndex / ( count - 1 );
+		var targetY = getSceneTop( instance ) + ( instance.verticalDistance * progress );
+		instance.snapWheelLockedUntil = Date.now() + 420;
+
+		if ( typeof window.scrollTo === 'function' ) {
+			try {
+				window.scrollTo( {
+					top: targetY,
+					behavior: 'smooth'
+				} );
+				return;
+			} catch ( error ) {
+				window.scrollTo( 0, targetY );
+			}
+		}
+	}
+
+	function snapWheelThreshold( instance ) {
+		var threshold = Number( instance.config.snapThreshold || 220 );
+		if ( ! isFinite( threshold ) ) {
+			threshold = 220;
+		}
+
+		return Math.max( 40, Math.min( 600, threshold ) );
+	}
+
+	function wheelDelta( event ) {
+		var primary = Math.abs( event.deltaY ) >= Math.abs( event.deltaX ) ? event.deltaY : event.deltaX;
+		if ( event.deltaMode === 1 ) {
+			primary *= 16;
+		} else if ( event.deltaMode === 2 ) {
+			primary *= window.innerHeight;
+		}
+
+		return primary === 0 ? 0 : primary;
+	}
+
+	function findSnapWheelInstance( event ) {
+		var scrollY = window.scrollY || window.pageYOffset;
+		var eventTarget = event.target;
+		var found = null;
+
+		instances.forEach( function ( instance ) {
+			if ( found || instance.mode !== 'active' || ! instance.pinned || ! instance.config.snap || snapProgressCount( instance ) < 2 || instance.verticalDistance <= 0 ) {
+				return;
+			}
+
+			var sceneTop = getSceneTop( instance );
+			var pinnedStart = sceneTop - 1;
+			var pinnedEnd = sceneTop + instance.verticalDistance + 1;
+			if ( scrollY < pinnedStart || scrollY > pinnedEnd ) {
+				return;
+			}
+
+			if ( eventTarget && instance.scene.contains( eventTarget ) ) {
+				found = instance;
+				return;
+			}
+
+			var viewportRect = instance.viewport.getBoundingClientRect();
+			if ( viewportRect.top < window.innerHeight && viewportRect.bottom > 0 ) {
+				found = instance;
+			}
+		} );
+
+		return found;
+	}
+
+	function handleSnapWheel( event ) {
+		if ( ! event.cancelable ) {
+			return;
+		}
+
+		var instance = findSnapWheelInstance( event );
+		if ( ! instance ) {
+			return;
+		}
+
+		var delta = wheelDelta( event );
+		if ( ! delta ) {
+			return;
+		}
+
+		var now = Date.now();
+		if ( instance.snapWheelLockedUntil && now < instance.snapWheelLockedUntil ) {
+			event.preventDefault();
+			return;
+		}
+
+		var direction = delta > 0 ? 1 : -1;
+		var currentIndex = snapIndexFromProgress( instance );
+		var nextIndex = currentIndex + direction;
+		var count = snapProgressCount( instance );
+		if ( nextIndex < 0 || nextIndex >= count ) {
+			instance.snapWheelAccumulator = 0;
+			instance.snapWheelDirection = 0;
+			instance.snapWheelLastAt = 0;
+			return;
+		}
+
+		event.preventDefault();
+		if ( instance.snapWheelLastAt && now - instance.snapWheelLastAt > 350 ) {
+			instance.snapWheelAccumulator = 0;
+			instance.snapWheelDirection = 0;
+		}
+		if ( instance.snapWheelDirection !== direction ) {
+			instance.snapWheelAccumulator = 0;
+			instance.snapWheelDirection = direction;
+		}
+		instance.snapWheelLastAt = now;
+		instance.snapWheelAccumulator += Math.abs( delta );
+		if ( instance.snapWheelAccumulator < snapWheelThreshold( instance ) ) {
+			return;
+		}
+
+		instance.snapWheelAccumulator = 0;
+		scrollToSnapIndex( instance, nextIndex );
 	}
 
 	function findPinnedMotionFXInstance( element ) {
@@ -127,6 +282,118 @@
 		} else {
 			element.style.removeProperty( property );
 		}
+	}
+
+	function restoreFollowingShift( instance ) {
+		if ( ! instance.followingShiftTargets ) {
+			return;
+		}
+
+		instance.followingShiftTargets.forEach( function ( snapshot, element ) {
+			restoreInlineStyle( element, 'translate', snapshot );
+			element.classList.remove( 'marrison-horizontal-scroll-follow-shift' );
+		} );
+		instance.followingShiftTargets.clear();
+	}
+
+	function isShiftableFollower( element ) {
+		if ( ! element || element.nodeType !== 1 ) {
+			return false;
+		}
+
+		if ( /^(SCRIPT|STYLE|LINK|TEMPLATE|NOSCRIPT)$/.test( element.tagName ) ) {
+			return false;
+		}
+
+		var style = window.getComputedStyle( element );
+		if ( style.display === 'none' ) {
+			return false;
+		}
+
+		return ! /^(fixed|sticky|absolute)$/.test( style.position );
+	}
+
+	function getNextElementSibling( element ) {
+		if ( element.nextElementSibling ) {
+			return element.nextElementSibling;
+		}
+		if ( ! element.parentNode || ! element.parentNode.children ) {
+			return null;
+		}
+
+		var siblings = element.parentNode.children;
+		var index = Array.prototype.indexOf.call( siblings, element );
+		if ( index < 0 ) {
+			return null;
+		}
+
+		for ( var i = index + 1; i < siblings.length; i++ ) {
+			if ( siblings[ i ] && siblings[ i ].nodeType !== 3 ) {
+				return siblings[ i ];
+			}
+		}
+
+		return null;
+	}
+
+	function getFollowingShiftTargets( instance ) {
+		if ( ! instance.scene ) {
+			return [];
+		}
+
+		var targets = [];
+		var added = new Set();
+		var level = instance.scene;
+		var direct = true;
+
+		while ( level && level !== document.body ) {
+			for ( var sibling = getNextElementSibling( level ); sibling; sibling = getNextElementSibling( sibling ) ) {
+				if ( added.has( sibling ) ) {
+					continue;
+				}
+				if ( direct || isShiftableFollower( sibling ) ) {
+					targets.push( sibling );
+					added.add( sibling );
+				}
+			}
+			level = level.parentElement;
+			direct = false;
+		}
+
+		return targets;
+	}
+
+	function updateFollowingShift( instance, progress ) {
+		if ( ! instance.revealFollowing || progress >= 1 ) {
+			restoreFollowingShift( instance );
+			return;
+		}
+
+		var shiftedProgress = clamp( progress );
+		// Keep a tiny overlap to hide subpixel seams between the pinned section and the following content.
+		var offset = Math.round( ( -instance.verticalDistance * ( 1 - shiftedProgress ) - 1 ) * 100 ) / 100;
+		if ( Math.abs( offset ) < 0.5 ) {
+			restoreFollowingShift( instance );
+			return;
+		}
+
+		var activeTargets = instance.followingTargets || getFollowingShiftTargets( instance );
+		var activeSet = new Set( activeTargets );
+		instance.followingShiftTargets.forEach( function ( snapshot, element ) {
+			if ( ! activeSet.has( element ) ) {
+				restoreInlineStyle( element, 'translate', snapshot );
+				element.classList.remove( 'marrison-horizontal-scroll-follow-shift' );
+				instance.followingShiftTargets.delete( element );
+			}
+		} );
+
+		activeTargets.forEach( function ( element ) {
+			if ( ! instance.followingShiftTargets.has( element ) ) {
+				instance.followingShiftTargets.set( element, rememberInlineStyle( element, 'translate' ) );
+			}
+			element.classList.add( 'marrison-horizontal-scroll-follow-shift' );
+			element.style.setProperty( 'translate', '0 ' + offset + 'px' );
+		} );
 	}
 
 	function isVisibleBackgroundColor( value ) {
@@ -284,15 +551,20 @@
 		var progress;
 
 		if ( instance.pinned ) {
-			progress = pinnedProgress( instance );
+			var rawProgress = pinnedRawProgress( instance );
+			progress = clamp( rawProgress );
+			updateFollowingShift( instance, rawProgress );
 		} else {
+			restoreFollowingShift( instance );
 			// Without pin the passage through the viewport supplies the scroll range.
 			var scrollY = window.scrollY || window.pageYOffset;
-			var sceneTop = instance.scene.getBoundingClientRect().top + scrollY;
-			var naturalRange = instance.scene.offsetHeight + window.innerHeight;
+			var sceneTop = getSceneTop( instance );
+			// Snap keeps its initial slide until the parent reaches the viewport top.
+			var naturalRange = instance.scene.offsetHeight + ( instance.config.snap ? 0 : window.innerHeight );
 			var range = Math.max( 1, naturalRange * instance.config.speed );
 			var center = sceneTop + ( instance.scene.offsetHeight - window.innerHeight ) / 2;
-			progress = clamp( ( scrollY - ( center - range / 2 ) ) / range );
+			var startY = instance.config.snap ? sceneTop : center - range / 2;
+			progress = clamp( ( scrollY - startY ) / range );
 		}
 
 		// Both directions cover the entire real overflow, with opposite endpoints.
@@ -365,10 +637,97 @@
 		} );
 	}
 
+	function verticalSpace( style, prefix ) {
+		return ( parseFloat( style[ prefix + 'Top' ] ) || 0 ) + ( parseFloat( style[ prefix + 'Bottom' ] ) || 0 );
+	}
+
+	function restoreSnapImages( instance ) {
+		if ( ! instance.imageFitStyles ) {
+			return;
+		}
+		instance.imageFitStyles.forEach( function ( snapshot, image ) {
+			restoreInlineStyle( image, '--marrison-horizontal-scroll-image-max-height', snapshot.height );
+			if ( ! snapshot.hadClass ) {
+				image.classList.remove( 'marrison-horizontal-scroll-fit-image' );
+			}
+		} );
+		instance.imageFitStyles.clear();
+	}
+
+	function fitSnapImages( instance ) {
+		if ( ! instance.config.snap || ! instance.config.pin ) {
+			restoreSnapImages( instance );
+			return;
+		}
+		if ( ! instance.imageFitStyles ) {
+			instance.imageFitStyles = new Map();
+		}
+		instance.imageFitStyles.forEach( function ( snapshot, image ) {
+			if ( ! instance.mover.contains( image ) ) {
+				restoreInlineStyle( image, '--marrison-horizontal-scroll-image-max-height', snapshot.height );
+				if ( ! snapshot.hadClass ) {
+					image.classList.remove( 'marrison-horizontal-scroll-fit-image' );
+				}
+				instance.imageFitStyles.delete( image );
+			}
+		} );
+		Array.prototype.forEach.call( instance.mover.querySelectorAll( 'img' ), function ( image ) {
+			var snapshot = instance.imageFitStyles.get( image );
+			if ( ! snapshot ) {
+				var originalMaxHeight = window.getComputedStyle( image ).maxHeight;
+				snapshot = {
+					height: rememberInlineStyle( image, '--marrison-horizontal-scroll-image-max-height' ),
+					hadClass: image.classList.contains( 'marrison-horizontal-scroll-fit-image' ),
+					maxHeight: /px$/.test( originalMaxHeight ) ? parseFloat( originalMaxHeight ) : Infinity
+				};
+				instance.imageFitStyles.set( image, snapshot );
+			}
+			var overhead = 0;
+			for ( var node = image; node && node !== instance.root; node = node.parentElement ) {
+				var parent = node.parentElement;
+				if ( ! parent ) {
+					break;
+				}
+				var nodeMargins = verticalSpace( window.getComputedStyle( node ), 'margin' );
+				overhead += nodeMargins;
+				var parentStyle = window.getComputedStyle( parent );
+				overhead += verticalSpace( parentStyle, 'padding' ) +
+					( parseFloat( parentStyle.borderTopWidth ) || 0 ) + ( parseFloat( parentStyle.borderBottomWidth ) || 0 );
+				if ( parentStyle.display === 'block' || ( parentStyle.display === 'flex' && /^column/.test( parentStyle.flexDirection ) ) ) {
+					var siblings = 0;
+					Array.prototype.forEach.call( parent.children, function ( sibling ) {
+						var siblingStyle = window.getComputedStyle( sibling );
+						if ( sibling !== node && siblingStyle.display !== 'none' && ! /^(absolute|fixed)$/.test( siblingStyle.position ) ) {
+							overhead += sibling.offsetHeight + verticalSpace( siblingStyle, 'margin' );
+							siblings++;
+						}
+					} );
+					overhead += siblings * ( parseFloat( parentStyle.rowGap ) || 0 );
+				} else if ( /^(inline-)?grid$/.test( parentStyle.display ) ) {
+					// Include the other grid rows without assuming a particular track structure.
+					overhead += Math.max( 0, parent.clientHeight - verticalSpace( parentStyle, 'padding' ) - node.offsetHeight - nodeMargins );
+				}
+			}
+			var availableHeight = window.innerHeight - overhead;
+			if ( availableHeight <= 0 ) {
+				// Non-image content cannot fit: retain a usable image and let pin eligibility decide.
+				restoreInlineStyle( image, '--marrison-horizontal-scroll-image-max-height', snapshot.height );
+				if ( ! snapshot.hadClass ) {
+					image.classList.remove( 'marrison-horizontal-scroll-fit-image' );
+				}
+				return;
+			}
+			var maxHeight = Math.min( snapshot.maxHeight, availableHeight );
+			image.style.setProperty( '--marrison-horizontal-scroll-image-max-height', maxHeight + 'px' );
+			image.classList.add( 'marrison-horizontal-scroll-fit-image' );
+		} );
+	}
+
 	function buildSnapPositions( instance ) {
 		var positions = [ 0 ];
 		Array.prototype.forEach.call( instance.mover.children, function ( child ) {
-			var offset = Math.max( 0, Math.min( instance.overflow, child.offsetLeft - instance.mover.offsetLeft ) );
+			// The positioned mover already supplies the child's offset coordinate system.
+			var offset = Math.max( 0, Math.min( instance.overflow, child.offsetLeft ) );
 			positions.push( Math.round( offset * 100 ) / 100 );
 		} );
 		positions.push( Math.round( instance.overflow * 100 ) / 100 );
@@ -379,6 +738,7 @@
 	}
 
 	function measure( instance ) {
+		fitSnapImages( instance );
 		var hostStyle = window.getComputedStyle( instance.host );
 		var hostWidth = Math.max( 0, instance.host.clientWidth -
 			( parseFloat( hostStyle.paddingLeft ) || 0 ) -
@@ -387,9 +747,17 @@
 		instance.overflow = Math.max( 0, trackWidth - hostWidth );
 		instance.snapPositions = instance.config.snap && instance.overflow > 1 ? buildSnapPositions( instance ) : null;
 		instance.verticalDistance = instance.overflow * instance.config.speed;
+		measureSceneTop( instance );
 		instance.pinned = !! instance.config.pin && instance.overflow > 1 &&
 			instance.viewport.offsetHeight <= window.innerHeight + 1 &&
 			! hasStickyBlockingAncestor( instance.scene );
+		instance.revealFollowing = instance.pinned && instance.viewport.offsetHeight < window.innerHeight - 1;
+		if ( instance.revealFollowing ) {
+			instance.followingTargets = getFollowingShiftTargets( instance );
+		} else {
+			instance.followingTargets = null;
+			restoreFollowingShift( instance );
+		}
 
 		instance.scene.classList.toggle( 'marrison-horizontal-scroll-pinned', instance.pinned );
 		instance.scene.style.height = instance.pinned
@@ -427,17 +795,28 @@
 		instance.mode = 'active';
 		if ( ! activeCount ) {
 			window.addEventListener( 'scroll', requestPaint, { passive: true } );
+			window.addEventListener( 'wheel', handleSnapWheel, { passive: false } );
 		}
 		activeCount++;
 		instance.host = host;
 		instance.scene = scene;
 		instance.viewport = viewport;
 		instance.mover = mover;
+		instance.hadContentHostClass = host.classList.contains( 'marrison-horizontal-scroll-content-host' );
+		host.classList.add( 'marrison-horizontal-scroll-content-host' );
 		host.classList.toggle( 'marrison-horizontal-scroll-snap-host', !! instance.config.snap );
 		setupBackgroundScale( instance );
 		instance.overflow = 0;
 		instance.snapPositions = null;
 		instance.snapReady = false;
+		instance.snapWheelAccumulator = 0;
+		instance.snapWheelDirection = 0;
+		instance.snapWheelLastAt = 0;
+		instance.snapWheelLockedUntil = 0;
+		instance.revealFollowing = false;
+		instance.followingTargets = null;
+		instance.followingShiftTargets = new Map();
+		instance.sceneTop = null;
 		instance.verticalDistance = 0;
 		instance.lastX = null;
 		installMotionFXBridge();
@@ -480,6 +859,7 @@
 		activeCount--;
 		if ( ! activeCount ) {
 			window.removeEventListener( 'scroll', requestPaint );
+			window.removeEventListener( 'wheel', handleSnapWheel );
 			removeMotionFXBridge();
 			if ( frame ) {
 				window.cancelAnimationFrame( frame );
@@ -498,12 +878,17 @@
 		}
 		instance.contentObserver.disconnect();
 		instance.root.removeEventListener( 'load', instance.onContentLoad, true );
+		restoreFollowingShift( instance );
 		instance.mover.style.removeProperty( 'transform' );
 		instance.scene.classList.remove( 'marrison-horizontal-scroll-pinned' );
 		instance.scene.classList.remove( 'marrison-horizontal-scroll-snap' );
 		instance.scene.classList.remove( 'marrison-horizontal-scroll-snap-ready' );
 		instance.scene.style.removeProperty( 'height' );
+		if ( ! instance.hadContentHostClass ) {
+			instance.host.classList.remove( 'marrison-horizontal-scroll-content-host' );
+		}
 		instance.host.classList.remove( 'marrison-horizontal-scroll-snap-host' );
+		restoreSnapImages( instance );
 		teardownBackgroundScale( instance );
 
 		if ( instance.mover.parentNode ) {
@@ -520,6 +905,13 @@
 		instance.host = null;
 		instance.snapPositions = null;
 		instance.snapReady = false;
+		instance.snapWheelAccumulator = 0;
+		instance.snapWheelDirection = 0;
+		instance.snapWheelLastAt = 0;
+		instance.snapWheelLockedUntil = 0;
+		instance.revealFollowing = false;
+		instance.followingTargets = null;
+		instance.sceneTop = null;
 	}
 
 	function enterReduced( instance ) {

@@ -11,10 +11,15 @@
     var percentageText = preloader.querySelector('.marrison-preloader-percentage');
     var progress = 0;
     var progressTimer = null;
+    var fallbackTimer = null;
     var duration = 500;
+    var maxWait = 8000;
 
     if (typeof marrison_preloader_settings !== 'undefined' && marrison_preloader_settings.transition_duration) {
         duration = parseInt(marrison_preloader_settings.transition_duration, 10) || 500;
+    }
+    if (typeof marrison_preloader_settings !== 'undefined' && marrison_preloader_settings.max_wait) {
+        maxWait = parseInt(marrison_preloader_settings.max_wait, 10) || 8000;
     }
 
     function updateProgress(value) {
@@ -72,6 +77,11 @@
     function hidePreloader() {
         if (progressTimer) {
             window.clearInterval(progressTimer);
+            progressTimer = null;
+        }
+        if (fallbackTimer) {
+            window.clearTimeout(fallbackTimer);
+            fallbackTimer = null;
         }
 
         updateProgress(100);
@@ -102,7 +112,7 @@
             return false;
         }
 
-        if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) {
+        if (url.pathname === window.location.pathname && url.search === window.location.search && (url.hash || link.href.indexOf('#') !== -1)) {
             return false;
         }
 
@@ -110,6 +120,9 @@
     }
 
     document.addEventListener('click', function(event) {
+        if (event.defaultPrevented) {
+            return;
+        }
         var link = event.target.closest('a');
 
         if (!shouldInterceptLink(link, event)) {
@@ -140,4 +153,5 @@
     }
 
     startProgressSimulation();
+    fallbackTimer = window.setTimeout(hidePreloader, Math.max(3000, maxWait));
 })();

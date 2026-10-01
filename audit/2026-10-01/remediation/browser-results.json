@@ -1,0 +1,406 @@
+{
+  "headers": {
+    "desktop": {
+      "headings": [
+        {
+          "br": true,
+          "classes": "elementor-element elementor-element-fix-responsive elementor-widget elementor-widget-heading",
+          "em": true,
+          "id": "fix-responsive",
+          "letterAnimation": "",
+          "letters": 0,
+          "opacity": "1",
+          "strong": true,
+          "text": "Prima evidenzaSeconda riga link ",
+          "visibility": "visible"
+        },
+        {
+          "br": true,
+          "classes": "elementor-element elementor-element-fix-letters elementor-widget elementor-widget-heading marrison-heading-animated marrison-heading-letter-animation animated marrisonLettersRise",
+          "em": true,
+          "id": "fix-letters",
+          "letterAnimation": "marrisonLettersRise",
+          "letters": 29,
+          "opacity": "1",
+          "strong": true,
+          "text": "Prima evidenzaSeconda riga link ",
+          "visibility": "visible"
+        },
+        {
+          "br": false,
+          "classes": "elementor-element elementor-element-fix-delay elementor-widget elementor-widget-heading marrison-heading-animated animated marrisonLiftSoft",
+          "em": false,
+          "id": "fix-delay",
+          "letterAnimation": "",
+          "letters": 0,
+          "opacity": "1",
+          "strong": false,
+          "text": "Native delayed animation",
+          "visibility": "visible"
+        },
+        {
+          "br": false,
+          "classes": "elementor-element elementor-element-fix-fallback elementor-widget elementor-widget-heading marrison-heading-animated marrison-heading-letter-animation marrisonLettersElastic",
+          "em": false,
+          "id": "fix-fallback",
+          "letterAnimation": "marrisonLettersElastic",
+          "letters": 15,
+          "opacity": "1",
+          "strong": false,
+          "text": "Fallback letters",
+          "visibility": "visible"
+        }
+      ],
+      "mode": "",
+      "wrapped": {
+        "aria": "Go to target",
+        "config": "{\"url\":\"#target\",\"is_external\":\"\",\"nofollow\":\"\",\"custom_attributes\":\"data-audit|yes,aria-label|Go to target,onclick|alert(1),data-marrison-addon|bad\"}",
+        "custom": "yes",
+        "onclick": null
+      }
+    },
+    "tablet": {
+      "headings": [
+        {
+          "br": true,
+          "classes": "elementor-element elementor-element-fix-responsive elementor-widget elementor-widget-heading marrison-heading-animated animated marrisonDropSoft",
+          "em": true,
+          "id": "fix-responsive",
+          "letterAnimation": "",
+          "letters": 0,
+          "opacity": "1",
+          "strong": true,
+          "text": "Prima evidenzaSeconda riga link ",
+          "visibility": "visible"
+        },
+        {
+          "br": true,
+          "classes": "elementor-element elementor-element-fix-letters elementor-widget elementor-widget-heading marrison-heading-animated animated marrisonFocusIn",
+          "em": true,
+          "id": "fix-letters",
+          "letterAnimation": "",
+          "letters": 0,
+          "opacity": "1",
+          "strong": true,
+          "text": "Prima evidenzaSeconda riga link ",
+          "visibility": "visible"
+        },
+        {
+          "br": false,
+          "classes": "elementor-element elementor-element-fix-delay elementor-widget elementor-widget-heading marrison-heading-animated animated marrisonLiftSoft",
+          "em": false,
+          "id": "fix-delay",
+          "letterAnimation": "",
+          "letters": 0,
+          "opacity": "1",
+          "strong": false,
+          "text": "Native delayed animation",
+          "visibility": "visible"
+        },
+        {
+          "br": false,
+          "classes": "elementor-element elementor-element-fix-fallback elementor-widget elementor-widget-heading marrison-heading-animated marrison-heading-letter-animation marrisonLettersElastic",
+          "em": false,
+          "id": "fix-fallback",
+          "letterAnimation": "marrisonLettersElastic",
+          "letters": 15,
+          "opacity": "1",
+          "strong": false,
+          "text": "Fallback letters",
+          "visibility": "visible"
+        }
+      ],
+      "mode": "",
+      "wrapped": {
+        "aria": "Go to target",
+        "config": "{\"url\":\"#target\",\"is_external\":\"\",\"nofollow\":\"\",\"custom_attributes\":\"data-audit|yes,aria-label|Go to target,onclick|alert(1),data-marrison-addon|bad\"}",
+        "custom": "yes",
+        "onclick": null
+      }
+    },
+    "mobile": {
+      "headings": [
+        {
+          "br": true,
+          "classes": "elementor-element elementor-element-fix-responsive elementor-widget elementor-widget-heading marrison-heading-animated marrison-heading-letter-animation animated marrisonLettersFocus",
+          "em": true,
+          "id": "fix-responsive",
+          "letterAnimation": "marrisonLettersFocus",
+          "letters": 29,
+          "opacity": "1",
+          "strong": true,
+          "text": "Prima evidenzaSeconda riga link ",
+          "visibility": "visible"
+        },
+        {
+          "br": true,
+          "classes": "elementor-element elementor-element-fix-letters elementor-widget elementor-widget-heading",
+          "em": true,
+          "id": "fix-letters",
+          "letterAnimation": "",
+          "letters": 0,
+          "opacity": "1",
+          "strong": true,
+          "text": "Prima evidenzaSeconda riga link ",
+          "visibility": "visible"
+        },
+        {
+          "br": false,
+          "classes": "elementor-element elementor-element-fix-delay elementor-widget elementor-widget-heading marrison-heading-animated animated marrisonLiftSoft",
+          "em": false,
+          "id": "fix-delay",
+          "letterAnimation": "",
+          "letters": 0,
+          "opacity": "1",
+          "strong": false,
+          "text": "Native delayed animation",
+          "visibility": "visible"
+        },
+        {
+          "br": false,
+          "classes": "elementor-element elementor-element-fix-fallback elementor-widget elementor-widget-heading marrison-heading-animated marrison-heading-letter-animation marrisonLettersElastic",
+          "em": false,
+          "id": "fix-fallback",
+          "letterAnimation": "marrisonLettersElastic",
+          "letters": 15,
+          "opacity": "1",
+          "strong": false,
+          "text": "Fallback letters",
+          "visibility": "visible"
+        }
+      ],
+      "mode": "",
+      "wrapped": {
+        "aria": "Go to target",
+        "config": "{\"url\":\"#target\",\"is_external\":\"\",\"nofollow\":\"\",\"custom_attributes\":\"data-audit|yes,aria-label|Go to target,onclick|alert(1),data-marrison-addon|bad\"}",
+        "custom": "yes",
+        "onclick": null
+      }
+    }
+  },
+  "headerNewErrors": [],
+  "cookie": {
+    "none": {
+      "iframes": [
+        {
+          "blocked": "/marrison-remediation-youtube.com.html",
+          "id": "quoted",
+          "src": null
+        },
+        {
+          "blocked": "/marrison-remediation-youtube.com.html",
+          "id": "unquoted",
+          "src": null
+        }
+      ],
+      "modules": [
+        {
+          "original": "module",
+          "type": "text/plain"
+        },
+        {
+          "original": "module",
+          "type": "text/plain"
+        }
+      ],
+      "phase": "Phase: none",
+      "states": [
+        "analytics: 0",
+        "module: 0",
+        "unquoted module: 0",
+        "marketing: 0"
+      ]
+    },
+    "analytics": {
+      "iframes": [
+        {
+          "blocked": "/marrison-remediation-youtube.com.html",
+          "src": null
+        },
+        {
+          "blocked": "/marrison-remediation-youtube.com.html",
+          "src": null
+        }
+      ],
+      "modules": [
+        {
+          "id": "module",
+          "type": "module"
+        },
+        {
+          "id": "unquoted-module",
+          "type": "module"
+        }
+      ],
+      "states": [
+        "analytics: 1",
+        "module: 1",
+        "unquoted module: 1",
+        "marketing: 0"
+      ]
+    },
+    "all": {
+      "iframes": [
+        {
+          "blocked": null,
+          "src": "/marrison-remediation-youtube.com.html"
+        },
+        {
+          "blocked": null,
+          "src": "/marrison-remediation-youtube.com.html"
+        }
+      ],
+      "modules": [
+        {
+          "id": "module",
+          "type": "module"
+        },
+        {
+          "id": "unquoted-module",
+          "type": "module"
+        }
+      ],
+      "states": [
+        "analytics: 1",
+        "module: 1",
+        "unquoted module: 1",
+        "marketing: 1"
+      ]
+    },
+    "errors": [
+      {
+        "level": "error",
+        "message": "Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.",
+        "timestamp": "2026-10-01T12:45:57.641Z"
+      }
+    ],
+    "modalTitle": {
+      "background": "rgb(255, 255, 255)",
+      "color": "rgb(51, 51, 51)",
+      "text": "Personalizza Cookie"
+    },
+    "restored": "Original consent restored",
+    "nativePageError": null,
+    "analyticsRetest": [
+      "analytics: 1",
+      "module: 1",
+      "unquoted module: 1",
+      "marketing: 0"
+    ]
+  },
+  "headerResizeDesktop": [
+    {
+      "br": true,
+      "classes": "elementor-element elementor-element-fix-responsive elementor-widget elementor-widget-heading animated",
+      "id": "fix-responsive",
+      "letters": 0,
+      "strong": true,
+      "visibility": "visible",
+      "words": 0
+    },
+    {
+      "br": true,
+      "classes": "elementor-element elementor-element-fix-letters elementor-widget elementor-widget-heading marrison-heading-animated marrison-heading-letter-animation marrisonLettersRise",
+      "id": "fix-letters",
+      "letters": 28,
+      "strong": true,
+      "visibility": "visible",
+      "words": 5
+    },
+    {
+      "br": false,
+      "classes": "elementor-element elementor-element-fix-delay elementor-widget elementor-widget-heading marrison-heading-animated animated marrisonLiftSoft",
+      "id": "fix-delay",
+      "letters": 0,
+      "strong": false,
+      "visibility": "visible",
+      "words": 0
+    },
+    {
+      "br": false,
+      "classes": "elementor-element elementor-element-fix-fallback elementor-widget elementor-widget-heading marrison-heading-animated marrison-heading-letter-animation marrisonLettersElastic",
+      "id": "fix-fallback",
+      "letters": 15,
+      "strong": false,
+      "visibility": "visible",
+      "words": 2
+    }
+  ],
+  "preloader": {
+    "emptyHash": {
+      "overlay": {
+        "class": "marrison-anim-fade marrison-loaded",
+        "opacity": "0",
+        "pointerEvents": "none",
+        "visibility": "hidden"
+      },
+      "ready": "complete",
+      "url": "http://localhost:10004/marrison-remediation-preloader.html#"
+    },
+    "cancelled": {
+      "overlay": "hidden",
+      "state": "action handled; navigation cancelled",
+      "url": "http://localhost:10004/marrison-remediation-preloader.html#"
+    },
+    "normalNavigation": "http://localhost:10004/marrison-remediation-destination.html"
+  },
+  "headerResizeMobile": [
+    {
+      "br": true,
+      "classes": "elementor-element elementor-element-fix-responsive elementor-widget elementor-widget-heading animated marrison-heading-animated marrison-heading-letter-animation marrisonLettersFocus",
+      "id": "fix-responsive",
+      "letters": 28,
+      "strong": true
+    },
+    {
+      "br": true,
+      "classes": "elementor-element elementor-element-fix-letters elementor-widget elementor-widget-heading",
+      "id": "fix-letters",
+      "letters": 0,
+      "strong": true
+    },
+    {
+      "br": false,
+      "classes": "elementor-element elementor-element-fix-delay elementor-widget elementor-widget-heading marrison-heading-animated animated marrisonLiftSoft",
+      "id": "fix-delay",
+      "letters": 0,
+      "strong": false
+    },
+    {
+      "br": false,
+      "classes": "elementor-element elementor-element-fix-fallback elementor-widget elementor-widget-heading marrison-heading-animated marrison-heading-letter-animation marrisonLettersElastic",
+      "id": "fix-fallback",
+      "letters": 15,
+      "strong": false
+    }
+  ],
+  "wrappedNavigation": {
+    "aria": "Go to target",
+    "custom": "yes",
+    "onclick": null,
+    "url": "http://localhost:10004/marrison-remediation-elementor.html#target"
+  },
+  "finalHeaderClasses": {
+    "desktop": {
+      "br": true,
+      "classes": "elementor-element elementor-element-fix-responsive elementor-widget elementor-widget-heading",
+      "em": true,
+      "strong": true,
+      "visibility": "visible"
+    },
+    "tablet": {
+      "br": true,
+      "classes": "elementor-element elementor-element-fix-responsive elementor-widget elementor-widget-heading marrison-heading-animated animated marrisonDropSoft",
+      "em": true,
+      "strong": true,
+      "visibility": "visible"
+    },
+    "mobile": {
+      "br": true,
+      "classes": "elementor-element elementor-element-fix-responsive elementor-widget elementor-widget-heading marrison-heading-animated marrison-heading-letter-animation animated marrisonLettersFocus",
+      "em": true,
+      "strong": true,
+      "visibility": "visible"
+    }
+  }
+}

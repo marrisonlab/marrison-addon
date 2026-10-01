@@ -405,7 +405,7 @@ class Marrison_Steps_Widget extends Widget_Base {
 				),
 				'default'   => 'center',
 				'selectors' => array(
-					'{{WRAPPER}} .marrison-step' => 'text-align: {{VALUE}}; align-items: {{VALUE}};',
+					'{{WRAPPER}} .marrison-step' => 'text-align: {{VALUE}};',
 				),
 			)
 		);
@@ -507,6 +507,7 @@ class Marrison_Steps_Widget extends Widget_Base {
 					'unit' => 'px',
 				),
 				'selectors'  => array(
+					'{{WRAPPER}} .marrison-steps' => '--marrison-steps-marker-size: {{SIZE}}{{UNIT}};',
 					'{{WRAPPER}} .marrison-step-marker' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
 				),
 			)

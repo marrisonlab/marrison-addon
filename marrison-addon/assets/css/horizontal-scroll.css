@@ -17,6 +17,14 @@
 .marrison-horizontal-scroll-pinned > .marrison-horizontal-scroll-viewport {
 	position: sticky;
 	top: 0;
+	z-index: 2;
+}
+
+.marrison-horizontal-scroll-follow-shift {
+	transition-delay: 0s !important;
+	transition-duration: 0s !important;
+	transition-property: none !important;
+	will-change: translate;
 }
 
 .marrison-horizontal-scroll-mover {
@@ -24,7 +32,8 @@
 	flex-flow: row nowrap;
 	align-items: inherit;
 	gap: inherit;
-	width: max-content;
+	/* Resolve Elementor child percentages against the viewport, not intrinsic content. */
+	width: 100%;
 	min-width: 100%;
 	max-width: none;
 	position: relative;
@@ -36,9 +45,14 @@
 	flex-shrink: 0;
 }
 
-.marrison-horizontal-scroll-snap-host {
-	width: 100% !important;
-	max-width: none !important;
+.marrison-horizontal-scroll-content-host {
+	/* A boxed host is the slide viewport, even when the outer background is full width. */
+	overflow-x: clip;
+}
+
+.marrison-horizontal-scroll-mover img.marrison-horizontal-scroll-fit-image {
+	max-height: var(--marrison-horizontal-scroll-image-max-height);
+	object-fit: contain;
 }
 
 .marrison-horizontal-scroll-snap-ready .marrison-horizontal-scroll-mover {

@@ -11,6 +11,8 @@
 	var elementorHookRegistered = false;
 	var elementorHandlerRegistered = false;
 	var targetFrameTime = 1000 / 40;
+	var defaultSeed = 24680;
+	var hexColorPattern = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
 	var presets = {
 		'deep-purple': [ '#000000', '#6C3BFF', '#321875' ],
@@ -100,9 +102,14 @@
 		'mask*=smoothstep(0.08,0.9,fbm(q*0.42+seed*0.7,u_complexity));',
 		'float tint=fbm(q*0.95-warp+seed*0.31,u_complexity);',
 		'float ribbon=fbm(q*0.58+warp*0.35+seed*0.61,u_complexity);',
-		'float secondary_blend=smoothstep(0.36,0.72,tint*0.7+ribbon*0.3);',
-		'secondary_blend*=smoothstep(0.08,0.48,mask);',
-		'vec3 liquid=mix(u_primary,u_secondary,u_has_secondary*secondary_blend);',
+		'float secondary_detail=smoothstep(0.4,0.7,tint*0.6+ribbon*0.4);',
+		'float secondary_wave=fbm(q*0.74+vec2(seed*0.37,seed*-0.29)+drift*0.2,u_complexity);',
+		'secondary_wave=smoothstep(0.52,0.82,secondary_wave);',
+		'float secondary_floor=smoothstep(0.7,0.96,mask)*0.35;',
+		'float secondary_blend=max(secondary_detail*0.9,secondary_wave);',
+		'secondary_blend=max(secondary_blend,secondary_floor);',
+		'secondary_blend*=smoothstep(0.16,0.5,mask)*u_has_secondary;',
+		'vec3 liquid=mix(u_primary,u_secondary,secondary_blend);',
 		'vec3 color=mix(u_background,liquid,mask);',
 		'gl_FragColor=vec4(color,u_opacity);',
 		'}'
@@ -130,10 +137,70 @@
 		if ( value === '' && allowEmpty ) {
 			return '';
 		}
-		if ( typeof value === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test( value ) ) {
+		if ( typeof value === 'string' && hexColorPattern.test( value ) ) {
 			return value;
 		}
 		return fallback;
+	}
+
+	function validCssColor( value, fallback ) {
+		var color;
+		var global;
+		if ( typeof value !== 'string' ) {
+			return fallback;
+		}
+
+		color = value.trim();
+		global = globalColorToCssVar( color );
+		if ( global ) {
+			return global;
+		}
+
+		if ( hexColorPattern.test( color ) ||
+			/^var\(\s*--[a-zA-Z0-9_-]+\s*\)$/.test( color ) ||
+			/^(rgba?|hsla?)\(\s*[0-9.,%+\-\s\/]+\s*\)$/i.test( color ) ) {
+			return color;
+		}
+
+		return fallback;
+	}
+
+	function globalColorToCssVar( value ) {
+		var query;
+		var parts;
+		var id;
+		var i;
+		var pair;
+
+		if ( typeof value !== 'string' || value.indexOf( 'globals/colors' ) === -1 ) {
+			return '';
+		}
+
+		query = value.split( '?' )[ 1 ] || '';
+		if ( ! query ) {
+			return '';
+		}
+
+		parts = query.split( '&' );
+		for ( i = 0; i < parts.length; i++ ) {
+			pair = parts[ i ].split( '=' );
+			if ( pair[ 0 ] === 'id' ) {
+				id = pair.slice( 1 ).join( '=' );
+				break;
+			}
+		}
+		if ( id ) {
+			try {
+				id = decodeURIComponent( id.replace( /\+/g, ' ' ) );
+			} catch ( error ) {
+				id = '';
+			}
+		}
+		if ( ! id || ! /^[a-zA-Z0-9_-]+$/.test( id ) ) {
+			return '';
+		}
+
+		return 'var(--e-global-color-' + id + ')';
 	}
 
 	function colorToVector( value, fallback ) {
@@ -169,6 +236,22 @@
 		return { desktop: desktop, tablet: desktop, mobile: desktop };
 	}
 
+	function responsiveColorValue( values, fallback ) {
+		var desktop;
+		var tablet;
+		var mobile;
+
+		if ( values && typeof values === 'object' && ( own( values, 'desktop' ) || own( values, 'tablet' ) || own( values, 'mobile' ) ) ) {
+			desktop = validCssColor( values.desktop, fallback );
+			tablet = validCssColor( values.tablet, desktop );
+			mobile = validCssColor( values.mobile, tablet );
+			return { desktop: desktop, tablet: tablet, mobile: mobile };
+		}
+
+		desktop = validCssColor( values, fallback );
+		return { desktop: desktop, tablet: desktop, mobile: desktop };
+	}
+
 	function responsiveFromSettings( settings, key, min, max, fallback ) {
 		var desktop = number( settings[ key ], min, max, fallback );
 		var tablet = number( settings[ key + '_tablet' ], min, max, desktop );
@@ -176,15 +259,17 @@
 		return { desktop: desktop, tablet: tablet, mobile: mobile };
 	}
 
-	function stableSeed( value ) {
-		var text = String( value || 'marrison-liquid' );
-		var hash = 2166136261;
-		var i;
-		for ( i = 0; i < text.length; i++ ) {
-			hash ^= text.charCodeAt( i );
-			hash += ( hash << 1 ) + ( hash << 4 ) + ( hash << 7 ) + ( hash << 8 ) + ( hash << 24 );
-		}
-		return Math.abs( hash ) % 100000;
+	function responsiveColorFromSettings( settings, key, fallback ) {
+		var desktop = colorFromSettings( settings, key, fallback );
+		var tablet = colorFromSettings( settings, key + '_tablet', desktop );
+		var mobile = colorFromSettings( settings, key + '_mobile', tablet );
+		return { desktop: desktop, tablet: tablet, mobile: mobile };
+	}
+
+	function colorFromSettings( settings, key, fallback ) {
+		var globals = settings && settings.__globals__;
+		var global = globals && own( globals, key ) ? globalColorToCssVar( globals[ key ] ) : '';
+		return global || validCssColor( settings && settings[ key ], fallback );
 	}
 
 	function readBreakpoints( breakpoints ) {
@@ -227,7 +312,7 @@
 			opacity: responsiveValue( config.opacity, 0, 1, 1 ),
 			blendGradient: {
 				enabled: bool( config.blendGradient && config.blendGradient.enabled ),
-				color: validColor( config.blendGradient && config.blendGradient.color, '#000000', false ),
+				color: responsiveColorValue( config.blendGradient && config.blendGradient.color, '#000000' ),
 				height: responsiveValue( config.blendGradient && config.blendGradient.height, 10, 100, 45 )
 			},
 			mouse: bool( config.mouse ),
@@ -262,7 +347,7 @@
 
 		seed = settings.marrison_liquid_seed;
 		if ( seed === '' || seed === null || typeof seed === 'undefined' ) {
-			seed = stableSeed( id );
+			seed = defaultSeed;
 		}
 
 		return normalizeConfig( {
@@ -279,7 +364,7 @@
 			opacity: responsiveFromSettings( settings, 'marrison_liquid_opacity', 0, 1, 1 ),
 			blendGradient: {
 				enabled: settings.marrison_liquid_blend_gradient,
-				color: validColor( settings.marrison_liquid_blend_color, '#000000', false ),
+				color: responsiveColorFromSettings( settings, 'marrison_liquid_blend_color', '#000000' ),
 				height: responsiveFromSettings( settings, 'marrison_liquid_blend_height', 10, 100, 45 )
 			},
 			mouse: settings.marrison_liquid_mouse,
@@ -317,6 +402,21 @@
 
 	function responsiveNumberForDevice( config, values ) {
 		return values[ currentDevice( config ) ] || values.desktop;
+	}
+
+	function responsiveColorForDevice( config, values ) {
+		if ( typeof values === 'string' ) {
+			return values;
+		}
+		return values[ currentDevice( config ) ] || values.desktop;
+	}
+
+	function blendGradientBackground( color ) {
+		if ( hexColorPattern.test( color ) ) {
+			return 'linear-gradient(to bottom, ' + colorToRgba( color, 0 ) + ' 0%, ' + colorToRgba( color, 0.28 ) + ' 25%, ' + colorToRgba( color, 0.58 ) + ' 50%, ' + colorToRgba( color, 0.84 ) + ' 75%, ' + color + ' 100%)';
+		}
+
+		return 'linear-gradient(to bottom, transparent 0%, ' + color + ' 100%)';
 	}
 
 	function directionNumber( direction ) {
@@ -469,11 +569,13 @@
 	};
 
 	LiquidBackgroundInstance.prototype.applyCssVariables = function () {
+		var blendColor = responsiveColorForDevice( this.config, this.config.blendGradient.color );
+
 		this.root.style.setProperty( '--marrison-liquid-background', this.config.background );
 		this.root.style.setProperty( '--marrison-liquid-primary', this.config.primary );
 		this.root.style.setProperty( '--marrison-liquid-secondary', this.config.secondary || this.config.primary );
 		this.root.style.setProperty( '--marrison-liquid-opacity', String( deviceNumber( this.config, 'opacity' ) ) );
-		this.root.style.setProperty( '--marrison-liquid-blend-color', this.config.blendGradient.color );
+		this.root.style.setProperty( '--marrison-liquid-blend-color', blendColor );
 		this.root.style.setProperty( '--marrison-liquid-blend-height', responsiveNumberForDevice( this.config, this.config.blendGradient.height ) + '%' );
 	};
 
@@ -589,7 +691,7 @@
 	};
 
 	LiquidBackgroundInstance.prototype.updateBlendLayer = function () {
-		var color = this.config.blendGradient.color;
+		var color = responsiveColorForDevice( this.config, this.config.blendGradient.color );
 		var height = responsiveNumberForDevice( this.config, this.config.blendGradient.height );
 
 		if ( ! this.config.blendGradient.enabled ) {
@@ -607,7 +709,7 @@
 		}
 
 		this.blend.style.setProperty( 'height', height + '%' );
-		this.blend.style.setProperty( 'background', 'linear-gradient(to bottom, ' + colorToRgba( color, 0 ) + ' 0%, ' + colorToRgba( color, 0.86 ) + ' 42%, ' + color + ' 68%, ' + color + ' 100%)' );
+		this.blend.style.setProperty( 'background', blendGradientBackground( color ) );
 	};
 
 	LiquidBackgroundInstance.prototype.destroyGL = function ( keepCanvas ) {

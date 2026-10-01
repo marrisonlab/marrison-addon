@@ -1,0 +1,62 @@
+[
+  {
+    "file": "assets\\js\\admin-image-sizes.js",
+    "sha256": "47A35E8D46BF6B2CE082A5320F761F0CA9D84B9E98059DF78DB96804CEC3F793",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-addon.js",
+    "sha256": "00A82768C937029D71EE84449097654E800EC20F47A33BBEF171C18DFF651B66",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-header-animations.js",
+    "sha256": "202ADD6E484AEDF89439C8345434D192929A4935F29D2018EC4DDA2604256DFE",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-preloader.js",
+    "sha256": "F274A2C1FCBBFF1303ECE8AC5957A43B0A367EB3020440F4A56137ED866FE166",
+    "match": true
+  },
+  {
+    "file": "includes\\class-marrison-addon-updater.php",
+    "sha256": "EAE14F8EB621645900F27E891FF7267178C4FB98E10415354633C4A5C4218BF4",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-calendar-sync.php",
+    "sha256": "93B4E035440BB59A449381A607F16A5211DAA0641438B6518B07E6BE5CDD5681",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-cursor.php",
+    "sha256": "9C7E52686A5A4A205C8A891FE069364570759173E0BF885853F12037C33BBC30",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-header-animations.php",
+    "sha256": "AF2C4E06A99EFA0B1DA158EF1F6A7CCAAEE6B846EE8BDF7A30F5F451447A425E",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-image-sizes.php",
+    "sha256": "921A0420BF373FB2E4B72C75EAA40952AE2B68DB46275E30B39FEA397C0B3D78",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-wrapped-link.php",
+    "sha256": "FF2522566072C929C2F99C6D1B9C64DECFBC3F5FC5411BB2B263625F4A5A2ABA",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\assets\\js\\frontend.js",
+    "sha256": "82402BB2AA635D551C8CE39E031EB563A24599FFA9997B44304F04CCBAAD630C",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\includes\\class-cookie-consent.php",
+    "sha256": "6F4F5805B9FA7615517FBED6D6D93B60C4CE4833EA176834231A4A0DD98BF469",
+    "match": true
+  }
+]

@@ -1,0 +1,6 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Snap wide viewport verification</title><style>body{font:16px Arial;margin:0}iframe{border:0;transform:scale(.49);transform-origin:top left}</style></head><body>
+<button onclick="document.getElementById('proof').width=390;document.getElementById('proof').height=844">Mobile 390</button>
+<button onclick="document.getElementById('proof').width=2540;document.getElementById('proof').height=737">Wide 2540</button>
+<button onclick="var frame=document.getElementById('proof');frame.width=2540;frame.height=1200;frame.src='/marrison-hs-followup-continuous.html';document.getElementById('audit-caption').textContent='Continuous: viewport 2540 x 1200 (scaled view), boxed slide at rest'">Continuous boxed</button>
+<p id="audit-caption">Snap: viewport 2540 x 737 (scaled view), first slide at parent alignment</p>
+<iframe id="proof" title="Snap wide proof" width="2540" height="737" src="/marrison-hs-followup-snap.html"></iframe></body></html>

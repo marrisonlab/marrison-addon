@@ -10,11 +10,28 @@
     var cache = {};
     var pendingTimer = null;
     var preferredFormat = config.preferAvif ? 'avif' : 'webp';
+    var candidateSelector = [
+        'body',
+        '[style*="background-image"]',
+        '.elementor-element',
+        '.elementor-background-slideshow__slide__image',
+        '.elementor-widget-wrap',
+        '.e-con',
+        '.e-con-inner'
+    ].join(',');
+    var sessionStoragePrefix = 'marrison-bg-webp:' + (config.cacheVersion || '1') + ':';
+    var sessionStore = null;
 
     try {
         uploadsBasePath = new URL(config.uploadsBaseUrl, window.location.href).pathname;
     } catch (e) {
         uploadsBasePath = '';
+    }
+
+    try {
+        sessionStore = window.sessionStorage || null;
+    } catch (e) {
+        sessionStore = null;
     }
 
     function isUploadsUrl(url) {
@@ -50,6 +67,44 @@
         return '';
     }
 
+    function readCachedUrl(cacheKey) {
+        if (Object.prototype.hasOwnProperty.call(cache, cacheKey)) {
+            return cache[cacheKey];
+        }
+
+        if (!sessionStore) {
+            return null;
+        }
+
+        try {
+            var stored = sessionStore.getItem(sessionStoragePrefix + cacheKey);
+            if (stored !== null) {
+                cache[cacheKey] = stored;
+                return stored;
+            }
+        } catch (e) {}
+
+        return null;
+    }
+
+    function rememberCachedUrl(cacheKey, url) {
+        var value = url || '';
+        cache[cacheKey] = value;
+
+        if (!sessionStore) {
+            return;
+        }
+
+        try {
+            sessionStore.setItem(sessionStoragePrefix + cacheKey, value);
+        } catch (e) {}
+    }
+
+    function isNearViewport(rect) {
+        var marginY = Math.max(window.innerHeight || 0, 800);
+        return rect.bottom >= -marginY && rect.top <= (window.innerHeight || 0) + marginY;
+    }
+
     function requestBestSizes(items, elementsByKey) {
         var formData = new FormData();
         formData.append('action', 'marrison_resolve_background_webp');
@@ -76,18 +131,25 @@
                     return;
                 }
 
-                Object.keys(response.data.items).forEach(function(key) {
-                    var entry = elementsByKey[key];
-                    var item = response.data.items[key];
+                var resolvedItems = response.data.items || {};
 
-                    if (!entry || !entry.element || !item.url) {
+                Object.keys(elementsByKey).forEach(function(key) {
+                    var entry = elementsByKey[key];
+                    var item = resolvedItems[key];
+
+                    if (!entry || !entry.element) {
+                        return;
+                    }
+
+                    if (!item || !item.url) {
+                        rememberCachedUrl(entry.cacheKey, entry.originalUrl);
                         return;
                     }
 
                     var element = entry.element;
                     var currentBackground = window.getComputedStyle(element).backgroundImage;
                     var currentUrl = extractBackgroundUrl(currentBackground);
-                    cache[entry.cacheKey] = item.url;
+                    rememberCachedUrl(entry.cacheKey, item.url);
 
                     if (!currentUrl || currentUrl === item.url) {
                         return;
@@ -101,7 +163,7 @@
     }
 
     function scanBackgrounds() {
-        var elements = document.querySelectorAll('body *');
+        var elements = document.querySelectorAll(candidateSelector);
         var items = [];
         var elementsByKey = {};
         var deviceRatio = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
@@ -114,6 +176,9 @@
 
             var rect = element.getBoundingClientRect();
             if (rect.width < 1 || rect.height < 1) {
+                return;
+            }
+            if (!isNearViewport(rect)) {
                 return;
             }
 
@@ -140,10 +205,11 @@
             var heightBucket = Math.ceil(targetHeight / 100) * 100;
             var fit = computedStyle.backgroundSize.indexOf('cover') !== -1 ? 'cover' : 'width';
             var cacheKey = url + '|' + widthBucket + '|' + heightBucket + '|' + fit + '|' + preferredFormat;
+            var cachedUrl = readCachedUrl(cacheKey);
 
-            if (cache[cacheKey]) {
-                if (cache[cacheKey] !== url) {
-                    element.style.backgroundImage = backgroundImage.split(url).join(cache[cacheKey]);
+            if (cachedUrl !== null) {
+                if (cachedUrl && cachedUrl !== url) {
+                    element.style.backgroundImage = backgroundImage.split(url).join(cachedUrl);
                 }
                 return;
             }
@@ -152,14 +218,15 @@
             items.push({
                 key: key,
                 url: url,
-                width: targetWidth,
-                height: targetHeight,
+                width: widthBucket,
+                height: heightBucket,
                 fit: fit,
                 format: preferredFormat
             });
             elementsByKey[key] = {
                 element: element,
-                cacheKey: cacheKey
+                cacheKey: cacheKey,
+                originalUrl: url
             };
         });
 

@@ -1,0 +1,166 @@
+{
+    "cursor_hover_colors": [
+        {
+            "input": "#ff0000",
+            "saved": "#ff0000",
+            "preserved": true
+        },
+        {
+            "input": "rgb(255,0,0)",
+            "saved": "rgb(255,0,0)",
+            "preserved": true
+        },
+        {
+            "input": "rgba(255,0,0,0.5)",
+            "saved": "rgba(255,0,0,0.5)",
+            "preserved": true
+        },
+        {
+            "input": "invalid",
+            "saved": "rgba(17,17,17,0.12)",
+            "preserved": false
+        }
+    ],
+    "image_size_lookup": {
+        "file": "metadata-source-audit_small.png",
+        "width": 120,
+        "height": 90,
+        "mime-type": "image/png",
+        "filesize": 315,
+        "sources": [
+            {
+                "file": "metadata-source-audit_small.webp",
+                "mime_type": "image/webp",
+                "width": 120,
+                "height": 90
+            },
+            {
+                "file": "metadata-source-audit_small.avif",
+                "mime_type": "image/avif",
+                "width": 120,
+                "height": 90
+            }
+        ],
+        "path": "./metadata-source-audit_small.png",
+        "url": "http://localhost:10004/wp-content/uploads/C:/Users/Angelo/Documents/GitHub/marrison-addon/audit/2026-10-01/remediation/images/metadata-source-audit_small.png"
+    },
+    "image_debug": {
+        "is_image": true,
+        "attached_file": "C:/Users/Angelo/Documents/GitHub/marrison-addon/audit/2026-10-01/remediation/images/metadata-source.png",
+        "attached_file_exists": true,
+        "definitions": {
+            "upscale": [],
+            "modern": {
+                "audit_small": {
+                    "width": 120,
+                    "height": 90,
+                    "crop": false,
+                    "webp": true,
+                    "webp_quality": 85,
+                    "avif": true,
+                    "avif_quality": 75
+                }
+            }
+        }
+    },
+    "image_size_missing_metadata": {
+        "attachment_id": 139,
+        "requested_size": [
+            120,
+            90
+        ],
+        "returned_metadata": {
+            "file": "metadata-source.png",
+            "width": 320,
+            "height": 240,
+            "sizes": {
+                "audit_small": {
+                    "file": "metadata-source-audit_small.png",
+                    "width": 120,
+                    "height": 90,
+                    "mime-type": "image/png",
+                    "filesize": 315,
+                    "sources": [
+                        {
+                            "file": "metadata-source-audit_small.webp",
+                            "mime_type": "image/webp",
+                            "width": 120,
+                            "height": 90
+                        },
+                        {
+                            "file": "metadata-source-audit_small.avif",
+                            "mime_type": "image/avif",
+                            "width": 120,
+                            "height": 90
+                        }
+                    ]
+                }
+            },
+            "marrison_webp_full": {
+                "file": "metadata-source.webp",
+                "mime_type": "image/webp",
+                "width": 320,
+                "height": 240
+            },
+            "marrison_avif_full": {
+                "file": "metadata-source.avif",
+                "mime_type": "image/avif",
+                "width": 320,
+                "height": 240
+            }
+        },
+        "physical_files": [
+            {
+                "name": "metadata-source-audit_small.avif",
+                "width": 120,
+                "height": 90
+            },
+            {
+                "name": "metadata-source-audit_small.png",
+                "width": 120,
+                "height": 90
+            },
+            {
+                "name": "metadata-source-audit_small.webp",
+                "width": 120,
+                "height": 90
+            },
+            {
+                "name": "metadata-source.avif",
+                "width": 320,
+                "height": 240
+            },
+            {
+                "name": "metadata-source.png",
+                "width": 320,
+                "height": 240
+            },
+            {
+                "name": "metadata-source.webp",
+                "width": 320,
+                "height": 240
+            }
+        ]
+    },
+    "image_size_existing_metadata": {
+        "file": "metadata-source-audit_small.png",
+        "width": 120,
+        "height": 90,
+        "mime-type": "image/png",
+        "sources": [
+            {
+                "file": "metadata-source-audit_small.webp",
+                "mime_type": "image/webp",
+                "width": 120,
+                "height": 90
+            },
+            {
+                "file": "metadata-source-audit_small.avif",
+                "mime_type": "image/avif",
+                "width": 120,
+                "height": 90
+            }
+        ]
+    },
+    "plugin_errors": []
+}

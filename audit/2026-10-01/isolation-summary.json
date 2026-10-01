@@ -1,0 +1,198 @@
+[
+  {
+    "module": "all-off",
+    "exit": 0,
+    "loaded": [],
+    "errors": [],
+    "hooks": 2
+  },
+  {
+    "module": "wrapped_link",
+    "exit": 0,
+    "loaded": [
+      "wrapped_link"
+    ],
+    "errors": [],
+    "hooks": 6
+  },
+  {
+    "module": "read_more",
+    "exit": 0,
+    "loaded": [
+      "read_more"
+    ],
+    "errors": [],
+    "hooks": 6
+  },
+  {
+    "module": "horizontal_scroll",
+    "exit": 0,
+    "loaded": [
+      "horizontal_scroll"
+    ],
+    "errors": [],
+    "hooks": 5
+  },
+  {
+    "module": "liquid_background",
+    "exit": 0,
+    "loaded": [
+      "liquid_background"
+    ],
+    "errors": [],
+    "hooks": 6
+  },
+  {
+    "module": "ticker",
+    "exit": 0,
+    "loaded": [
+      "ticker"
+    ],
+    "errors": [],
+    "hooks": 3
+  },
+  {
+    "module": "steps",
+    "exit": 0,
+    "loaded": [
+      "steps"
+    ],
+    "errors": [],
+    "hooks": 4
+  },
+  {
+    "module": "product_discount",
+    "exit": 0,
+    "loaded": [
+      "product_discount"
+    ],
+    "errors": [],
+    "hooks": 29
+  },
+  {
+    "module": "recently_viewed_products",
+    "exit": 0,
+    "loaded": [
+      "recently_viewed_products"
+    ],
+    "errors": [],
+    "hooks": 4
+  },
+  {
+    "module": "listing_title",
+    "exit": 0,
+    "loaded": [
+      "listing_title"
+    ],
+    "errors": [],
+    "hooks": 4
+  },
+  {
+    "module": "dynamic_svg",
+    "exit": 0,
+    "loaded": [
+      "dynamic_svg"
+    ],
+    "errors": [],
+    "hooks": 4
+  },
+  {
+    "module": "header_animations",
+    "exit": 0,
+    "loaded": [
+      "header_animations"
+    ],
+    "errors": [],
+    "hooks": 10
+  },
+  {
+    "module": "anchor_offset",
+    "exit": 0,
+    "loaded": [
+      "anchor_offset"
+    ],
+    "errors": [],
+    "hooks": 3
+  },
+  {
+    "module": "image_sizes",
+    "exit": 0,
+    "loaded": [
+      "image_sizes"
+    ],
+    "errors": [],
+    "hooks": 29
+  },
+  {
+    "module": "local_google_fonts",
+    "exit": 0,
+    "loaded": [
+      "local_google_fonts"
+    ],
+    "errors": [],
+    "hooks": 12
+  },
+  {
+    "module": "browser_cache",
+    "exit": 0,
+    "loaded": [
+      "browser_cache"
+    ],
+    "errors": [],
+    "hooks": 2
+  },
+  {
+    "module": "cursor",
+    "exit": 0,
+    "loaded": [
+      "cursor"
+    ],
+    "errors": [],
+    "hooks": 6
+  },
+  {
+    "module": "preloader",
+    "exit": 0,
+    "loaded": [
+      "preloader"
+    ],
+    "errors": [],
+    "hooks": 7
+  },
+  {
+    "module": "fast_logout",
+    "exit": 0,
+    "loaded": [
+      "fast_logout"
+    ],
+    "errors": [],
+    "hooks": 3
+  },
+  {
+    "module": "calendar_sync",
+    "exit": 0,
+    "loaded": [
+      "calendar_sync"
+    ],
+    "errors": [],
+    "hooks": 5
+  },
+  {
+    "module": "cookie_manager",
+    "exit": 0,
+    "loaded": [
+      "cookie_manager"
+    ],
+    "errors": [],
+    "hooks": 39
+  },
+  {
+    "module": "video_thumbnail",
+    "exit": 0,
+    "loaded": [
+      "video_thumbnail"
+    ],
+    "errors": [],
+    "hooks": 8
+  }
+]

@@ -1,0 +1,496 @@
+/**
+ * Frontend JavaScript per Marrison Cookie Manager
+ */
+(function($) {
+    'use strict';
+
+    var MarrisonCookie = {
+        init: function() {
+            $('#marrison-cookie-modal').appendTo('body');
+
+            this.bindEvents();
+            this.bindResponsiveClosedTrigger();
+            this.applyExistingPreferences();
+            this.checkExistingConsent();
+            this.activateAllowedBlockedContent();
+            this.openPreferencesFromHash();
+        },
+
+        bindEvents: function() {
+            $(document).on('click', '#marrison-accept-all', function(e) {
+                e.preventDefault();
+                MarrisonCookie.saveConsent('accept_all', []);
+            });
+
+            $(document).on('click', '#marrison-reject-all', function(e) {
+                e.preventDefault();
+                MarrisonCookie.saveConsent('reject_all', []);
+            });
+
+            $(document).on('click', '#marrison-customize', function(e) {
+                e.preventDefault();
+                MarrisonCookie.loadCookieList();
+                $('#marrison-cookie-modal').show();
+            });
+
+            $(document).on('click', '#marrison-close-modal', function(e) {
+                e.preventDefault();
+                $('#marrison-cookie-modal').hide();
+            });
+
+            $(document).on('click', '#marrison-cookie-modal', function(e) {
+                if (e.target === this) {
+                    $(this).hide();
+                }
+            });
+
+            $(document).on('click', '#marrison-save-preferences', function(e) {
+                e.preventDefault();
+                MarrisonCookie.saveConsent('custom', MarrisonCookie.getSelectedCategories());
+            });
+
+            $(document).on('click', '#marrison-update-prefs', function(e) {
+                e.preventDefault();
+                MarrisonCookie.updatePreferences(MarrisonCookie.getSelectedCategories());
+            });
+
+            $(document).on('click', '#marrison-widget-button', function(e) {
+                e.preventDefault();
+                MarrisonCookie.openBanner();
+            });
+
+            $(document).on('click', 'a[href*="#marrison-cookie-preferences"], a[href*="#marrison-cookie-settings"], .marrison-open-cookie-preferences, [data-marrison-cookie-preferences]', function(e) {
+                if (!MarrisonCookie.isPreferencesTrigger(this)) {
+                    return;
+                }
+
+                e.preventDefault();
+                MarrisonCookie.openPreferences();
+            });
+        },
+
+        ajax: function(options, retried) {
+            var request = $.extend({}, options);
+            var originalSuccess = options.success || function() {};
+            var originalError = options.error || function() {};
+
+            request.data = $.extend({}, options.data || {}, {
+                nonce: marrisonCookie.nonce
+            });
+            request.error = function(xhr, status, error) {
+                if (!retried && MarrisonCookie.isNonceFailure(xhr)) {
+                    MarrisonCookie.refreshNonce(function() {
+                        MarrisonCookie.ajax(options, true);
+                    }, function() {
+                        originalError(xhr, status, error);
+                    });
+                    return;
+                }
+
+                originalError(xhr, status, error);
+            };
+            request.success = originalSuccess;
+
+            $.ajax(request);
+        },
+
+        isNonceFailure: function(xhr) {
+            return xhr && (xhr.status === 403 || $.trim(xhr.responseText || '') === '-1');
+        },
+
+        refreshNonce: function(done, fail) {
+            $.ajax({
+                url: marrisonCookie.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'marrison_cookie_refresh_nonce'
+                },
+                success: function(response) {
+                    if (response && response.success && response.data && response.data.nonce) {
+                        marrisonCookie.nonce = response.data.nonce;
+                        done();
+                    } else if (fail) {
+                        fail();
+                    }
+                },
+                error: function() {
+                    if (fail) {
+                        fail();
+                    }
+                }
+            });
+        },
+
+        checkExistingConsent: function() {
+            // hasConsent copre anche i cookie HttpOnly creati dalle versioni precedenti.
+            var consent = MarrisonCookie.getCookie('marrison_cookie_consent') || (marrisonCookie.hasConsent ? 'stored' : null);
+            var $banner = $('#marrison-cookie-banner');
+
+            if (consent) {
+                $banner.hide();
+                MarrisonCookie.showFloatingWidget();
+            } else if ($banner.length) {
+                $banner.show();
+                MarrisonCookie.hideFloatingWidget();
+            } else {
+                MarrisonCookie.showFloatingWidget();
+            }
+        },
+
+        showFloatingWidget: function() {
+            var $widget = $('#marrison-floating-widget');
+
+            if (!this.shouldShowFloatingWidget()) {
+                $widget.hide();
+                return;
+            }
+
+            $widget.show();
+        },
+
+        hideFloatingWidget: function() {
+            $('#marrison-floating-widget').hide();
+        },
+
+        openBanner: function() {
+            var $banner = $('#marrison-cookie-banner');
+
+            if (!$banner.length) {
+                return;
+            }
+
+            this.hideFloatingWidget();
+            $banner.show();
+        },
+
+        openPreferences: function() {
+            var $modal = $('#marrison-cookie-modal');
+
+            if (!$modal.length) {
+                this.openBanner();
+                return;
+            }
+
+            this.loadCookieList();
+            $modal.show();
+        },
+
+        openPreferencesFromHash: function() {
+            if (window.location.hash === '#marrison-cookie-preferences' || window.location.hash === '#marrison-cookie-settings') {
+                this.openPreferences();
+            }
+        },
+
+        isPreferencesTrigger: function(element) {
+            var $element = $(element);
+            var href = $element.attr('href') || '';
+
+            return $element.hasClass('marrison-open-cookie-preferences') ||
+                typeof $element.attr('data-marrison-cookie-preferences') !== 'undefined' ||
+                href.indexOf('#marrison-cookie-preferences') !== -1 ||
+                href.indexOf('#marrison-cookie-settings') !== -1;
+        },
+
+        bindResponsiveClosedTrigger: function() {
+            var resizeTimer = null;
+
+            $(window).on('resize orientationchange', function() {
+                window.clearTimeout(resizeTimer);
+                resizeTimer = window.setTimeout(function() {
+                    MarrisonCookie.refreshClosedTriggerVisibility();
+                }, 120);
+            });
+        },
+
+        refreshClosedTriggerVisibility: function() {
+            var consent = MarrisonCookie.getCookie('marrison_cookie_consent') || (marrisonCookie.hasConsent ? 'stored' : null);
+            var $banner = $('#marrison-cookie-banner');
+
+            if (consent && (!$banner.length || !$banner.is(':visible'))) {
+                this.showFloatingWidget();
+            } else {
+                this.hideFloatingWidget();
+            }
+        },
+
+        shouldShowFloatingWidget: function() {
+            return this.getClosedTriggerMode() === 'floating';
+        },
+
+        getClosedTriggerMode: function() {
+            var modes = marrisonCookie.closedTriggerModes || {};
+            var device = this.getCurrentDevice();
+            var mode = modes[device] || 'floating';
+
+            return mode === 'link' ? 'link' : 'floating';
+        },
+
+        getCurrentDevice: function() {
+            if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+                return 'mobile';
+            }
+
+            if (window.matchMedia && window.matchMedia('(max-width: 1024px)').matches) {
+                return 'tablet';
+            }
+
+            return 'desktop';
+        },
+
+        loadCookieList: function() {
+            var $modalBody = $('#marrison-cookie-modal .marrison-modal-body');
+
+            if ($modalBody.data('cookiesLoaded') || $modalBody.find('.marrison-cookie-list-loading').length) {
+                return;
+            }
+
+            $modalBody.find('.marrison-category-cookie-list').empty();
+            $modalBody.prepend($('<p class="marrison-cookie-list-loading"></p>').text(marrisonCookie.loadingText));
+
+            MarrisonCookie.ajax({
+                url: marrisonCookie.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'marrison_get_cookie_list'
+                },
+                success: function(response) {
+                    $modalBody.find('.marrison-cookie-list-loading').remove();
+                    if (response.success) {
+                        MarrisonCookie.renderCookieLists(response.data);
+                        $modalBody.data('cookiesLoaded', true);
+                    }
+                },
+                error: function() {
+                    $modalBody.find('.marrison-cookie-list-loading').remove();
+                }
+            });
+        },
+
+        renderCookieLists: function(data) {
+            var categories = data.categories || {};
+            var hasAnyCookie = false;
+
+            $('.marrison-category-cookie-list').empty().removeClass('has-cookies');
+
+            $.each(categories, function(category, html) {
+                var $target = $('.marrison-category-cookie-list[data-cookie-list="' + category + '"]');
+
+                if (html && $target.length) {
+                    $target.html(html).addClass('has-cookies');
+                    hasAnyCookie = true;
+                }
+            });
+
+            if (!hasAnyCookie && data.message) {
+                $('.marrison-category-cookie-list[data-cookie-list="functional"]')
+                    .empty()
+                    .append($('<p class="marrison-cookie-list-empty"></p>').text(data.message))
+                    .addClass('has-cookies');
+            }
+        },
+
+        getSelectedCategories: function() {
+            var categories = [];
+
+            $('.marrison-category-checkbox:checked, .marrison-pref-checkbox:checked').each(function() {
+                var category = $(this).data('category');
+                if (category && categories.indexOf(category) === -1) {
+                    categories.push(category);
+                }
+            });
+
+            return categories;
+        },
+
+        applyExistingPreferences: function() {
+            var consent = MarrisonCookie.getCookie('marrison_cookie_consent');
+            var categoriesCookie = MarrisonCookie.getCookie('marrison_cookie_categories');
+            var categories = [];
+
+            if (categoriesCookie) {
+                categories = decodeURIComponent(categoriesCookie).split('|');
+            } else if (consent === 'accept_all') {
+                categories = ['necessary', 'functional', 'analytics', 'marketing'];
+            } else if (consent === 'reject_all') {
+                categories = ['necessary'];
+            }
+
+            if (!categories.length) {
+                return;
+            }
+
+            $('.marrison-category-checkbox, .marrison-pref-checkbox').each(function() {
+                var $checkbox = $(this);
+                var category = $checkbox.data('category');
+
+                if (!$checkbox.prop('disabled')) {
+                    $checkbox.prop('checked', categories.indexOf(category) !== -1);
+                }
+            });
+        },
+
+        saveConsent: function(consentType, categories) {
+            MarrisonCookie.ajax({
+                url: marrisonCookie.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'marrison_save_consent',
+                    consent_type: consentType,
+                    categories: categories
+                },
+                success: function(response) {
+                    if (response.success) {
+                        MarrisonCookie.applyConsentCookies(consentType, categories);
+                        MarrisonCookie.activateAllowedBlockedContent();
+                        $('#marrison-cookie-banner').hide();
+                        $('#marrison-cookie-modal').hide();
+                        MarrisonCookie.showFloatingWidget();
+                    } else if (response.data && response.data.message) {
+                        window.console && console.error('Errore salvataggio consenso:', response.data.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    window.console && console.error('Errore AJAX:', error);
+                }
+            });
+        },
+
+        applyConsentCookies: function(consentType, categories) {
+            var duration = parseInt(marrisonCookie.consentDuration || 30, 10);
+            var expires = new Date();
+
+            if (consentType === 'accept_all') {
+                categories = ['necessary', 'functional', 'analytics', 'marketing'];
+            } else if (consentType === 'reject_all') {
+                categories = ['necessary'];
+            }
+
+            expires.setTime(expires.getTime() + (duration * 24 * 60 * 60 * 1000));
+            document.cookie = 'marrison_cookie_consent=' + encodeURIComponent(consentType) + '; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
+            document.cookie = 'marrison_cookie_categories=' + encodeURIComponent((categories || []).join('|')) + '; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
+        },
+
+        activateAllowedBlockedContent: function() {
+            var allowedCategories = MarrisonCookie.getAllowedCategories();
+
+            $('[data-marrison-cookie-blocked]').each(function() {
+                var element = this;
+                var $element = $(element);
+                var category = $element.data('marrison-cookie-category');
+
+                if (allowedCategories.indexOf(category) === -1) {
+                    return;
+                }
+
+                if ($element.data('marrison-cookie-blocked') === 'script') {
+                    MarrisonCookie.activateBlockedScript(element);
+                } else if ($element.data('marrison-cookie-blocked') === 'iframe') {
+                    MarrisonCookie.activateBlockedIframe(element);
+                }
+            });
+        },
+
+        activateBlockedScript: function(element) {
+            var replacement = document.createElement('script');
+            var blockedSrc = element.getAttribute('data-marrison-blocked-src');
+
+            $.each(element.attributes, function(index, attr) {
+                if (!attr || attr.name === 'type' || attr.name.indexOf('data-marrison-') === 0) {
+                    return;
+                }
+
+                replacement.setAttribute(attr.name, attr.value);
+            });
+
+            if (blockedSrc) {
+                replacement.src = blockedSrc;
+            } else {
+                replacement.text = element.text || element.textContent || element.innerHTML || '';
+            }
+
+            element.parentNode.replaceChild(replacement, element);
+        },
+
+        activateBlockedIframe: function(element) {
+            var blockedSrc = element.getAttribute('data-marrison-blocked-src');
+
+            if (blockedSrc) {
+                element.setAttribute('src', blockedSrc);
+                element.removeAttribute('data-marrison-blocked-src');
+                element.removeAttribute('data-marrison-cookie-blocked');
+            }
+        },
+
+        getAllowedCategories: function() {
+            var consent = MarrisonCookie.getCookie('marrison_cookie_consent');
+            var categoriesCookie = MarrisonCookie.getCookie('marrison_cookie_categories');
+            var categories = ['necessary'];
+
+            if (consent === 'accept_all') {
+                return ['necessary', 'functional', 'analytics', 'marketing'];
+            }
+
+            if (categoriesCookie) {
+                categories = decodeURIComponent(categoriesCookie).split('|');
+            }
+
+            return categories;
+        },
+
+        updatePreferences: function(categories) {
+            MarrisonCookie.ajax({
+                url: marrisonCookie.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'marrison_update_preferences',
+                    categories: categories
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#marrison-prefs-message')
+                            .removeClass('error')
+                            .addClass('success')
+                            .text(response.data.message)
+                            .show();
+
+                        setTimeout(function() {
+                            $('#marrison-prefs-message').fadeOut();
+                        }, 3000);
+
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        $('#marrison-prefs-message')
+                            .removeClass('success')
+                            .addClass('error')
+                            .text(response.data.message)
+                            .show();
+                    }
+                },
+                error: function() {
+                    $('#marrison-prefs-message')
+                        .removeClass('success')
+                        .addClass('error')
+                        .text(marrisonCookie.updateErrorText || 'Error while updating')
+                        .show();
+                }
+            });
+        },
+
+        getCookie: function(name) {
+            var value = '; ' + document.cookie;
+            var parts = value.split('; ' + name + '=');
+
+            if (parts.length === 2) {
+                return parts.pop().split(';').shift();
+            }
+
+            return null;
+        }
+    };
+
+    $(document).ready(function() {
+        MarrisonCookie.init();
+    });
+})(jQuery);

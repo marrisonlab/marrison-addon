@@ -1,0 +1,58 @@
+[
+  {
+    "case": "calendar-custom",
+    "denied": false,
+    "ics": true,
+    "location": "LOCATION:Roma\\, Sala\\; 1",
+    "start": "DTSTART;TZID=+00:00:20261002T080000"
+  },
+  {
+    "case": "calendar-draft",
+    "denied": true,
+    "ics": false,
+    "location": null,
+    "start": null
+  },
+  {
+    "case": "calendar-future",
+    "denied": true,
+    "ics": false,
+    "location": null,
+    "start": null
+  },
+  {
+    "case": "calendar-legacy_timezone",
+    "denied": false,
+    "ics": true,
+    "location": "LOCATION:Roma\\, Sala\\; 1",
+    "start": "DTSTART;TZID=+00:00:20261002T080000"
+  },
+  {
+    "case": "calendar-password",
+    "denied": true,
+    "ics": false,
+    "location": null,
+    "start": null
+  },
+  {
+    "case": "calendar-private",
+    "denied": true,
+    "ics": false,
+    "location": null,
+    "start": null
+  },
+  {
+    "case": "calendar-publish",
+    "denied": false,
+    "ics": true,
+    "location": "LOCATION:",
+    "start": "DTSTART;TZID=+00:00:20261001T080000"
+  },
+  {
+    "case": "calendar-tampered",
+    "denied": true,
+    "ics": false,
+    "location": null,
+    "start": null
+  }
+]

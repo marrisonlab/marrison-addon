@@ -11,11 +11,15 @@ class Marrison_Addon_Image_Sizes {
 	const REGISTERED_WEBP_OPTION = 'marrison_addon_registered_size_webp';
 	const FULL_REPLACEMENT_SIZE_OPTION = 'marrison_addon_full_replacement_size';
 	const LCP_HERO_CONTROL = 'marrison_image_lcp_hero';
+	const BACKGROUND_RESOLVE_CACHE_GROUP = 'marrison_addon_bg_webp';
+	const BACKGROUND_RESOLVE_CACHE_PREFIX = 'marrison_bg_webp_';
+	const BACKGROUND_RESOLVE_CACHE_TTL = 43200;
 
 	private $webp_enabled_sizes = null;
 	private $url_replacement_cache = [];
 	private $lcp_preloaded_urls = [];
 	private $lcp_hero_container_stack = [];
+	private $skip_automatic_modern_format_generation = false;
 
 	public function __construct() {
 		// Hooks for functionality
@@ -29,6 +33,7 @@ class Marrison_Addon_Image_Sizes {
 		add_filter( 'image_downsize', [ $this, 'force_downsize_upscale' ], 10, 3 );
 		add_filter( 'image_downsize', [ $this, 'serve_webp_downsize' ], 20, 3 );
 		add_filter( 'wp_calculate_image_srcset', [ $this, 'serve_webp_srcset' ], 20, 5 );
+		add_filter( 'wp_generate_attachment_metadata', [ $this, 'add_modern_formats_to_generated_metadata' ], 20, 3 );
 		add_filter( 'elementor/files/css/property', [ $this, 'filter_elementor_css_property_value' ], 20, 4 );
 		add_action( 'template_redirect', [ $this, 'start_frontend_webp_rewrite' ], 1 );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_scripts' ] );
@@ -64,8 +69,8 @@ class Marrison_Addon_Image_Sizes {
 			return;
 		}
 
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		wp_enqueue_script( 'marrison-admin-image-sizes', plugins_url( 'assets/js/admin-image-sizes.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::VERSION, true );
+		$plugin_root_file = Marrison_Addon::plugin_file();
+		wp_enqueue_script( 'marrison-admin-image-sizes', plugins_url( 'assets/js/admin-image-sizes.js', $plugin_root_file ), [ 'jquery' ], Marrison_Addon::asset_version( 'assets/js/admin-image-sizes.js' ), true );
 
 		wp_localize_script( 'marrison-admin-image-sizes', 'marrison_vars', [
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
@@ -166,14 +171,13 @@ class Marrison_Addon_Image_Sizes {
 			return;
 		}
 
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		$background_script_path = dirname( dirname( dirname( __FILE__ ) ) ) . '/assets/js/marrison-bg-webp.js';
+		$plugin_root_file = Marrison_Addon::plugin_file();
 
 		wp_enqueue_script(
 			'marrison-background-webp',
 			plugins_url( 'assets/js/marrison-bg-webp.js', $plugin_root_file ),
 			[],
-			file_exists( $background_script_path ) ? (string) filemtime( $background_script_path ) : Marrison_Addon::VERSION,
+			Marrison_Addon::asset_version( 'assets/js/marrison-bg-webp.js' ),
 			true
 		);
 
@@ -184,6 +188,7 @@ class Marrison_Addon_Image_Sizes {
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'uploadsBaseUrl' => $uploads['baseurl'],
 				'preferAvif' => $this->client_prefers_avif(),
+				'cacheVersion' => Marrison_Addon::VERSION,
 			]
 		);
 	}
@@ -486,73 +491,94 @@ class Marrison_Addon_Image_Sizes {
 				continue;
 			}
 
+			$cache_key = $this->get_background_resolve_cache_key( $url, $target_width, $target_height, $fit, $preferred_format );
+			$cached = $this->get_background_resolve_cache( $cache_key );
+			if ( is_array( $cached ) ) {
+				if ( ! empty( $cached['url'] ) ) {
+					$resolved[ $key ] = $cached;
+				}
+				continue;
+			}
+
 			$attachment_id = $this->resolve_attachment_id_from_upload_url( $url );
 			if ( ! $attachment_id ) {
+				$this->set_background_resolve_cache( $cache_key, [] );
 				continue;
 			}
 
 			$metadata = wp_get_attachment_metadata( $attachment_id );
 			if ( empty( $metadata ) || ! is_array( $metadata ) ) {
+				$this->set_background_resolve_cache( $cache_key, [] );
 				continue;
 			}
 
 			$source = $this->get_best_webp_source_for_container( $metadata, $target_width, $target_height, $fit, $preferred_format );
 			if ( ! $source || empty( $source['file'] ) ) {
+				$this->set_background_resolve_cache( $cache_key, [] );
 				continue;
 			}
 
 			$source_url = $this->build_metadata_file_url( $metadata, $source['file'] );
 			if ( ! $source_url ) {
+				$this->set_background_resolve_cache( $cache_key, [] );
 				continue;
 			}
 
-			$resolved[ $key ] = [
+			$resolved_item = [
 				'url' => $source_url,
 				'width' => isset( $source['width'] ) ? (int) $source['width'] : 0,
 				'height' => isset( $source['height'] ) ? (int) $source['height'] : 0,
 			];
+			$this->set_background_resolve_cache( $cache_key, $resolved_item );
+			$resolved[ $key ] = $resolved_item;
 		}
 
 		wp_send_json_success( [ 'items' => $resolved ] );
+	}
+
+	private function get_background_resolve_cache_key( $url, $width, $height, $fit, $format ) {
+		return md5( implode( '|', [ (string) $url, absint( $width ), absint( $height ), sanitize_key( $fit ), sanitize_key( $format ) ] ) );
+	}
+
+	private function get_background_resolve_cache( $cache_key ) {
+		$cached = wp_cache_get( $cache_key, self::BACKGROUND_RESOLVE_CACHE_GROUP );
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+
+		$cached = get_transient( self::BACKGROUND_RESOLVE_CACHE_PREFIX . $cache_key );
+		if ( is_array( $cached ) ) {
+			wp_cache_set( $cache_key, $cached, self::BACKGROUND_RESOLVE_CACHE_GROUP, self::BACKGROUND_RESOLVE_CACHE_TTL );
+			return $cached;
+		}
+
+		return null;
+	}
+
+	private function set_background_resolve_cache( $cache_key, $value ) {
+		$value = is_array( $value ) ? $value : [];
+		wp_cache_set( $cache_key, $value, self::BACKGROUND_RESOLVE_CACHE_GROUP, self::BACKGROUND_RESOLVE_CACHE_TTL );
+		set_transient( self::BACKGROUND_RESOLVE_CACHE_PREFIX . $cache_key, $value, self::BACKGROUND_RESOLVE_CACHE_TTL );
 	}
 
 	/**
 	 * Generate attachment metadata with upscaling support.
 	 */
 	private function generate_metadata_with_upscaling( $attachment_id, $file ) {
-		$custom_sizes = get_option( 'marrison_addon_image_sizes', [] );
-		$upscale_sizes = [];
-		$webp_sizes = [];
+		$definitions = $this->get_image_size_generation_definitions();
+		$upscale_sizes = $definitions['upscale'];
+		$webp_sizes = $definitions['modern'];
 
-		// Collect sizes with upscaling and webp enabled
-		if ( ! empty( $custom_sizes ) && is_array( $custom_sizes ) ) {
-			foreach ( $custom_sizes as $size ) {
-				if ( ! empty( $size['slug'] ) ) {
-					$size_data = [
-						'width' => (int) $size['width'],
-						'height' => (int) $size['height'],
-						'crop' => isset( $size['crop'] ) && $size['crop'],
-						'webp' => isset( $size['webp'] ) && $size['webp'],
-						'webp_quality' => isset( $size['webp_quality'] ) ? (int) $size['webp_quality'] : 85,
-						'avif' => isset( $size['avif'] ) && $size['avif'],
-						'avif_quality' => isset( $size['avif_quality'] ) ? (int) $size['avif_quality'] : 75,
-					];
-
-					if ( isset( $size['upscale'] ) && $size['upscale'] ) {
-						$upscale_sizes[ $size['slug'] ] = $size_data;
-					}
-
-					if ( ! empty( $size_data['webp'] ) || ! empty( $size_data['avif'] ) ) {
-						$webp_sizes[ $size['slug'] ] = $size_data;
-					}
-				}
-			}
+		// Generate standard metadata first. The automatic upload filter is
+		// paused here because this manual flow adds modern formats after the
+		// custom upscaling pass below.
+		$previous_skip = $this->skip_automatic_modern_format_generation;
+		$this->skip_automatic_modern_format_generation = true;
+		try {
+			$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
+		} finally {
+			$this->skip_automatic_modern_format_generation = $previous_skip;
 		}
-
-		$webp_sizes = array_merge( $webp_sizes, $this->get_registered_webp_size_definitions() );
-
-		// Generate standard metadata first
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
 
 		if ( is_wp_error( $metadata ) || empty( $metadata ) ) {
 			return $metadata;
@@ -602,9 +628,90 @@ class Marrison_Addon_Image_Sizes {
 			}
 		}
 
+		return $this->generate_modern_formats_for_metadata( $attachment_id, $file, $metadata, $webp_sizes, false );
+	}
+
+	private function get_image_size_generation_definitions() {
+		$custom_sizes = get_option( 'marrison_addon_image_sizes', [] );
+		$disabled_sizes = get_option( 'marrison_addon_disabled_sizes', [] );
+		$upscale_sizes = [];
+		$webp_sizes = [];
+
+		// Collect sizes with upscaling and webp enabled
+		if ( ! empty( $custom_sizes ) && is_array( $custom_sizes ) ) {
+			foreach ( $custom_sizes as $size ) {
+				if ( ! empty( $size['slug'] ) ) {
+					if ( ! empty( $disabled_sizes[ $size['slug'] ] ) ) {
+						continue;
+					}
+
+					$size_data = [
+						'width' => (int) $size['width'],
+						'height' => (int) $size['height'],
+						'crop' => isset( $size['crop'] ) && $size['crop'],
+						'webp' => isset( $size['webp'] ) && $size['webp'],
+						'webp_quality' => isset( $size['webp_quality'] ) ? (int) $size['webp_quality'] : 85,
+						'avif' => isset( $size['avif'] ) && $size['avif'],
+						'avif_quality' => isset( $size['avif_quality'] ) ? (int) $size['avif_quality'] : 75,
+					];
+
+					if ( isset( $size['upscale'] ) && $size['upscale'] ) {
+						$upscale_sizes[ $size['slug'] ] = $size_data;
+					}
+
+					if ( ! empty( $size_data['webp'] ) || ! empty( $size_data['avif'] ) ) {
+						$webp_sizes[ $size['slug'] ] = $size_data;
+					}
+				}
+			}
+		}
+
+		return [
+			'upscale' => $upscale_sizes,
+			'modern' => array_merge( $webp_sizes, $this->get_registered_webp_size_definitions() ),
+		];
+	}
+
+	public function add_modern_formats_to_generated_metadata( $metadata, $attachment_id, $context = 'create' ) {
+		if ( $this->skip_automatic_modern_format_generation ) {
+			return $metadata;
+		}
+
+		if ( is_wp_error( $metadata ) || empty( $metadata ) || ! is_array( $metadata ) ) {
+			return $metadata;
+		}
+
+		$attachment_id = absint( $attachment_id );
+		if ( ! $attachment_id || ( function_exists( 'wp_attachment_is_image' ) && ! wp_attachment_is_image( $attachment_id ) ) ) {
+			return $metadata;
+		}
+
+		$file = get_attached_file( $attachment_id );
+		if ( false === $file || ! is_string( $file ) || ! file_exists( $file ) ) {
+			$this->log_modern_format_generation_error( $attachment_id, '', 'metadata', __( 'File originale non trovato.', 'marrison-addon' ) );
+			return $metadata;
+		}
+
+		return $this->generate_modern_formats_for_metadata( $attachment_id, $file, $metadata, null, true );
+	}
+
+	private function generate_modern_formats_for_metadata( $attachment_id, $file, $metadata, $webp_sizes = null, $reuse_existing_files = true ) {
+		if ( empty( $metadata ) || ! is_array( $metadata ) ) {
+			return $metadata;
+		}
+
+		if ( null === $webp_sizes ) {
+			$definitions = $this->get_image_size_generation_definitions();
+			$webp_sizes = $definitions['modern'];
+		}
+
+		if ( empty( $webp_sizes ) ) {
+			return $metadata;
+		}
+
 		if ( ! empty( $webp_sizes ) && $this->size_definitions_include_format( $webp_sizes, 'webp' ) ) {
 			$full_webp_quality = $this->get_full_webp_quality( $webp_sizes );
-			$full_webp_path = $this->convert_to_format( $file, 'image/webp', $full_webp_quality );
+			$full_webp_path = $this->get_or_create_modern_format_file( $file, 'image/webp', $full_webp_quality, $reuse_existing_files );
 
 			if ( ! is_wp_error( $full_webp_path ) && file_exists( $full_webp_path ) ) {
 				$metadata[ self::WEBP_FULL_METADATA_KEY ] = [
@@ -613,12 +720,14 @@ class Marrison_Addon_Image_Sizes {
 					'width' => isset( $metadata['width'] ) ? (int) $metadata['width'] : 0,
 					'height' => isset( $metadata['height'] ) ? (int) $metadata['height'] : 0,
 				];
+			} else {
+				$this->log_modern_format_generation_error( $attachment_id, 'image/webp', 'full', is_wp_error( $full_webp_path ) ? $full_webp_path : __( 'File WebP generato non trovato dopo la conversione.', 'marrison-addon' ) );
 			}
 		}
 
 		if ( ! empty( $webp_sizes ) && $this->size_definitions_include_format( $webp_sizes, 'avif' ) ) {
 			$full_avif_quality = $this->get_full_avif_quality( $webp_sizes );
-			$full_avif_path = $this->convert_to_format( $file, 'image/avif', $full_avif_quality );
+			$full_avif_path = $this->get_or_create_modern_format_file( $file, 'image/avif', $full_avif_quality, $reuse_existing_files );
 
 			if ( ! is_wp_error( $full_avif_path ) && file_exists( $full_avif_path ) ) {
 				$metadata[ self::AVIF_FULL_METADATA_KEY ] = [
@@ -627,6 +736,8 @@ class Marrison_Addon_Image_Sizes {
 					'width' => isset( $metadata['width'] ) ? (int) $metadata['width'] : 0,
 					'height' => isset( $metadata['height'] ) ? (int) $metadata['height'] : 0,
 				];
+			} else {
+				$this->log_modern_format_generation_error( $attachment_id, 'image/avif', 'full', is_wp_error( $full_avif_path ) ? $full_avif_path : __( 'File AVIF generato non trovato dopo la conversione.', 'marrison-addon' ) );
 			}
 		}
 
@@ -639,28 +750,37 @@ class Marrison_Addon_Image_Sizes {
 					$size_path = dirname( $file ) . '/' . $size_file;
 				} else {
 					// If size doesn't exist, generate it first
-					$size_path = $this->generate_single_size( $file, $slug, $size_data );
+					$generated_size = null;
+					$size_path = $this->generate_single_size( $file, $slug, $size_data, $generated_size );
 					if ( is_wp_error( $size_path ) ) {
+						$this->log_modern_format_generation_error( $attachment_id, '', $slug, $size_path );
 						continue;
 					}
+					$metadata['sizes'][ $slug ] = $generated_size;
 				}
 
 				if ( file_exists( $size_path ) ) {
 					if ( ! empty( $size_data['webp'] ) ) {
 						$webp_quality = isset( $size_data['webp_quality'] ) ? $size_data['webp_quality'] : 85;
-						$webp_path = $this->convert_to_format( $size_path, 'image/webp', $webp_quality );
+						$webp_path = $this->get_or_create_modern_format_file( $size_path, 'image/webp', $webp_quality, $reuse_existing_files );
 						if ( ! is_wp_error( $webp_path ) && file_exists( $webp_path ) ) {
 							$metadata = $this->add_modern_source_to_metadata( $metadata, $slug, $webp_path, 'image/webp', $size_data );
+						} else {
+							$this->log_modern_format_generation_error( $attachment_id, 'image/webp', $slug, is_wp_error( $webp_path ) ? $webp_path : __( 'File WebP generato non trovato dopo la conversione.', 'marrison-addon' ) );
 						}
 					}
 
 					if ( ! empty( $size_data['avif'] ) ) {
 						$avif_quality = isset( $size_data['avif_quality'] ) ? $size_data['avif_quality'] : 75;
-						$avif_path = $this->convert_to_format( $size_path, 'image/avif', $avif_quality );
+						$avif_path = $this->get_or_create_modern_format_file( $size_path, 'image/avif', $avif_quality, $reuse_existing_files );
 						if ( ! is_wp_error( $avif_path ) && file_exists( $avif_path ) ) {
 							$metadata = $this->add_modern_source_to_metadata( $metadata, $slug, $avif_path, 'image/avif', $size_data );
+						} else {
+							$this->log_modern_format_generation_error( $attachment_id, 'image/avif', $slug, is_wp_error( $avif_path ) ? $avif_path : __( 'File AVIF generato non trovato dopo la conversione.', 'marrison-addon' ) );
 						}
 					}
+				} else {
+					$this->log_modern_format_generation_error( $attachment_id, '', $slug, __( 'File della dimensione immagine non trovato.', 'marrison-addon' ) );
 				}
 			}
 		}
@@ -671,7 +791,7 @@ class Marrison_Addon_Image_Sizes {
 	/**
 	 * Generate a single image size.
 	 */
-	private function generate_single_size( $file, $slug, $size_data ) {
+	private function generate_single_size( $file, $slug, $size_data, &$generated_size = null ) {
 		$editor = wp_get_image_editor( $file );
 
 		if ( is_wp_error( $editor ) ) {
@@ -688,12 +808,16 @@ class Marrison_Addon_Image_Sizes {
 
 		// Use center-center crop position for hard crop
 		$crop_position = $crop ? ['center', 'center'] : false;
-		$editor->resize( $dest_w, $dest_h, $crop_position );
+		$resized = $editor->resize( $dest_w, $dest_h, $crop_position );
+		if ( is_wp_error( $resized ) ) {
+			return $resized;
+		}
 		$saved = $editor->save( $editor->generate_filename( $slug ) );
 
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
 		}
+		$generated_size = array_intersect_key( $saved, array_flip( [ 'file', 'width', 'height', 'mime-type', 'filesize' ] ) );
 
 		return dirname( $file ) . '/' . $saved['file'];
 	}
@@ -703,6 +827,30 @@ class Marrison_Addon_Image_Sizes {
 	 */
 	private function convert_to_webp( $file_path, $quality = 85 ) {
 		return $this->convert_to_format( $file_path, 'image/webp', $quality );
+	}
+
+	private function get_or_create_modern_format_file( $file_path, $mime_type, $quality, $reuse_existing_files ) {
+		$output_path = $this->get_modern_format_file_path( $file_path, $mime_type );
+
+		if ( $reuse_existing_files && $output_path && file_exists( $output_path ) ) {
+			return $output_path;
+		}
+
+		return $this->convert_to_format( $file_path, $mime_type, $quality );
+	}
+
+	private function get_modern_format_file_path( $file_path, $mime_type ) {
+		$extension = $this->get_extension_for_mime_type( $mime_type );
+		if ( '' === $extension ) {
+			return '';
+		}
+
+		$output_path = preg_replace( '/\.(jpe?g|png|gif|webp|avif)$/i', '.' . $extension, $file_path );
+		if ( empty( $output_path ) || $output_path === $file_path ) {
+			return '';
+		}
+
+		return $output_path;
 	}
 
 	/**
@@ -728,8 +876,8 @@ class Marrison_Addon_Image_Sizes {
 		}
 
 		$source_mime_type = $image_info['mime'];
-		$output_path = preg_replace( '/\.(jpe?g|png|gif|webp|avif)$/i', '.' . $extension, $file_path );
-		if ( empty( $output_path ) || $output_path === $file_path ) {
+		$output_path = $this->get_modern_format_file_path( $file_path, $mime_type );
+		if ( '' === $output_path ) {
 			return new WP_Error( 'unsupported_format', __( 'Formato immagine non supportato.', 'marrison-addon' ) );
 		}
 
@@ -986,14 +1134,48 @@ class Marrison_Addon_Image_Sizes {
 			$metadata['sizes'][ $slug ]['sources'] = [];
 		}
 
-		$metadata['sizes'][ $slug ]['sources'][] = [
+		$source = [
 			'file' => basename( $file_path ),
 			'mime_type' => $mime_type,
 			'width' => isset( $metadata['sizes'][ $slug ]['width'] ) ? (int) $metadata['sizes'][ $slug ]['width'] : $size_data['width'],
 			'height' => isset( $metadata['sizes'][ $slug ]['height'] ) ? (int) $metadata['sizes'][ $slug ]['height'] : $size_data['height'],
 		];
 
+		foreach ( $metadata['sizes'][ $slug ]['sources'] as $index => $existing_source ) {
+			$existing_mime_type = isset( $existing_source['mime_type'] ) ? $existing_source['mime_type'] : ( isset( $existing_source['mime-type'] ) ? $existing_source['mime-type'] : '' );
+			if ( $mime_type === $existing_mime_type ) {
+				$metadata['sizes'][ $slug ]['sources'][ $index ] = $source;
+				return $metadata;
+			}
+		}
+
+		$metadata['sizes'][ $slug ]['sources'][] = $source;
+
 		return $metadata;
+	}
+
+	private function log_modern_format_generation_error( $attachment_id, $mime_type, $size_slug, $error ) {
+		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG || ! function_exists( 'error_log' ) ) {
+			return;
+		}
+
+		$format = $this->get_extension_for_mime_type( $mime_type );
+		if ( '' === $format ) {
+			$format = $mime_type ? $mime_type : 'n/a';
+		}
+
+		$reason = is_wp_error( $error ) ? $error->get_error_message() : (string) $error;
+		$reason = function_exists( 'wp_strip_all_tags' ) ? wp_strip_all_tags( $reason ) : strip_tags( $reason );
+
+		error_log(
+			sprintf(
+				'[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=%d format=%s size=%s reason=%s',
+				absint( $attachment_id ),
+				$format,
+				'' !== (string) $size_slug ? (string) $size_slug : 'full',
+				$reason
+			)
+		);
 	}
 
 	/**
@@ -2219,7 +2401,7 @@ class Marrison_Addon_Image_Sizes {
 			return;
 		}
 
-		$current_version = defined( 'Marrison_Addon::VERSION' ) ? Marrison_Addon::VERSION : '1';
+		$current_version = class_exists( 'Marrison_Addon' ) ? Marrison_Addon::VERSION : '1';
 		if ( get_option( self::ELEMENTOR_CSS_CACHE_VERSION_OPTION ) === $current_version ) {
 			return;
 		}
@@ -2236,7 +2418,7 @@ class Marrison_Addon_Image_Sizes {
 		}
 
 		if ( $cleared ) {
-			$current_version = defined( 'Marrison_Addon::VERSION' ) ? Marrison_Addon::VERSION : '1';
+			$current_version = class_exists( 'Marrison_Addon' ) ? Marrison_Addon::VERSION : '1';
 			update_option( self::ELEMENTOR_CSS_CACHE_VERSION_OPTION, $current_version, false );
 		}
 	}

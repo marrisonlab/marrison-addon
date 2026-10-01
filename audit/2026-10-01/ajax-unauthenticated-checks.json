@@ -1,0 +1,143 @@
+[
+  {
+    "action": "marrison_clear_elementor_css_cache",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_cookie_refresh_nonce",
+    "http": 200,
+    "body": "{\"success\":true,\"data\":{\"nonce\":\"[REDACTED_NONCE]\"}}"
+  },
+  {
+    "action": "marrison_delete_cookie",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_get_cookie_list",
+    "http": 403,
+    "body": "-1"
+  },
+  {
+    "action": "marrison_get_image_ids",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_get_scanned_cookies",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_local_google_fonts_scan",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_local_google_fonts_scan_update",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_local_google_fonts_update",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_product_discount_batch_start",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_product_discount_batch_step",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_regenerate_single_image",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_repair_cookie_table",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_resolve_background_webp",
+    "http": 200,
+    "body": "{\"success\":true,\"data\":{\"items\":[]}}"
+  },
+  {
+    "action": "marrison_save_consent",
+    "http": 403,
+    "body": "-1"
+  },
+  {
+    "action": "marrison_save_settings",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_scan_cookies",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_test_avif_support",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_update_cookie_category",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_update_preferences",
+    "http": 403,
+    "body": "-1"
+  },
+  {
+    "action": "marrison_wizard_create_pages",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_wizard_dismiss",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_wizard_finish",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_wizard_open",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_wizard_save_step",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "marrison_wizard_scan_cookies",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "mvt_get_thumbnails",
+    "http": 400,
+    "body": "0"
+  },
+  {
+    "action": "mvt_import_thumbnail",
+    "http": 400,
+    "body": "0"
+  }
+]
+

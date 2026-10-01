@@ -46,6 +46,10 @@ class Marrison_Cookie_Banner {
         // AJAX per ottenere elenco cookie scansionati
         add_action('wp_ajax_marrison_get_cookie_list', array($this, 'ajax_get_cookie_list'));
         add_action('wp_ajax_nopriv_marrison_get_cookie_list', array($this, 'ajax_get_cookie_list'));
+
+        // AJAX per rinnovare il nonce quando la pagina arriva da cache.
+        add_action('wp_ajax_marrison_cookie_refresh_nonce', array($this, 'ajax_refresh_nonce'));
+        add_action('wp_ajax_nopriv_marrison_cookie_refresh_nonce', array($this, 'ajax_refresh_nonce'));
     }
     
     /**
@@ -58,8 +62,8 @@ class Marrison_Cookie_Banner {
 
         $frontend_css_path = MARRISON_COOKIE_PLUGIN_DIR . 'assets/css/frontend.css';
         $frontend_js_path = MARRISON_COOKIE_PLUGIN_DIR . 'assets/js/frontend.js';
-        $frontend_css_version = file_exists($frontend_css_path) ? (string) filemtime($frontend_css_path) : MARRISON_COOKIE_VERSION;
-        $frontend_js_version = file_exists($frontend_js_path) ? (string) filemtime($frontend_js_path) : MARRISON_COOKIE_VERSION;
+        $frontend_css_version = class_exists('Marrison_Addon') ? Marrison_Addon::asset_version('includes/modules/cookie-manager/assets/css/frontend.css') : (file_exists($frontend_css_path) ? (string) filemtime($frontend_css_path) : MARRISON_COOKIE_VERSION);
+        $frontend_js_version = class_exists('Marrison_Addon') ? Marrison_Addon::asset_version('includes/modules/cookie-manager/assets/js/frontend.js') : (file_exists($frontend_js_path) ? (string) filemtime($frontend_js_path) : MARRISON_COOKIE_VERSION);
 
         wp_enqueue_style(
             'marrison-cookie-frontend',
@@ -300,6 +304,12 @@ class Marrison_Cookie_Banner {
         }
         
         wp_send_json_success(array('categories' => $category_html));
+    }
+
+    public function ajax_refresh_nonce() {
+        wp_send_json_success(array(
+            'nonce' => wp_create_nonce('marrison_cookie_nonce'),
+        ));
     }
     
     /**

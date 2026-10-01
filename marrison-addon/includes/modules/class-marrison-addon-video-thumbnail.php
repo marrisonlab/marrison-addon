@@ -48,11 +48,10 @@ class Marrison_Addon_Video_Thumbnail {
 			return;
 		}
 
-		$base_path = plugin_dir_path( __FILE__ ) . 'video-thumbnail/assets/';
-		$base_url = plugins_url( 'includes/modules/video-thumbnail/assets/', dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php' );
+		$base_url = plugins_url( 'includes/modules/video-thumbnail/assets/', Marrison_Addon::plugin_file() );
 
-		wp_enqueue_style( 'mvt-style', $base_url . 'style.css', array(), filemtime( $base_path . 'style.css' ) );
-		wp_enqueue_script( 'mvt-script', $base_url . 'script.js', array( 'jquery' ), filemtime( $base_path . 'script.js' ), true );
+		wp_enqueue_style( 'mvt-style', $base_url . 'style.css', array(), Marrison_Addon::asset_version( 'includes/modules/video-thumbnail/assets/style.css' ) );
+		wp_enqueue_script( 'mvt-script', $base_url . 'script.js', array( 'jquery' ), Marrison_Addon::asset_version( 'includes/modules/video-thumbnail/assets/script.js' ), true );
 		wp_localize_script(
 			'mvt-script',
 			'mvtData',

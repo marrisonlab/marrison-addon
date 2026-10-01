@@ -1,0 +1,202 @@
+[
+  {
+    "file": "all-off.txt",
+    "mode": "off",
+    "module": "all-off",
+    "loaded": "",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "anchor_offset.txt",
+    "mode": "isolation",
+    "module": "anchor_offset",
+    "loaded": "anchor_offset",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "browser_cache.txt",
+    "mode": "isolation",
+    "module": "browser_cache",
+    "loaded": "browser_cache",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "calendar_sync.txt",
+    "mode": "isolation",
+    "module": "calendar_sync",
+    "loaded": "calendar_sync",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "cookie_manager.txt",
+    "mode": "isolation",
+    "module": "cookie_manager",
+    "loaded": "cookie_manager",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "cursor.txt",
+    "mode": "isolation",
+    "module": "cursor",
+    "loaded": "cursor",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "dynamic_svg.txt",
+    "mode": "isolation",
+    "module": "dynamic_svg",
+    "loaded": "dynamic_svg",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "fast_logout.txt",
+    "mode": "isolation",
+    "module": "fast_logout",
+    "loaded": "fast_logout",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "header_animations.txt",
+    "mode": "isolation",
+    "module": "header_animations",
+    "loaded": "header_animations",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "horizontal_scroll.txt",
+    "mode": "isolation",
+    "module": "horizontal_scroll",
+    "loaded": "horizontal_scroll",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "image_sizes.txt",
+    "mode": "isolation",
+    "module": "image_sizes",
+    "loaded": "image_sizes",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "liquid_background.txt",
+    "mode": "isolation",
+    "module": "liquid_background",
+    "loaded": "liquid_background",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "listing_title.txt",
+    "mode": "isolation",
+    "module": "listing_title",
+    "loaded": "listing_title",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "local_google_fonts.txt",
+    "mode": "isolation",
+    "module": "local_google_fonts",
+    "loaded": "local_google_fonts",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "no-elementor.txt",
+    "mode": "no-elementor",
+    "module": "none",
+    "loaded": "wrapped_link,read_more,horizontal_scroll,liquid_background,ticker,steps,product_discount,recently_viewed_products,listing_title,dynamic_svg,header_animations,anchor_offset,image_sizes,local_google_fonts,browser_cache,cursor,preloader,fast_logout,calendar_sync,cookie_manager,video_thumbnail",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "no-jetengine.txt",
+    "mode": "no-jetengine",
+    "module": "none",
+    "loaded": "wrapped_link,read_more,horizontal_scroll,liquid_background,ticker,steps,product_discount,header_animations,anchor_offset,image_sizes,local_google_fonts,browser_cache,cursor,preloader,fast_logout,calendar_sync,cookie_manager,video_thumbnail",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "no-woocommerce.txt",
+    "mode": "no-woocommerce",
+    "module": "none",
+    "loaded": "wrapped_link,read_more,horizontal_scroll,liquid_background,ticker,steps,listing_title,dynamic_svg,header_animations,anchor_offset,image_sizes,local_google_fonts,browser_cache,cursor,preloader,fast_logout,calendar_sync,cookie_manager,video_thumbnail",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "preloader.txt",
+    "mode": "isolation",
+    "module": "preloader",
+    "loaded": "preloader",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "product_discount.txt",
+    "mode": "isolation",
+    "module": "product_discount",
+    "loaded": "product_discount",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "read_more.txt",
+    "mode": "isolation",
+    "module": "read_more",
+    "loaded": "read_more",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "recently_viewed_products.txt",
+    "mode": "isolation",
+    "module": "recently_viewed_products",
+    "loaded": "recently_viewed_products",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "steps.txt",
+    "mode": "isolation",
+    "module": "steps",
+    "loaded": "steps",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "ticker.txt",
+    "mode": "isolation",
+    "module": "ticker",
+    "loaded": "ticker",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "video_thumbnail.txt",
+    "mode": "isolation",
+    "module": "video_thumbnail",
+    "loaded": "video_thumbnail",
+    "errors": 0,
+    "public": true
+  },
+  {
+    "file": "wrapped_link.txt",
+    "mode": "isolation",
+    "module": "wrapped_link",
+    "loaded": "wrapped_link",
+    "errors": 0,
+    "public": true
+  }
+]

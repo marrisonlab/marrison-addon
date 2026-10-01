@@ -1,0 +1,22 @@
+
+Warning: PHP Startup: Unable to load dynamic library 'php_imagick.dll' (tried: C:/Users/Angelo/AppData/Roaming/Local/lightning-services/php-8.2.29+0/bin/win64/ext\php_imagick.dll (Impossibile trovare il modulo specificato), C:/Users/Angelo/AppData/Roaming/Local/lightning-services/php-8.2.29+0/bin/win64/ext\php_php_imagick.dll.dll (Impossibile trovare il modulo specificato)) in Unknown on line 0
+		<div class="ticker-wrapper" style="overflow: hidden; white-space: nowrap;">
+			<div class="ticker-move " style="display: inline-block; white-space: nowrap; animation: ticker-infinite-left 10s linear infinite;">
+				<div class="ticker-loop-inner" style="display: inline-block;"></div>
+				<div class="ticker-loop-inner" style="display: inline-block;"></div>
+			</div>
+		</div>
+		<style>
+			@keyframes ticker-infinite-left {
+				0% { transform: translate3d(0, 0, 0); }
+				100% { transform: translate3d(-50%, 0, 0); }
+			}
+			@keyframes ticker-infinite-right {
+				0% { transform: translate3d(-50%, 0, 0); }
+				100% { transform: translate3d(0, 0, 0); }
+			}
+			.ticker-pause-hover:hover {
+				animation-play-state: paused !important;
+			}
+		</style>
+		render=ok

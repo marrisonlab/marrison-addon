@@ -14,19 +14,13 @@ class Marrison_Addon_Anchor_Offset {
 			return;
 		}
 
-		$plugin_root_file = dirname( dirname( dirname( __FILE__ ) ) ) . '/marrison-addon.php';
-		$script_path      = plugin_dir_path( $plugin_root_file ) . 'assets/js/marrison-anchor-offset.js';
-		$asset_version    = Marrison_Addon::VERSION;
-
-		if ( file_exists( $script_path ) ) {
-			$asset_version .= '.' . filemtime( $script_path );
-		}
+		$plugin_root_file = Marrison_Addon::plugin_file();
 
 		wp_enqueue_script(
 			'marrison-anchor-offset',
 			plugins_url( 'assets/js/marrison-anchor-offset.js', $plugin_root_file ),
 			[],
-			$asset_version,
+			Marrison_Addon::asset_version( 'assets/js/marrison-anchor-offset.js' ),
 			true
 		);
 	}

@@ -5,6 +5,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Marrison_Addon_Updater {
 
+	private const VERSION_TRANSIENT = 'marrison_addon_github_version';
+	private const VERSION_FAILURE_TRANSIENT = 'marrison_addon_github_version_failure';
+	private const INFO_TRANSIENT = 'marrison_addon_github_info_v3';
+
 	private $slug; // plugin slug (e.g., marrison-addon/marrison-addon.php)
 	private $plugin_file; // __FILE__ of our plugin
 	private $username;
@@ -37,31 +41,55 @@ class Marrison_Addon_Updater {
 		global $wp_filesystem;
 		if ( ! $wp_filesystem ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
-			WP_Filesystem();
+			if ( ! WP_Filesystem() || ! $wp_filesystem ) {
+				return new WP_Error( 'marrison_updater_filesystem', __( 'Impossibile inizializzare il filesystem per aggiornare Marrison Addon.', 'marrison-addon' ) );
+			}
 		}
 
-		// The source folder usually has the version number (e.g., marrison-addon-1.0.0)
-		// We want to rename it to the correct slug (e.g., marrison-addon)
 		$correct_slug = dirname( $this->slug );
 		$new_source   = trailingslashit( $remote_source ) . $correct_slug . '/';
+		$plugin_entry = basename( $this->slug );
+		$source = trailingslashit( $source );
 
-		if ( $source !== $new_source ) {
-			$wp_filesystem->move( $source, $new_source );
-			return $new_source;
+		// GitHub tag archives contain the checkout; release ZIPs may contain only the plugin.
+		if ( ! $wp_filesystem->is_file( $source . $plugin_entry ) ) {
+			$nested_source = $source . $correct_slug . '/';
+			if ( ! $wp_filesystem->is_file( $nested_source . $plugin_entry ) ) {
+				return new WP_Error( 'marrison_updater_layout', __( 'Il pacchetto non contiene il file principale di Marrison Addon.', 'marrison-addon' ) );
+			}
+			$source = $nested_source;
 		}
 
-		return $source;
+		if ( $source === $new_source ) {
+			return $source;
+		}
+
+		if ( $wp_filesystem->exists( $new_source ) || ! $wp_filesystem->move( $source, $new_source ) ) {
+			return new WP_Error( 'marrison_updater_move', __( 'Impossibile preparare la cartella di aggiornamento di Marrison Addon.', 'marrison-addon' ) );
+		}
+
+		if ( ! $wp_filesystem->is_file( $new_source . $plugin_entry ) ) {
+			return new WP_Error( 'marrison_updater_entry', __( 'Il file principale manca nella cartella di aggiornamento.', 'marrison-addon' ) );
+		}
+
+		return $new_source;
 	}
 
 	public function clean_cache() {
-		delete_transient( 'marrison_addon_github_version' );
+		delete_transient( self::VERSION_TRANSIENT );
+		delete_transient( self::VERSION_FAILURE_TRANSIENT );
+		delete_transient( self::INFO_TRANSIENT );
 		delete_transient( 'marrison_addon_github_info' );
 	}
 
 	private function get_github_version() {
-		$cached = get_transient( 'marrison_addon_github_version' );
+		$cached = get_transient( self::VERSION_TRANSIENT );
 		if ( $cached !== false ) {
 			return $cached;
+		}
+
+		if ( false !== get_transient( self::VERSION_FAILURE_TRANSIENT ) ) {
+			return false;
 		}
 
 		$url = "https://api.github.com/repos/{$this->username}/{$this->repo}/releases/latest";
@@ -75,18 +103,30 @@ class Marrison_Addon_Updater {
 		] );
 
 		if ( is_wp_error( $response ) ) {
+			$this->cache_github_version_failure();
+			return false;
+		}
+
+		if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+			$this->cache_github_version_failure();
 			return false;
 		}
 
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( empty( $body['tag_name'] ) ) {
+			$this->cache_github_version_failure();
 			return false;
 		}
 
-		$version = str_replace( 'v', '', $body['tag_name'] );
-		set_transient( 'marrison_addon_github_version', $version, 6 * HOUR_IN_SECONDS );
+		$version = ltrim( (string) $body['tag_name'], 'vV' );
+		set_transient( self::VERSION_TRANSIENT, $version, 6 * HOUR_IN_SECONDS );
+		delete_transient( self::VERSION_FAILURE_TRANSIENT );
 
 		return $version;
+	}
+
+	private function cache_github_version_failure() {
+		set_transient( self::VERSION_FAILURE_TRANSIENT, 1, 30 * MINUTE_IN_SECONDS );
 	}
 
 	public function check_update( $transient ) {
@@ -174,8 +214,7 @@ class Marrison_Addon_Updater {
 
 		// Fetch full release info for description/changelog
 		// We use a separate transient for this to avoid heavy API calls
-		$cache_key = 'marrison_addon_github_info_v3';
-		$cached_info = get_transient( $cache_key );
+		$cached_info = get_transient( self::INFO_TRANSIENT );
 
 		if ( $cached_info !== false ) {
 			return $cached_info;
@@ -234,7 +273,7 @@ class Marrison_Addon_Updater {
 			'high' => "https://raw.githubusercontent.com/{$this->username}/{$this->repo}/main/assets/banner-772x250.png"
 		];
 
-		set_transient( $cache_key, $res, 12 * HOUR_IN_SECONDS );
+		set_transient( self::INFO_TRANSIENT, $res, 12 * HOUR_IN_SECONDS );
 
 		return $res;
 	}
@@ -242,7 +281,7 @@ class Marrison_Addon_Updater {
 	private function get_github_readme() {
 		// Smart check: If local version is newer than remote, use local README
 		// This helps during development or when changes haven't been pushed yet
-		$local_version = defined( 'Marrison_Addon::VERSION' ) ? Marrison_Addon::VERSION : '';
+		$local_version = class_exists( 'Marrison_Addon' ) ? Marrison_Addon::VERSION : '';
 		$remote_version = $this->get_github_version();
 
 		// If we can't get remote version or local is newer/equal, try local file first

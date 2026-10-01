@@ -1,0 +1,314 @@
+[
+  {
+    "file": "icon.svg",
+    "match": true
+  },
+  {
+    "file": "marrison-addon.php",
+    "match": true
+  },
+  {
+    "file": "README.md",
+    "match": true
+  },
+  {
+    "file": "assets\\icon.svg",
+    "match": true
+  },
+  {
+    "file": "assets\\css\\admin.css",
+    "match": true
+  },
+  {
+    "file": "assets\\css\\horizontal-scroll.css",
+    "match": true
+  },
+  {
+    "file": "assets\\css\\marrison-cursor.css",
+    "match": true
+  },
+  {
+    "file": "assets\\css\\marrison-header-animations.css",
+    "match": true
+  },
+  {
+    "file": "assets\\css\\marrison-liquid-background.css",
+    "match": true
+  },
+  {
+    "file": "assets\\css\\marrison-preloader.css",
+    "match": true
+  },
+  {
+    "file": "assets\\css\\marrison-read-more.css",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\admin-browser-cache.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\admin-cursor.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\admin-global.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\admin-image-sizes.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\admin-local-google-fonts.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\admin-preloader.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\admin-product-discount.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\horizontal-scroll.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-addon.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-anchor-offset.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-bg-webp.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-cursor.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-header-animations.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-liquid-background.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-preloader.js",
+    "match": true
+  },
+  {
+    "file": "assets\\js\\marrison-read-more.js",
+    "match": true
+  },
+  {
+    "file": "includes\\class-marrison-addon-context.php",
+    "match": true
+  },
+  {
+    "file": "includes\\class-marrison-addon-updater.php",
+    "match": true
+  },
+  {
+    "file": "includes\\admin\\class-marrison-addon-admin.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-anchor-offset.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-browser-cache.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-calendar-sync.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-cookie-manager.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-cursor.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-dynamic-svg.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-fast-logout.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-header-animations.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-horizontal-scroll.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-image-sizes.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-liquid-background.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-listing-title.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-local-google-fonts.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-preloader.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-product-discount.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-read-more.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-recently-viewed-products.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-steps.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-ticker.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-video-thumbnail.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\class-marrison-addon-wrapped-link.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\browser-cache\\class-browser-cache-admin.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\browser-cache\\class-browser-cache-diagnostics.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\browser-cache\\class-browser-cache-server.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\assets\\css\\admin.css",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\assets\\css\\frontend.css",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\assets\\css\\wizard.css",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\assets\\js\\admin.js",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\assets\\js\\frontend.js",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\assets\\js\\wizard.js",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\includes\\class-admin-settings.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\includes\\class-cookie-banner.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\includes\\class-cookie-consent.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\includes\\class-cookie-scanner.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\includes\\class-setup-wizard.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\templates\\admin-settings.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\templates\\cookie-banner.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\templates\\cookie-preferences.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\templates\\floating-widget.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\cookie-manager\\templates\\setup-wizard.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\product-discount\\widgets\\product-discount-widget.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\recently-viewed-products\\macros\\recently-viewed-products.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\steps\\assets\\css\\marrison-steps.css",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\steps\\includes\\class-marrison-steps-plugin.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\steps\\includes\\widgets\\class-marrison-steps-widget.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\ticker\\widgets\\ticker-widget.php",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\video-thumbnail\\assets\\script.js",
+    "match": true
+  },
+  {
+    "file": "includes\\modules\\video-thumbnail\\assets\\style.css",
+    "match": true
+  }
+]

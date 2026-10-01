@@ -1,0 +1,14 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Preloader functional audit</title>
+<link rel="stylesheet" href="/wp-content/plugins/marrison-addon/assets/css/marrison-preloader.css">
+<style>body{font:20px Arial;margin:40px}a{display:block;margin:30px}#target{margin-top:1200px}</style></head><body>
+<div id="marrison-preloader" class="marrison-anim-fade"><div class="marrison-preloader-content">Audit preloader</div></div>
+<h1>Preloader: navigation and cancelled actions</h1>
+<a id="hash-empty" href="#">Empty hash — should scroll without blocking</a>
+<a id="hash-target" href="#target">Same-page target</a>
+<a id="cancelled" href="/marrison-audit-p2-preloader.html?cancelled-navigation=1">Action with preventDefault</a>
+<a id="normal" href="/marrison-audit-p2-destination.html">Normal navigation</a>
+<output id="action-state">idle</output><div id="target">Target</div>
+<script>var marrison_preloader_settings={transition_duration:100,max_wait:8000};document.getElementById('cancelled').addEventListener('click',function(e){e.preventDefault();document.getElementById('action-state').textContent='action handled; navigation cancelled';});window.addEventListener('pageshow',function(e){document.body.dataset.pageshowPersisted=String(e.persisted);});</script>
+<script src="/wp-content/plugins/marrison-addon/assets/js/marrison-preloader.js"></script>
+</body></html>

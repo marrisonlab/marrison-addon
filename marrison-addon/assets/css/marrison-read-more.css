@@ -1,0 +1,38 @@
+.marrison-read-more {
+	--marrison-read-more-collapsed-height: none;
+	--marrison-read-more-background: #fff;
+}
+
+.marrison-read-more-content {
+	position: relative;
+}
+
+.marrison-read-more.marrison-read-more--active.is-collapsed .marrison-read-more-content {
+	max-height: var(--marrison-read-more-collapsed-height);
+	overflow: hidden;
+}
+
+.marrison-read-more-toggle-wrap {
+	display: none;
+}
+
+.marrison-read-more.marrison-read-more--active .marrison-read-more-toggle-wrap {
+	display: block;
+}
+
+.marrison-read-more-toggle {
+	appearance: none;
+	display: inline-block;
+	border: 0;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	line-height: inherit;
+	text-align: inherit;
+	cursor: pointer;
+}
+
+.marrison-read-more-toggle:hover,
+.marrison-read-more-toggle:focus {
+	text-decoration: none;
+}

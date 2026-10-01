@@ -1,0 +1,50 @@
+[
+    {
+        "name": "snapfull",
+        "post_id": 114,
+        "html": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-snapfull.html",
+        "css": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-snapfull.css",
+        "has_data": true,
+        "child_count": 6
+    },
+    {
+        "name": "snapboxed",
+        "post_id": 115,
+        "html": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-snapboxed.html",
+        "css": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-snapboxed.css",
+        "has_data": true,
+        "child_count": 6
+    },
+    {
+        "name": "percent33-50-80",
+        "post_id": 116,
+        "html": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-percent33-50-80.html",
+        "css": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-percent33-50-80.css",
+        "has_data": true,
+        "child_count": 6
+    },
+    {
+        "name": "nested-row",
+        "post_id": 117,
+        "html": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-nested-row.html",
+        "css": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-nested-row.css",
+        "has_data": true,
+        "child_count": 7
+    },
+    {
+        "name": "direction-ltr",
+        "post_id": 118,
+        "html": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-direction-ltr.html",
+        "css": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-direction-ltr.css",
+        "has_data": true,
+        "child_count": 6
+    },
+    {
+        "name": "pin-false",
+        "post_id": 119,
+        "html": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-pin-false.html",
+        "css": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\bugfixes/horizontal-pin-false.css",
+        "has_data": true,
+        "child_count": 6
+    }
+]

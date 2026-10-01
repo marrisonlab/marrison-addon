@@ -29,7 +29,7 @@
 	left: 0;
 	z-index: 1;
 	height: var(--marrison-liquid-blend-height, 45%);
-	background: linear-gradient(to bottom, transparent 0%, var(--marrison-liquid-blend-color, #000) 68%, var(--marrison-liquid-blend-color, #000) 100%);
+	background: linear-gradient(to bottom, transparent 0%, var(--marrison-liquid-blend-color, #000) 100%);
 }
 
 .marrison-liquid-background-fallback {
@@ -42,7 +42,6 @@
 	opacity: var(--marrison-liquid-opacity, 1);
 }
 
-.marrison-liquid-background-host > :where(:not(.marrison-liquid-background-canvas):not(.marrison-liquid-background-fallback):not(.marrison-liquid-background-blend):not(.elementor-background-video-container):not(.elementor-background-overlay)) {
-	position: relative;
+.marrison-liquid-background-host > :where(:not(.marrison-liquid-background-canvas):not(.marrison-liquid-background-fallback):not(.marrison-liquid-background-blend):not(.elementor-background-video-container):not(.elementor-background-overlay):not(.elementor-background-slideshow):not(.elementor-motion-effects-container):not(.elementor-shape)) {
 	z-index: 2;
 }

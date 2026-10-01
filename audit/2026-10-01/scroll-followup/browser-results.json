@@ -1,0 +1,1228 @@
+{
+  "before": {
+    "continuous": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": false,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        442.5,
+        1773.0625,
+        1640,
+        848.640625
+      ],
+      "hostOverflow": "visible",
+      "mover": [
+        442.5,
+        1783.0625,
+        1640,
+        828.640625
+      ],
+      "pinned": false,
+      "root": [
+        0,
+        1773.0625,
+        2525,
+        848.640625
+      ],
+      "scene": [
+        0,
+        1773.0625,
+        2525,
+        848.640625
+      ],
+      "scrollWidth": 6620,
+      "scrollY": 0,
+      "slides": [
+        [
+          442.5,
+          1783.0625,
+          1640,
+          828.640625
+        ],
+        [
+          2102.5,
+          1783.0625,
+          1640,
+          828.640625
+        ],
+        [
+          3762.5,
+          1783.0625,
+          1640,
+          828.640625
+        ],
+        [
+          5422.5,
+          1783.0625,
+          1640,
+          828.640625
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        2540,
+        737
+      ]
+    },
+    "snap": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        10,
+        1773.0625,
+        2505,
+        1287.171875
+      ],
+      "hostOverflow": "visible",
+      "mover": [
+        10,
+        1783.0625,
+        2505,
+        1267.171875
+      ],
+      "pinned": false,
+      "root": [
+        0,
+        1773.0625,
+        2525,
+        1287.171875
+      ],
+      "scene": [
+        0,
+        1773.0625,
+        2525,
+        1287.171875
+      ],
+      "scrollWidth": 10080,
+      "scrollY": 0,
+      "slides": [
+        [
+          10,
+          1783.0625,
+          2505,
+          1267.171875
+        ],
+        [
+          2535,
+          1783.0625,
+          2505,
+          1267.171875
+        ],
+        [
+          5060,
+          1783.0625,
+          2505,
+          1267.171875
+        ],
+        [
+          7585,
+          1783.0625,
+          2505,
+          1267.171875
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        2540,
+        737
+      ]
+    },
+    "fit": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        10,
+        1850,
+        1245,
+        707
+      ],
+      "hostOverflow": "visible",
+      "mover": [
+        10,
+        1889.296875,
+        1245,
+        628.390625
+      ],
+      "pinned": true,
+      "root": [
+        0,
+        1850,
+        1265,
+        707
+      ],
+      "scene": [
+        0,
+        1850,
+        1265,
+        4502
+      ],
+      "scrollWidth": 5040,
+      "scrollY": 0,
+      "slides": [
+        [
+          10,
+          1889.296875,
+          1245,
+          628.390625
+        ],
+        [
+          1275,
+          1889.296875,
+          1245,
+          628.390625
+        ],
+        [
+          2540,
+          1889.296875,
+          1245,
+          628.390625
+        ],
+        [
+          3805,
+          1889.296875,
+          1245,
+          628.390625
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        1280,
+        900
+      ]
+    },
+    "snapAlignmentObserved": {
+      "viewport": [
+        2540,
+        737
+      ],
+      "scrollY": 1773,
+      "rootTop": 0.0625,
+      "rootHeight": 1287.171875,
+      "pinned": false,
+      "transform": "translate3d(-2525px, 0px, 0px)"
+    }
+  },
+  "after": {
+    "continuous": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": false,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        442.5,
+        0.0625,
+        1640,
+        848.640625
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        -1871.469970703125,
+        10.0625,
+        1640,
+        828.640625
+      ],
+      "pinned": false,
+      "root": [
+        0,
+        0.0625,
+        2525,
+        848.640625
+      ],
+      "scene": [
+        0,
+        0.0625,
+        2525,
+        848.640625
+      ],
+      "scrollWidth": 6620,
+      "scrollY": 1773,
+      "slides": [
+        [
+          -1871.469970703125,
+          10.0625,
+          1640,
+          828.640625
+        ],
+        [
+          -211.469970703125,
+          10.0625,
+          1640,
+          828.640625
+        ],
+        [
+          1448.530029296875,
+          10.0625,
+          1640,
+          828.640625
+        ],
+        [
+          3108.530029296875,
+          10.0625,
+          1640.000244140625,
+          828.640625
+        ]
+      ],
+      "transform": "translate3d(-2313.97px, 0px, 0px)",
+      "viewport": [
+        2540,
+        737
+      ]
+    },
+    "snap": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        442.5,
+        0.0625,
+        1640,
+        737
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        442.5,
+        10.0625,
+        1640,
+        717
+      ],
+      "pinned": true,
+      "root": [
+        0,
+        0.0625,
+        2525,
+        737
+      ],
+      "scene": [
+        0,
+        0.0625,
+        2525,
+        5717
+      ],
+      "scrollWidth": 6620,
+      "scrollY": 1773,
+      "slides": [
+        [
+          442.5,
+          10.0625,
+          1640,
+          717
+        ],
+        [
+          2102.5,
+          10.0625,
+          1640,
+          717
+        ],
+        [
+          3762.5,
+          10.0625,
+          1640,
+          717
+        ],
+        [
+          5422.5,
+          10.0625,
+          1640,
+          717
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        2540,
+        737
+      ]
+    },
+    "fit": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        10,
+        0,
+        1245,
+        707
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        10,
+        39.296875,
+        1245,
+        628.390625
+      ],
+      "pinned": true,
+      "root": [
+        0,
+        0,
+        1265,
+        707
+      ],
+      "scene": [
+        0,
+        0,
+        1265,
+        4502
+      ],
+      "scrollWidth": 5040,
+      "scrollY": 1850,
+      "slides": [
+        [
+          10,
+          39.296875,
+          1245,
+          628.390625
+        ],
+        [
+          1275,
+          39.296875,
+          1245,
+          628.390625
+        ],
+        [
+          2540,
+          39.296875,
+          1245,
+          628.390625
+        ],
+        [
+          3805,
+          39.296875,
+          1245,
+          628.390625
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        1280,
+        900
+      ]
+    },
+    "directEntry": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        10,
+        719.4375,
+        1245,
+        707
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        10,
+        758.734375,
+        1245,
+        628.390625
+      ],
+      "pinned": true,
+      "root": [
+        0,
+        719.4375,
+        1265,
+        707
+      ],
+      "scene": [
+        0,
+        719.4375,
+        1265,
+        4502
+      ],
+      "scrollWidth": 5040,
+      "scrollY": 906,
+      "slides": [
+        [
+          10,
+          758.734375,
+          1245,
+          628.390625
+        ],
+        [
+          1275,
+          758.734375,
+          1245,
+          628.390625
+        ],
+        [
+          2540,
+          758.734375,
+          1245,
+          628.390625
+        ],
+        [
+          3805,
+          758.734375,
+          1245,
+          628.390625
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "directAligned": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        10,
+        0,
+        1245,
+        707
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        10,
+        39.296875,
+        1245,
+        628.390625
+      ],
+      "pinned": true,
+      "root": [
+        0,
+        0,
+        1265,
+        707
+      ],
+      "scene": [
+        0,
+        -0.5625,
+        1265,
+        4502
+      ],
+      "scrollWidth": 5040,
+      "scrollY": 1626,
+      "slides": [
+        [
+          10,
+          39.296875,
+          1245,
+          628.390625
+        ],
+        [
+          1275,
+          39.296875,
+          1245,
+          628.390625
+        ],
+        [
+          2540,
+          39.296875,
+          1245,
+          628.390625
+        ],
+        [
+          3805,
+          39.296875,
+          1245,
+          628.390625
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "wideImageFit": {
+      "first": 442.5,
+      "hostEnd": 2082.5,
+      "images": [
+        {
+          "fit": "contain",
+          "height": 517,
+          "limit": "517px",
+          "maxHeight": "517px"
+        },
+        {
+          "fit": "contain",
+          "height": 517,
+          "limit": "517px",
+          "maxHeight": "517px"
+        },
+        {
+          "fit": "contain",
+          "height": 517,
+          "limit": "517px",
+          "maxHeight": "517px"
+        },
+        {
+          "fit": "contain",
+          "height": 517,
+          "limit": "517px",
+          "maxHeight": "517px"
+        }
+      ],
+      "next": 2102.5,
+      "pinned": true,
+      "rootHeight": 737,
+      "viewport": [
+        2540,
+        737
+      ]
+    },
+    "directNext": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        10,
+        0,
+        1245,
+        707
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        -1255,
+        39.296875,
+        1245,
+        628.390625
+      ],
+      "pinned": true,
+      "root": [
+        0,
+        0,
+        1265,
+        707
+      ],
+      "scene": [
+        0,
+        -1264.5625,
+        1265,
+        4502
+      ],
+      "scrollWidth": 5040,
+      "scrollY": 2890,
+      "slides": [
+        [
+          -1255,
+          39.296875,
+          1245,
+          628.390625
+        ],
+        [
+          10,
+          39.296875,
+          1245,
+          628.390625
+        ],
+        [
+          1275,
+          39.296875,
+          1245,
+          628.390625
+        ],
+        [
+          2540,
+          39.296875,
+          1245,
+          628.390625
+        ]
+      ],
+      "transform": "translate3d(-1265px, 0px, 0px)",
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "mobileRestore": {
+      "hasMover": false,
+      "hostClass": "e-con-inner",
+      "images": [
+        {
+          "class": "attachment-full size-full wp-image-1503",
+          "limit": ""
+        },
+        {
+          "class": "attachment-full size-full wp-image-3817",
+          "limit": ""
+        },
+        {
+          "class": "attachment-full size-full wp-image-3111",
+          "limit": ""
+        },
+        {
+          "class": "attachment-full size-full wp-image-3109",
+          "limit": ""
+        }
+      ],
+      "viewport": [
+        390,
+        844
+      ]
+    },
+    "continuousEntry": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": false,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        442.5,
+        736.0625,
+        1640,
+        848.640625
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        439.55999755859375,
+        746.0625,
+        1640,
+        828.640625
+      ],
+      "pinned": false,
+      "root": [
+        0,
+        736.0625,
+        2525,
+        848.640625
+      ],
+      "scene": [
+        0,
+        736.0625,
+        2525,
+        848.640625
+      ],
+      "scrollWidth": 6620,
+      "scrollY": 1037,
+      "slides": [
+        [
+          439.55999755859375,
+          746.0625,
+          1640,
+          828.640625
+        ],
+        [
+          2099.56005859375,
+          746.0625,
+          1640,
+          828.640625
+        ],
+        [
+          3759.56005859375,
+          746.0625,
+          1640,
+          828.640625
+        ],
+        [
+          5419.56005859375,
+          746.0625,
+          1640,
+          828.640625
+        ]
+      ],
+      "transform": "translate3d(-2.94px, 0px, 0px)",
+      "viewport": [
+        2540,
+        737
+      ]
+    },
+    "snapEntry": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        442.5,
+        736.0625,
+        1640,
+        737
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        442.5,
+        746.0625,
+        1640,
+        717
+      ],
+      "pinned": true,
+      "root": [
+        0,
+        736.0625,
+        2525,
+        737
+      ],
+      "scene": [
+        0,
+        736.0625,
+        2525,
+        5717
+      ],
+      "scrollWidth": 6620,
+      "scrollY": 1037,
+      "slides": [
+        [
+          442.5,
+          746.0625,
+          1640,
+          717
+        ],
+        [
+          2102.5,
+          746.0625,
+          1640,
+          717
+        ],
+        [
+          3762.5,
+          746.0625,
+          1640,
+          717
+        ],
+        [
+          5422.5,
+          746.0625,
+          1640,
+          717
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        2540,
+        737
+      ]
+    },
+    "fitEntry": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        10,
+        899,
+        1245,
+        707
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        10,
+        938.296875,
+        1245,
+        628.390625
+      ],
+      "pinned": true,
+      "root": [
+        0,
+        899,
+        1265,
+        707
+      ],
+      "scene": [
+        0,
+        899,
+        1265,
+        4502
+      ],
+      "scrollWidth": 5040,
+      "scrollY": 951,
+      "slides": [
+        [
+          10,
+          938.296875,
+          1245,
+          628.390625
+        ],
+        [
+          1275,
+          938.296875,
+          1245,
+          628.390625
+        ],
+        [
+          2540,
+          938.296875,
+          1245,
+          628.390625
+        ],
+        [
+          3805,
+          938.296875,
+          1245,
+          628.390625
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        1280,
+        900
+      ]
+    },
+    "wideRestored": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": true,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        442.5,
+        0.0625,
+        1640,
+        737
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        442.5,
+        10.0625,
+        1640,
+        717
+      ],
+      "pinned": true,
+      "root": [
+        0,
+        0.0625,
+        2525,
+        737
+      ],
+      "scene": [
+        0,
+        0.0625,
+        2525,
+        5717
+      ],
+      "scrollWidth": 6620,
+      "scrollY": 1773,
+      "slides": [
+        [
+          442.5,
+          10.0625,
+          1640,
+          717
+        ],
+        [
+          2102.5,
+          10.0625,
+          1640,
+          717
+        ],
+        [
+          3762.5,
+          10.0625,
+          1640,
+          717
+        ],
+        [
+          5422.5,
+          10.0625,
+          1640,
+          717
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        2540,
+        737
+      ]
+    },
+    "continuousBoxedRest": {
+      "config": {
+        "backgroundScale": {
+          "enabled": false,
+          "from": 0,
+          "to": 1
+        },
+        "breakpoints": {
+          "mobile": 767,
+          "tablet": 1024
+        },
+        "devices": {
+          "desktop": true,
+          "mobile": false,
+          "tablet": true
+        },
+        "direction": "rtl",
+        "pin": true,
+        "snap": false,
+        "snapThreshold": 220,
+        "speed": 1
+      },
+      "host": [
+        442.5,
+        0,
+        1640,
+        848.640625
+      ],
+      "hostOverflow": "clip visible",
+      "mover": [
+        442.5,
+        10,
+        1640,
+        828.640625
+      ],
+      "pinned": true,
+      "root": [
+        0,
+        0,
+        2525,
+        848.640625
+      ],
+      "scene": [
+        0,
+        0,
+        2525,
+        5829
+      ],
+      "scrollWidth": 6620,
+      "scrollY": 2300,
+      "slides": [
+        [
+          442.5,
+          10,
+          1640,
+          828.640625
+        ],
+        [
+          2102.5,
+          10,
+          1640,
+          828.640625
+        ],
+        [
+          3762.5,
+          10,
+          1640,
+          828.640625
+        ],
+        [
+          5422.5,
+          10,
+          1640,
+          828.640625
+        ]
+      ],
+      "transform": "translate3d(0px, 0px, 0px)",
+      "viewport": [
+        2540,
+        1200
+      ]
+    }
+  }
+}

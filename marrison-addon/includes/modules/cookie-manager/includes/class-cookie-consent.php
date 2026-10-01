@@ -77,8 +77,7 @@ class Marrison_Cookie_Consent {
             return $matches[0];
         }
 
-        $blocked_attributes = preg_replace('/\s+type=(["\']).*?\1/i', '', $attributes);
-        $blocked_attributes = preg_replace('/\s+src=(["\'])(.*?)\1/i', ' data-marrison-blocked-src=$1$2$1', $blocked_attributes);
+        $blocked_attributes = $this->get_blocked_attributes($attributes, true);
 
         return '<script type="text/plain" data-marrison-cookie-blocked="script" data-marrison-cookie-category="' . esc_attr($category) . '"' . $blocked_attributes . '>' . $body . '</script>';
     }
@@ -94,9 +93,27 @@ class Marrison_Cookie_Consent {
             return $matches[0];
         }
 
-        $blocked_attributes = preg_replace('/\s+src=(["\'])(.*?)\1/i', ' data-marrison-blocked-src=$1$2$1', $attributes);
+        $blocked_attributes = $this->get_blocked_attributes($attributes, false);
 
         return '<iframe data-marrison-cookie-blocked="iframe" data-marrison-cookie-category="' . esc_attr($category) . '"' . $blocked_attributes . '>';
+    }
+
+    /** Preserve original values while neutralizing quoted and unquoted attributes. */
+    private function get_blocked_attributes($attributes, $is_script) {
+        return preg_replace_callback('/\s+([^\s=\/>]+)(?:\s*=\s*("[^"]*"|\'[^\']*\'|[^\s"\'<>`]+))?/', function($attribute) use ($is_script) {
+            $name = strtolower($attribute[1]);
+            if ('src' !== $name && !($is_script && 'type' === $name)) {
+                return $attribute[0];
+            }
+
+            $value = isset($attribute[2]) ? $attribute[2] : '';
+            if (isset($value[0]) && ('"' === $value[0] || "'" === $value[0])) {
+                $value = substr($value, 1, -1);
+            }
+            $value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+            $blocked_name = 'src' === $name ? 'data-marrison-blocked-src' : 'data-marrison-script-type';
+            return ' ' . $blocked_name . '="' . esc_attr($value) . '"';
+        }, $attributes);
     }
 
     /**

@@ -617,6 +617,9 @@ class Ticker_Widget extends \Elementor\Widget_Base {
 
 		if ( ! empty( $ticker_items ) ) {
 			foreach ( $ticker_items as $item ) {
+				if ( ! is_array( $item ) || ( isset( $item['item_text'] ) && ! is_scalar( $item['item_text'] ) ) ) {
+					continue;
+				}
 				$item_text = isset( $item['item_text'] ) ? $item['item_text'] : '';
 				$item_link = isset( $item['item_link'] ) ? $item['item_link'] : [];
 				

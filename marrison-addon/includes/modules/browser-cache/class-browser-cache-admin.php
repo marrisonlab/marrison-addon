@@ -50,19 +50,13 @@ class Marrison_Addon_Browser_Cache_Admin {
 			return;
 		}
 
-		$plugin_root_file = dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/marrison-addon.php';
-		$script_path      = plugin_dir_path( $plugin_root_file ) . 'assets/js/admin-browser-cache.js';
-		$script_version   = Marrison_Addon::VERSION;
-
-		if ( file_exists( $script_path ) ) {
-			$script_version .= '.' . filemtime( $script_path );
-		}
+		$plugin_root_file = Marrison_Addon::plugin_file();
 
 		wp_enqueue_script(
 			'marrison-admin-browser-cache',
 			plugins_url( 'assets/js/admin-browser-cache.js', $plugin_root_file ),
 			array(),
-			$script_version,
+			Marrison_Addon::asset_version( 'assets/js/admin-browser-cache.js' ),
 			true
 		);
 	}

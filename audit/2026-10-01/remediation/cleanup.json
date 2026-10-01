@@ -1,0 +1,72 @@
+{
+  "files": [
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-hs-followup-continuous.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\scroll-followup\\continuous.html",
+      "sha256": "8CB720F593FDD4DC9247899B9A0435294BF93E6CBF28829EEC3394B735C05741",
+      "removed": true
+    },
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-hs-followup-snap.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\scroll-followup\\snap.html",
+      "sha256": "71E17AD91E80991408F2259F229AE00C006B02427C086542FFEAEF1EAAED9047",
+      "removed": true
+    },
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-hs-followup-frames.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\scroll-followup\\frames.html",
+      "sha256": "BC5E927C4B702D464D0A7774DD9281C2DBF2525C9E5E4FC5967C7750772D3910",
+      "removed": true
+    },
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-hs-followup-entry-frames.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\scroll-followup\\entry-frames.html",
+      "sha256": "FCFD7C9A5A4CBAF8D44FC45B74C0656F38F6D5AF64A0A4677FDD4451B4C1189D",
+      "removed": true
+    },
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-hs-followup-proof.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\scroll-followup\\proof.html",
+      "sha256": "A6953D152C1296AD9D437C1FF8AB066D2E63676D3E12BFF0C516AD679EE9519E",
+      "removed": true
+    },
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-remediation-elementor.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\remediation\\elementor.html",
+      "sha256": "68702C8A6C208C748D23A572CB5056CEE9993478FB74C0A0C8F78E1D2D81E5ED",
+      "removed": true
+    },
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-remediation-frames.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\remediation\\frames.html",
+      "sha256": "5D52F8507DE40B24E98FA8A263F9C27E8AAE8A61404CE9E827FBD2703CC822E2",
+      "removed": true
+    },
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-remediation-cookie.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\remediation\\cookie.html",
+      "sha256": "B52F3DA0A251754A292EE1EA30D1FCE88683867B02CCC4489C4616244215E6B4",
+      "removed": true
+    },
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-remediation-youtube.com.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\remediation\\youtube.com.html",
+      "sha256": "DF67991B9A702B31011662A6D846FDECE1890076AD68B334541EE90A0B42F8FC",
+      "removed": true
+    },
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-remediation-preloader.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\remediation\\preloader.html",
+      "sha256": "FA80B4BB311EA201F5FC68F92A5A52C77BF16DAE79489E7AE332A5874672DE89",
+      "removed": true
+    },
+    {
+      "destination": "C:\\Users\\Angelo\\Local Sites\\tesy\\app\\public\\marrison-remediation-destination.html",
+      "source": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\audit\\2026-10-01\\remediation\\destination.html",
+      "sha256": "C1DBAC6CF590B5CD1B30611E48931751877A342EC216D1E77FDE96F6506F125B",
+      "removed": true
+    }
+  ],
+  "removed": 11,
+  "consent_values_restored_in_browser": true
+}

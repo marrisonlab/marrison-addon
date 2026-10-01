@@ -1,0 +1,13 @@
+<?php
+ob_start(); require dirname(__DIR__) . '/wp-runtime-probe.php'; ob_end_clean();
+$_COOKIE = [];
+$banner = Marrison_Cookie_Banner::get_instance();
+ob_start(); $banner->render_banner(); $banner->render_floating_widget(); $ui = ob_get_clean();
+$plugin='/wp-content/plugins/marrison-addon/includes/modules/cookie-manager/';
+$html='<!doctype html><html><head><meta charset="utf-8"><title>Cookie functional audit</title><link rel="stylesheet" href="'.$plugin.'assets/css/frontend.css"><style>body{font:18px Arial;margin:30px}.audit-state{display:block;margin:8px}iframe{height:100px;width:450px}button{margin:8px;padding:12px}</style></head><body><h1>Cookie activation and blocking audit</h1><button id="audit-reset">Reset audit consent and reload</button><output id="analytics-state" class="audit-state">analytics: 0</output><output id="marketing-state" class="audit-state">marketing: 0</output><output id="module-state" class="audit-state">module: 0</output><h2>Quoted iframe</h2><iframe id="quoted-iframe" src="/marrison-audit-p2-youtube.com.html"></iframe><h2>Unquoted iframe</h2><iframe id="unquoted-iframe" src=/marrison-audit-p2-youtube.com.html></iframe>';
+$html.='<script>/* gtag( audit marker */ document.getElementById("analytics-state").textContent="analytics: 1";</script><script>/* fbq( audit marker */ document.getElementById("marketing-state").textContent="marketing: 1";</script><script id="module-analytics" type="module">/* gtag( audit marker */ export const auditModuleLoaded=true;document.getElementById("module-state").textContent="module: 1";</script>';
+$html.=$ui.'<script src="/wp-includes/js/jquery/jquery.min.js"></script><script>var marrisonCookie={ajaxUrl:"http://localhost:10004/wp-admin/admin-ajax.php",nonce:"audit-stale-nonce",consentDuration:30,loadingText:"Loading",customizeTitle:"Personalizza Cookie",acceptAll:"Accetta tutti",rejectAll:"Rifiuta tutti",savePreferences:"Salva Preferenze",hasConsent:false,closedTriggerModes:{desktop:"floating",tablet:"floating",mobile:"floating"}};document.getElementById("audit-reset").addEventListener("click",function(){document.cookie="marrison_cookie_consent=; Max-Age=0; path=/";document.cookie="marrison_cookie_categories=; Max-Age=0; path=/";location.reload();});</script><script src="'.$plugin.'assets/js/frontend.js"></script></body></html>';
+$html=Marrison_Cookie_Consent::get_instance()->filter_output($html);
+file_put_contents(__DIR__.'/cookie-fixture.html',$html);
+file_put_contents(__DIR__.'/iframe-youtube.com.html','<!doctype html><html><head><title>Local fake tracker iframe</title></head><body><h1>Audit iframe loaded</h1><p>Local only, no external tracking.</p></body></html>');
+echo "Generated cookie fixture; no live settings changed.\n";
