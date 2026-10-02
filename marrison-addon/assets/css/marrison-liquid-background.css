@@ -42,6 +42,26 @@
 	opacity: var(--marrison-liquid-opacity, 1);
 }
 
-.marrison-liquid-background-host > :where(:not(.marrison-liquid-background-canvas):not(.marrison-liquid-background-fallback):not(.marrison-liquid-background-blend):not(.elementor-background-video-container):not(.elementor-background-overlay):not(.elementor-background-slideshow):not(.elementor-motion-effects-container):not(.elementor-shape)) {
+.marrison-liquid-background-host::before,
+.marrison-liquid-background-host > .elementor-background-overlay,
+.marrison-liquid-background-host > .e-con-inner > .elementor-background-overlay {
 	z-index: 2;
+	pointer-events: none;
+}
+
+/* Keep Elementor media below Liquid, including media inside boxed Containers. */
+.marrison-liquid-background-host > :where(.elementor-background-video-container, .elementor-background-slideshow, .elementor-motion-effects-container),
+.marrison-liquid-background-host > .e-con-inner > :where(.elementor-background-video-container, .elementor-background-slideshow, .elementor-motion-effects-container) {
+	z-index: -1;
+}
+
+/* Let boxed media and content participate in the host's stacking context. */
+.marrison-liquid-background-host > .e-con-inner {
+	z-index: auto;
+}
+
+.marrison-liquid-background-host > :where(:not(.marrison-liquid-background-canvas):not(.marrison-liquid-background-fallback):not(.marrison-liquid-background-blend):not(.elementor-background-video-container):not(.elementor-background-overlay):not(.elementor-background-slideshow):not(.elementor-motion-effects-container):not(.elementor-shape):not(.e-con-inner)),
+.marrison-liquid-background-host > .e-con-inner > :where(:not(.elementor-background-video-container):not(.elementor-background-overlay):not(.elementor-background-slideshow):not(.elementor-motion-effects-container)),
+.marrison-liquid-background-host > .elementor-shape {
+	z-index: 3;
 }

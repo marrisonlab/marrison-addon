@@ -276,7 +276,7 @@ check(mobile[1].blendBackground.includes('#070707'), 'Mobile blend color was not
 check(!mobile[2].host && mobile[2].layers === 0 && mobile[2].blend === 0, 'Disable on Mobile created a layer before it should.');
 
 const css = fs.readFileSync(path.join(__dirname, '..', 'marrison-addon', 'assets', 'css', 'marrison-liquid-background.css'), 'utf8');
-const hostChildRule = css.match(/\.marrison-liquid-background-host > :where\([^{]+\)\s*\{[^}]+\}/);
+const hostChildRule = css.match(/\.marrison-liquid-background-host > :where\(:not\([^{]+\{[^}]+\}/);
 check(hostChildRule && hostChildRule[0].includes(':not(.elementor-shape)'), 'Liquid content stacking rule must exclude Elementor shape dividers.');
 check(hostChildRule && !hostChildRule[0].includes('position:'), 'Liquid content stacking rule must not change Elementor child positioning.');
 

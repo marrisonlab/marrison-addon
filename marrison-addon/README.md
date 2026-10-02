@@ -136,6 +136,7 @@
 21. **Liquid Background (Elementor):**
     *   Adds **Marrison — Liquid Background** to the Advanced tab of ordinary Elementor Containers; no separate widget is required.
     *   Generates a procedural WebGL background with soft organic masses, Deep Purple, Blue Ink, Monochrome, and Custom presets, plus responsive speed, scale, and opacity controls.
+    *   Keeps Elementor's image, video, and slideshow backgrounds below Liquid and its background overlay above it; reduce Liquid opacity to reveal the native background underneath.
     *   Includes an optional bottom blend gradient so the animated Container can fade into the color of the following section without a hard edge.
     *   Supports subtle mouse influence, stable seeds, reduced-motion behavior, mobile disable before WebGL initialization, WebGL context loss handling, and a static CSS fallback when WebGL is unavailable.
     *   CSS and JavaScript are requested only when an enabled Container is actually rendered on the public frontend; the module's PHP and Elementor hooks are absent when its dashboard toggle is off.
