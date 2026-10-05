@@ -242,6 +242,7 @@ function run(width) {
 	return roots.map((root) => ({
 		host: root.classList.contains('marrison-liquid-background-host'),
 		layers: root.children.filter((child) => child.className === 'marrison-liquid-background-fallback' || child.className === 'marrison-liquid-background-canvas').length,
+		nativeBackground: root.children.filter((child) => child.className === 'marrison-liquid-background-native').length,
 		blend: root.children.filter((child) => child.className === 'marrison-liquid-background-blend').length,
 		blendBackground: (root.children.find((child) => child.className === 'marrison-liquid-background-blend') || { style: createStyle() }).style.getPropertyValue('background'),
 		secondaryCss: root.style.getPropertyValue('--marrison-liquid-secondary'),
@@ -257,6 +258,7 @@ function check(condition, message) {
 
 const desktop = run(1365);
 check(desktop[0].host && desktop[0].layers === 1, 'Desktop first instance did not create one fallback layer.');
+check(desktop.every((result) => result.nativeBackground === 0), 'Liquid must not duplicate the native background above the animation.');
 check(desktop[0].secondaryCss === '#321875', 'Secondary liquid color was not applied as a runtime CSS value.');
 check(desktop[0].blend === 0, 'Desktop first instance created a blend layer while disabled.');
 check(desktop[1].host && desktop[1].layers === 1 && desktop[1].blend === 1, 'Desktop second instance did not create the requested blend layer.');
@@ -274,6 +276,7 @@ check(mobile[0].host && mobile[0].layers === 1, 'Mobile first instance did not c
 check(mobile[1].host && mobile[1].layers === 1 && mobile[1].blend === 1, 'Mobile second instance did not create the requested blend layer.');
 check(mobile[1].blendBackground.includes('#070707'), 'Mobile blend color was not applied.');
 check(!mobile[2].host && mobile[2].layers === 0 && mobile[2].blend === 0, 'Disable on Mobile created a layer before it should.');
+check(mobile[2].nativeBackground === 0, 'Disable on Mobile must not create a native background mirror.');
 
 const css = fs.readFileSync(path.join(__dirname, '..', 'marrison-addon', 'assets', 'css', 'marrison-liquid-background.css'), 'utf8');
 const hostChildRule = css.match(/\.marrison-liquid-background-host > :where\(:not\([^{]+\{[^}]+\}/);

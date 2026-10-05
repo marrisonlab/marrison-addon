@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.44
+*   **Stable tag:** 1.3.46
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -136,7 +136,7 @@
 21. **Liquid Background (Elementor):**
     *   Adds **Marrison — Liquid Background** to the Advanced tab of ordinary Elementor Containers; no separate widget is required.
     *   Generates a procedural WebGL background with soft organic masses, Deep Purple, Blue Ink, Monochrome, and Custom presets, plus responsive speed, scale, and opacity controls.
-    *   Keeps Elementor's image, video, and slideshow backgrounds below Liquid and its background overlay above it; reduce Liquid opacity to reveal the native background underneath.
+    *   Stacks Elementor's native background below Liquid and its overlay above Liquid, including video, slideshow, and background motion effects. Liquid opacity reveals the background underneath; overlay opacity remains independent.
     *   Includes an optional bottom blend gradient so the animated Container can fade into the color of the following section without a hard edge.
     *   Supports subtle mouse influence, stable seeds, reduced-motion behavior, mobile disable before WebGL initialization, WebGL context loss handling, and a static CSS fallback when WebGL is unavailable.
     *   CSS and JavaScript are requested only when an enabled Container is actually rendered on the public frontend; the module's PHP and Elementor hooks are absent when its dashboard toggle is off.
@@ -149,6 +149,9 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.46
+*   **Fix:** Liquid Background now uses the order Elementor background → Liquid → Elementor overlay. Liquid opacity blends with the original background, and overlays remain above the animation even with video, slideshow, or motion effects, without duplicate overlays below Liquid.
 
 ### 1.3.44
 *   **Audit fixes:** Calendar ICS downloads enforce WordPress read permissions and password protection, preserve signed shortcode date keys and location, and recover empty date keys or invalid legacy timezones.

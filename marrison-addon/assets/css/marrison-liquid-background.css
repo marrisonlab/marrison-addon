@@ -49,10 +49,19 @@
 	pointer-events: none;
 }
 
-/* Keep Elementor media below Liquid, including media inside boxed Containers. */
-.marrison-liquid-background-host > :where(.elementor-background-video-container, .elementor-background-slideshow, .elementor-motion-effects-container),
-.marrison-liquid-background-host > .e-con-inner > :where(.elementor-background-video-container, .elementor-background-slideshow, .elementor-motion-effects-container) {
+/* Keep Elementor's background media below Liquid so Liquid opacity reveals it. */
+[data-marrison-liquid-background].marrison-liquid-background-host > :is(.elementor-background-video-container, .elementor-background-slideshow, .elementor-motion-effects-container),
+[data-marrison-liquid-background].marrison-liquid-background-host > .e-con-inner > :is(.elementor-background-video-container, .elementor-background-slideshow, .elementor-motion-effects-container) {
 	z-index: -1;
+}
+
+/* Elementor also renders the same overlay on the host's ::before. Use that
+ * overlay above Liquid, without a second copy trapped below it with the media. */
+[data-marrison-liquid-background].marrison-liquid-background-host > :is(.elementor-background-video-container, .elementor-background-slideshow)::before,
+[data-marrison-liquid-background].marrison-liquid-background-host > .e-con-inner > :is(.elementor-background-video-container, .elementor-background-slideshow)::before,
+[data-marrison-liquid-background].marrison-liquid-background-host > .elementor-motion-effects-container > .elementor-motion-effects-layer::before,
+[data-marrison-liquid-background].marrison-liquid-background-host > .e-con-inner > .elementor-motion-effects-container > .elementor-motion-effects-layer::before {
+	content: none;
 }
 
 /* Let boxed media and content participate in the host's stacking context. */
