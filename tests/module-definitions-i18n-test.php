@@ -61,4 +61,14 @@ $translated_definitions = Marrison_Addon::get_module_definitions( true );
 check( ! empty( $translated_definitions['read_more']['title'] ), 'Translated module definitions are missing Read More.' );
 check( $GLOBALS['marrison_test_translate_calls'] > 0, 'Translated module definitions did not call the translation helper.' );
 
+$inline_definition = Marrison_Addon::get_module_definitions( false )['inline_css'];
+check( 'independent' === $inline_definition['boot'] && false === $inline_definition['requires_elementor'], 'Inline CSS must use the independent module bootstrap.' );
+check( ! Marrison_Addon::is_module_enabled( 'inline_css' ), 'Inline CSS must start disabled.' );
+check( ! class_exists( 'Marrison_Addon_Inline_CSS', false ), 'Disabled Inline CSS module was loaded.' );
+
+$background_definition = Marrison_Addon::get_module_definitions( false )['dynamic_background_image_size'];
+check( 'elementor' === $background_definition['boot'] && true === $background_definition['requires_elementor'], 'Dynamic Background Image Size must use the Elementor bootstrap.' );
+check( ! Marrison_Addon::is_module_enabled( 'dynamic_background_image_size' ), 'Dynamic Background Image Size must start disabled.' );
+check( ! class_exists( 'Marrison_Addon_Dynamic_Background_Image_Size', false ), 'Disabled Dynamic Background Image Size module was loaded.' );
+
 echo "Module definitions i18n contract: PASS\n";

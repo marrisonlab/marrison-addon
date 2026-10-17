@@ -523,7 +523,8 @@ class Marrison_Setup_Wizard {
                 . '<li><a href="https://www.allaboutcookies.org/" target="_blank" rel="noopener">All About Cookies</a></li>'
                 . '</ul>'
                 . '<h2>6. Contact</h2>'
-                . '<p>If you have any questions about this Cookie Policy, contact us by email.</p>';
+                . '<p>If you have any questions about this Cookie Policy, contact us by email.</p>'
+                . "\n[marrison_cookie_policy]";
         }
         
         $content = '<h1>Cookie Policy</h1>';
@@ -551,6 +552,7 @@ class Marrison_Setup_Wizard {
         $content .= '</ul>';
         $content .= '<h2>6. Contatti</h2>';
         $content .= '<p>Per qualsiasi domanda relativa a questa Cookie Policy, contattaci via email.</p>';
+        $content .= "\n[marrison_cookie_policy]";
         
         return $content;
     }

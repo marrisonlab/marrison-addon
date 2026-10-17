@@ -9,12 +9,13 @@ class Marrison_Addon_Browser_Cache_Server {
 	const OPTION_STATE    = 'marrison_browser_cache_state';
 	const BEGIN_MARKER    = '# BEGIN Marrison Optimizer Browser Cache';
 	const END_MARKER      = '# END Marrison Optimizer Browser Cache';
+	const RULES_VERSION   = '2';
 
 	public function get_default_settings() {
 		return array(
-			'versioned_ttl'       => YEAR_IN_SECONDS,
+			'versioned_ttl'       => WEEK_IN_SECONDS,
 			'unversioned_ttl'     => WEEK_IN_SECONDS,
-			'immutable_versioned' => 1,
+			'immutable_versioned' => 0,
 			'asset_types'         => array(
 				'css'    => 1,
 				'js'     => 1,
@@ -83,7 +84,7 @@ class Marrison_Addon_Browser_Cache_Server {
 	public function get_settings_hash( $settings = null ) {
 		$settings = is_array( $settings ) ? $settings : $this->get_settings();
 
-		return md5( wp_json_encode( $settings ) );
+		return md5( wp_json_encode( array( self::RULES_VERSION, $this->get_method()['slug'], $settings ) ) );
 	}
 
 	public function detect_server() {
@@ -132,7 +133,7 @@ class Marrison_Addon_Browser_Cache_Server {
 	public function get_method() {
 		$server = $this->detect_server();
 
-		if ( in_array( $server['slug'], array( 'apache', 'litespeed', 'openlitespeed' ), true ) ) {
+		if ( in_array( $server['slug'], array( 'apache', 'litespeed' ), true ) ) {
 			return array(
 				'slug'  => 'htaccess',
 				'label' => '.htaccess',
@@ -217,7 +218,7 @@ class Marrison_Addon_Browser_Cache_Server {
 			wp_parse_str( $query, $query_args );
 
 			foreach ( array( 'ver', 'v', 'version' ) as $key ) {
-				if ( isset( $query_args[ $key ] ) && '' !== (string) $query_args[ $key ] ) {
+				if ( isset( $query_args[ $key ] ) && is_scalar( $query_args[ $key ] ) && '' !== (string) $query_args[ $key ] ) {
 					return true;
 				}
 			}
@@ -226,7 +227,7 @@ class Marrison_Addon_Browser_Cache_Server {
 		$path     = wp_parse_url( $url, PHP_URL_PATH );
 		$filename = $path ? basename( $path ) : '';
 
-		return 1 === preg_match( '/(?:^|[._-])(?:v?[0-9]+(?:\.[0-9]+){1,}|[a-f0-9]{8,})(?=\.[a-z0-9]+$)/i', $filename );
+		return 1 === preg_match( '/[._-](?:v?[0-9]+(?:[.][0-9]+){1,}|[a-f0-9]{8,})[.][a-z0-9]+$/i', $filename );
 	}
 
 	public function get_expected_cache_control( $url, $settings = null ) {
@@ -303,12 +304,15 @@ class Marrison_Addon_Browser_Cache_Server {
 		}
 
 		$updated = $this->replace_marker_block( (string) $existing, $rules );
+		if ( 1 !== substr_count( $updated, self::BEGIN_MARKER ) || 1 !== substr_count( $updated, self::END_MARKER ) ) {
+			return new WP_Error( 'htaccess_incomplete_block', __( 'Marker Marrison incompleti o duplicati: controlla .htaccess prima di applicare le regole.', 'marrison-addon' ) );
+		}
 
 		if ( $updated === (string) $existing ) {
 			$this->update_state(
 				array(
-					'status'        => 'active',
-					'message'       => __( 'Regole .htaccess gia aggiornate.', 'marrison-addon' ),
+					'status'        => 'pending_verification',
+					'message'       => __( 'Regole .htaccess gia aggiornate. Verifica gli header reali per confermarne l effetto.', 'marrison-addon' ),
 					'settings_hash' => $this->get_settings_hash( $settings ),
 				)
 			);
@@ -327,7 +331,7 @@ class Marrison_Addon_Browser_Cache_Server {
 			}
 		}
 
-		if ( false === file_put_contents( $path, $updated, LOCK_EX ) ) {
+		if ( strlen( $updated ) !== file_put_contents( $path, $updated, LOCK_EX ) || file_get_contents( $path ) !== $updated ) {
 			return new WP_Error(
 				'htaccess_write_failed',
 				__( 'Scrittura .htaccess non riuscita. Copia manualmente le regole mostrate nella pagina del modulo.', 'marrison-addon' )
@@ -336,8 +340,8 @@ class Marrison_Addon_Browser_Cache_Server {
 
 		$this->update_state(
 			array(
-				'status'        => 'active',
-				'message'       => __( 'Regole .htaccess Marrison applicate.', 'marrison-addon' ),
+				'status'        => 'pending_verification',
+				'message'       => __( 'Regole .htaccess Marrison scritte. Esegui Verifica cache browser per confermare gli header effettivi.', 'marrison-addon' ),
 				'settings_hash' => $this->get_settings_hash( $settings ),
 			)
 		);
@@ -375,7 +379,13 @@ class Marrison_Addon_Browser_Cache_Server {
 
 		$existing = file_get_contents( $path );
 
-		if ( false === $existing || false === strpos( $existing, self::BEGIN_MARKER ) ) {
+		if ( false === $existing ) {
+			return new WP_Error( 'htaccess_read_failed', __( 'Impossibile leggere .htaccess: rimozione non verificata.', 'marrison-addon' ) );
+		}
+		if ( ( false !== strpos( $existing, self::BEGIN_MARKER ) ) !== ( false !== strpos( $existing, self::END_MARKER ) ) ) {
+			return new WP_Error( 'htaccess_incomplete_block', __( 'Blocco Marrison incompleto: controlla entrambi i marker prima della rimozione.', 'marrison-addon' ) );
+		}
+		if ( false === strpos( $existing, self::BEGIN_MARKER ) ) {
 			$this->update_state(
 				array(
 					'status'  => 'inactive',
@@ -387,8 +397,11 @@ class Marrison_Addon_Browser_Cache_Server {
 		}
 
 		$updated = $this->remove_marker_block( (string) $existing );
+		if ( false !== strpos( $updated, self::BEGIN_MARKER ) || false !== strpos( $updated, self::END_MARKER ) ) {
+			return new WP_Error( 'htaccess_incomplete_block', __( 'Blocco Marrison incompleto: rimozione automatica interrotta. Controlla i marker in .htaccess.', 'marrison-addon' ) );
+		}
 
-		if ( false === file_put_contents( $path, $updated, LOCK_EX ) ) {
+		if ( strlen( $updated ) !== file_put_contents( $path, $updated, LOCK_EX ) || file_get_contents( $path ) !== $updated ) {
 			return new WP_Error(
 				'htaccess_write_failed',
 				__( 'Impossibile aggiornare .htaccess durante la rimozione del blocco Marrison.', 'marrison-addon' )
@@ -417,33 +430,25 @@ class Marrison_Addon_Browser_Cache_Server {
 		}
 
 		$extension_regex = $this->get_extension_regex( $extensions );
-		$static_regex    = '\\.(?:' . $extension_regex . ')(?:\\?.*)?$';
-		$version_regex   = '(?:\\.(?:' . $extension_regex . ')\\?(?:[^#&]*&)*(?:ver|v|version)=|[._-](?:v?[0-9]+(?:\\.[0-9]+){1,}|[a-f0-9]{8,})\\.(?:' . $extension_regex . ')(?:\\?.*)?$)';
+		$static_regex    = '[.](?:' . $extension_regex . ')$';
+		$filename_regex  = '[._-](?:v?[0-9]+(?:[.][0-9]+){1,}|[a-f0-9]{8,})[.](?:' . $extension_regex . ')$';
+		$version_expr    = "(%{QUERY_STRING} =~ m#(?:^|&)(?:ver|v|version)=[^&]+#i || %{REQUEST_URI} =~ m#" . $filename_regex . '#i)';
+		$static_expr     = "(%{REQUEST_METHOD} == 'GET' || %{REQUEST_METHOD} == 'HEAD') && (%{REQUEST_STATUS} == 200 || %{REQUEST_STATUS} == 206 || %{REQUEST_STATUS} == 304) && -f %{REQUEST_FILENAME} && %{REQUEST_FILENAME} =~ m#" . $static_regex . "#i && %{REQUEST_URI} !~ m#(?:^|/)(?:wp-admin|wp-json|wp-login[.]php)(?:/|$)#i && (%{HANDLER} == '' || %{HANDLER} == 'default-handler') && -z resp('Cache-Control')";
 		$versioned_ttl   = absint( $settings['versioned_ttl'] );
 		$unversioned_ttl = absint( $settings['unversioned_ttl'] );
 		$versioned_cc    = 'public, max-age=' . $versioned_ttl . ( ! empty( $settings['immutable_versioned'] ) ? ', immutable' : '' );
 		$unversioned_cc  = 'public, max-age=' . $unversioned_ttl;
 		$lines           = array(
 			self::BEGIN_MARKER,
-			'# Asset statici soltanto. Non rimuove query string come ?ver= e non gestisce HTML/PHP/API.',
-			'<IfModule mod_expires.c>',
-			'    ExpiresActive On',
+			'# Apache 2.4: solo file statici esistenti, GET/HEAD e risposte 200/206/304.',
+			'# QUERY_STRING viene verificata separatamente: Request_URI non contiene ?ver=.',
+			'# Mantiene le politiche Cache-Control esistenti, incluse private/no-store.',
+			'<IfModule mod_headers.c>',
+			'    Header set Cache-Control "' . $unversioned_cc . '" "expr=' . $static_expr . ' && !' . $version_expr . '"',
+			'    Header set Cache-Control "' . $versioned_cc . '" "expr=' . $static_expr . ' && ' . $version_expr . '"',
+			'</IfModule>',
+			self::END_MARKER,
 		);
-
-		foreach ( $this->get_mime_types_for_settings( $settings ) as $mime ) {
-			$lines[] = '    ExpiresByType ' . $mime . ' "access plus ' . $unversioned_ttl . ' seconds"';
-		}
-
-		$lines[] = '</IfModule>';
-		$lines[] = '<IfModule mod_setenvif.c>';
-		$lines[] = '    SetEnvIfNoCase Request_URI "' . $static_regex . '" marrison_bc_static=1';
-		$lines[] = '    SetEnvIfNoCase Request_URI "' . $version_regex . '" marrison_bc_versioned=1';
-		$lines[] = '</IfModule>';
-		$lines[] = '<IfModule mod_headers.c>';
-		$lines[] = '    Header set Cache-Control "' . $unversioned_cc . '" env=marrison_bc_static';
-		$lines[] = '    Header set Cache-Control "' . $versioned_cc . '" env=marrison_bc_versioned';
-		$lines[] = '</IfModule>';
-		$lines[] = self::END_MARKER;
 
 		return implode( "\n", $lines );
 	}
@@ -459,29 +464,36 @@ class Marrison_Addon_Browser_Cache_Server {
 		$extension_regex = $this->get_extension_regex( $extensions );
 		$versioned_cc    = 'public, max-age=' . absint( $settings['versioned_ttl'] ) . ( ! empty( $settings['immutable_versioned'] ) ? ', immutable' : '' );
 		$unversioned_cc  = 'public, max-age=' . absint( $settings['unversioned_ttl'] );
-		$versioned_time  = $this->seconds_to_nginx_duration( absint( $settings['versioned_ttl'] ) );
-		$unversioned_time = $this->seconds_to_nginx_duration( absint( $settings['unversioned_ttl'] ) );
+		$version_regex   = '(?:[?&](?:ver|v|version)=[^&#]+|[._-](?:v?[0-9]+(?:[.][0-9]+){1,}|[a-f0-9]{8,})[.](?:' . $extension_regex . ')(?:[?]|$))';
+		$mime_regex      = implode( '|', array_map( function ( $mime ) { return preg_quote( $mime, '~' ); }, $this->get_mime_types_for_settings( $settings ) ) );
+		$response_regex  = '(?:(?:200|206):(?:' . $mime_regex . ')(?:;[^:]*)?|304:(?:(?:' . $mime_regex . ')(?:;[^:]*)?)?)';
+		$eligible_regex  = '^(?:GET|HEAD):' . $response_regex . '::/(?!wp-admin(?:/|$)|wp-json(?:/|$)|wp-login[.]php(?:/|$))(?!.*[.]php(?:/|$)).*[.](?:' . $extension_regex . ')$';
 
 		return implode(
 			"\n",
 			array(
 				'# Marrison Browser Cache - Nginx',
-				'# Inserisci i blocchi map nel contesto http e il blocco location nel server del sito.',
-				'# Gli URL WordPress con ?ver= e i file con hash/versione nel nome ricevono il TTL versionato.',
+				'# PARTE 1: solo contesto http, una volta. Non incollare map nelle direttive server Plesk.',
+				'# La presenza di ?ver= non garantisce che la versione cambi con ogni modifica.',
 				'map $request_uri $marrison_browser_cache_control {',
 				'    default "' . $unversioned_cc . '";',
-				'    ~*(?:[?&](?:ver|v|version)=|[._-](?:v?[0-9]+(?:\\.[0-9]+){1,}|[a-f0-9]{8,})\\.(?:' . $extension_regex . ')(?:\\?|$)) "' . $versioned_cc . '";',
+				'    "~*' . $version_regex . '" "' . $versioned_cc . '";',
 				'}',
 				'',
-				'map $request_uri $marrison_browser_cache_expires {',
-				'    default ' . $unversioned_time . ';',
-				'    ~*(?:[?&](?:ver|v|version)=|[._-](?:v?[0-9]+(?:\\.[0-9]+){1,}|[a-f0-9]{8,})\\.(?:' . $extension_regex . ')(?:\\?|$)) ' . $versioned_time . ';',
+				'# Non aggiunge policy a errori, HTML/dinamici o risposte gia dotate di Cache-Control.',
+				'map "$request_method:$status:$sent_http_content_type:$sent_http_cache_control:$uri" $marrison_browser_cache_header {',
+				'    default "";',
+				'    "~*' . $eligible_regex . '" $marrison_browser_cache_control;',
 				'}',
 				'',
-				'location ~* \\.(?:' . $extension_regex . ')$ {',
-				'    expires $marrison_browser_cache_expires;',
-				'    add_header Cache-Control $marrison_browser_cache_control always;',
-				'}',
+				'# PARTE 2: integra nella location GIA ESISTENTE che serve i file statici pubblici.',
+				'# Mantieni try_files, root/alias, protezioni e gli altri header di quella location.',
+				'# add_header richiede di preservare gli header ereditati (security, CORS, Vary).',
+				'# Non creare una location concorrente alle regole generate da Plesk.',
+				'expires off;',
+				'add_header Cache-Control $marrison_browser_cache_header;',
+				'# Nessun always e un solo max-age: Cache-Control basta senza Expires.',
+				'# Dopo nginx -t e reload, eseguire Verifica cache browser nel modulo.',
 			)
 		);
 	}

@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
- * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Local Google Fonts, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, and Video Thumbnail.
- * Version: 1.3.46
+ * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Dynamic Background Image Size, Local Google Fonts, Inline CSS, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, PHP Snippets, and Video Thumbnail.
+ * Version: 1.3.62
  * Author: Marrisonlab
  * Author URI:  https://marrisonlab.com
  * Text Domain: marrison-addon
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.3.46';
+	const VERSION = '1.3.62';
 
 	private $elementor_modules_initialized = false;
 	private $header_animations_initialized = false;
@@ -274,6 +274,16 @@ final class Marrison_Addon {
 				'class' => 'Marrison_Addon_Image_Sizes',
 				'file' => 'includes/modules/class-marrison-addon-image-sizes.php',
 			],
+			'dynamic_background_image_size' => [
+				'icon' => 'dashicons-format-image',
+				'title' => self::module_text( 'Dynamic Background Image Size', $translate ),
+				'desc' => self::module_text( 'Applica la risoluzione immagine nativa di Elementor agli sfondi dinamici dei container.', $translate ),
+				'reload' => true,
+				'requires_elementor' => true,
+				'boot' => 'elementor',
+				'class' => 'Marrison_Addon_Dynamic_Background_Image_Size',
+				'file' => 'includes/modules/class-marrison-addon-dynamic-background-image-size.php',
+			],
 			'local_google_fonts' => [
 				'icon' => 'dashicons-editor-textcolor',
 				'title' => self::module_text( 'Local Google Fonts', $translate ),
@@ -283,6 +293,16 @@ final class Marrison_Addon {
 				'boot' => 'independent',
 				'class' => 'Marrison_Addon_Local_Google_Fonts',
 				'file' => 'includes/modules/class-marrison-addon-local-google-fonts.php',
+			],
+			'inline_css' => [
+				'icon' => 'dashicons-performance',
+				'title' => self::module_text( 'CSS piccoli inline', $translate ),
+				'desc' => self::module_text( 'Include i piccoli CSS locali nell\'HTML iniziale per ridurre le richieste separate, conservando ordine e stili. Limite: 16 KiB per file e 32 KiB totali.', $translate ),
+				'reload' => true,
+				'requires_elementor' => false,
+				'boot' => 'independent',
+				'class' => 'Marrison_Addon_Inline_CSS',
+				'file' => 'includes/modules/class-marrison-addon-inline-css.php',
 			],
 			'browser_cache' => [
 				'icon' => 'dashicons-performance',
@@ -344,6 +364,17 @@ final class Marrison_Addon {
 				'boot' => 'independent',
 				'class' => 'Marrison_Addon_Cookie_Manager_Module',
 				'file' => 'includes/modules/class-marrison-addon-cookie-manager.php',
+			],
+			'php_snippets' => [
+				'icon' => 'dashicons-editor-code',
+				'title' => self::module_text( 'PHP Snippets', $translate ),
+				'desc' => self::module_text( 'Gestisce snippet PHP personalizzati con ambiti di esecuzione e recupero dagli errori.', $translate ),
+				'reload' => true,
+				'requires_elementor' => false,
+				'boot' => 'early',
+				'class' => 'Marrison_Addon_PHP_Snippets',
+				'file' => 'includes/modules/class-marrison-addon-php-snippets.php',
+				'settings_page' => 'marrison_addon_php_snippets',
 			],
 			'video_thumbnail' => [
 				'icon' => 'dashicons-video-alt3',
@@ -438,9 +469,13 @@ final class Marrison_Addon {
 			'Anchor Offset' => esc_html__( 'Anchor Offset', 'marrison-addon' ),
 			'Corregge lo scroll degli anchor link usando l\'altezza dell\'header con ID hdr, evitando sezioni coperte.' => esc_html__( 'Corregge lo scroll degli anchor link usando l\'altezza dell\'header con ID hdr, evitando sezioni coperte.', 'marrison-addon' ),
 			'Dimensioni Immagini' => esc_html__( 'Dimensioni Immagini', 'marrison-addon' ),
+			'Dynamic Background Image Size' => esc_html__( 'Dynamic Background Image Size', 'marrison-addon' ),
+			'Applica la risoluzione immagine nativa di Elementor agli sfondi dinamici dei container.' => esc_html__( 'Applica la risoluzione immagine nativa di Elementor agli sfondi dinamici dei container.', 'marrison-addon' ),
 			'Aggiunge dimensioni immagine personalizzate al tema e le rende disponibili nel selettore media.' => esc_html__( 'Aggiunge dimensioni immagine personalizzate al tema e le rende disponibili nel selettore media.', 'marrison-addon' ),
 			'Local Google Fonts' => esc_html__( 'Local Google Fonts', 'marrison-addon' ),
 			'Scansiona i font Google usati dal sito, scarica i WOFF2 localmente e blocca le stylesheet remote solo quando la copia locale e valida.' => esc_html__( 'Scansiona i font Google usati dal sito, scarica i WOFF2 localmente e blocca le stylesheet remote solo quando la copia locale e valida.', 'marrison-addon' ),
+			'CSS piccoli inline' => esc_html__( 'CSS piccoli inline', 'marrison-addon' ),
+			'Include i piccoli CSS locali nell\'HTML iniziale per ridurre le richieste separate, conservando ordine e stili. Limite: 16 KiB per file e 32 KiB totali.' => esc_html__( 'Include i piccoli CSS locali nell\'HTML iniziale per ridurre le richieste separate, conservando ordine e stili. Limite: 16 KiB per file e 32 KiB totali.', 'marrison-addon' ),
 			'Browser Cache' => esc_html__( 'Browser Cache', 'marrison-addon' ),
 			'Configura header HTTP per la cache browser degli asset statici senza rimuovere il versioning WordPress.' => esc_html__( 'Configura header HTTP per la cache browser degli asset statici senza rimuovere il versioning WordPress.', 'marrison-addon' ),
 			'Cursore Animato' => esc_html__( 'Cursore Animato', 'marrison-addon' ),
@@ -454,6 +489,8 @@ final class Marrison_Addon {
 			'Cookie Manager' => esc_html__( 'Cookie Manager', 'marrison-addon' ),
 			'Gestisce banner, preferenze, scansione cookie e wizard iniziale per configurare il consenso.' => esc_html__( 'Gestisce banner, preferenze, scansione cookie e wizard iniziale per configurare il consenso.', 'marrison-addon' ),
 			'Video Thumbnail' => esc_html__( 'Video Thumbnail', 'marrison-addon' ),
+			'PHP Snippets' => esc_html__( 'PHP Snippets', 'marrison-addon' ),
+			'Gestisce snippet PHP personalizzati con ambiti di esecuzione e recupero dagli errori.' => esc_html__( 'Gestisce snippet PHP personalizzati con ambiti di esecuzione e recupero dagli errori.', 'marrison-addon' ),
 			'Importa miniature YouTube e genera cover automatiche dai video locali caricati nella libreria media.' => esc_html__( 'Importa miniature YouTube e genera cover automatiche dai video locali caricati nella libreria media.', 'marrison-addon' ),
 		];
 
@@ -485,3 +522,24 @@ function marrison_addon_init() {
 	new Marrison_Addon();
 }
 add_action( 'plugins_loaded', 'marrison_addon_init' );
+
+// Only this module needs to register callbacks before plugins_loaded starts.
+// Keep the established bootstrap timing of all other modules unchanged.
+if ( Marrison_Addon::is_module_enabled( 'php_snippets' ) ) {
+	require_once __DIR__ . '/includes/modules/class-marrison-addon-php-snippets.php';
+	new Marrison_Addon_PHP_Snippets();
+}
+
+// Apply to both the AJAX toggle and the Settings API, including bulk updates.
+add_filter( 'sanitize_option_marrison_addon_modules', 'marrison_addon_protect_php_snippets_toggle' );
+function marrison_addon_protect_php_snippets_toggle( $value ) {
+	$old = get_option( 'marrison_addon_modules', [] );
+	if ( ( ! empty( $value['php_snippets'] ) !== ! empty( $old['php_snippets'] ) )
+		&& ( ! current_user_can( 'manage_options' ) || ! current_user_can( 'unfiltered_html' ) ) ) {
+		if ( ! is_array( $value ) ) {
+			return $old;
+		}
+		$value['php_snippets'] = empty( $old['php_snippets'] ) ? 0 : 1;
+	}
+	return $value;
+}

@@ -115,7 +115,7 @@ class Marrison_Addon_Browser_Cache_Admin {
 
 			<?php if ( isset( $_GET['settings-updated'] ) ) : ?>
 				<div class="notice notice-success is-dismissible">
-					<p><?php esc_html_e( 'Impostazioni Browser Cache salvate. La configurazione server viene sincronizzata in admin, non sul frontend.', 'marrison-addon' ); ?></p>
+					<p><?php esc_html_e( 'Impostazioni Browser Cache salvate. Controlla il metodo indicato e verifica gli header; le direttive Nginx gia installate richiedono un aggiornamento manuale del sistemista.', 'marrison-addon' ); ?></p>
 				</div>
 			<?php endif; ?>
 
@@ -125,7 +125,7 @@ class Marrison_Addon_Browser_Cache_Admin {
 				</div>
 				<div class="marrison-browser-cache-summary-grid">
 					<div>
-						<span class="marrison-browser-cache-label"><?php esc_html_e( 'Server rilevato', 'marrison-addon' ); ?></span>
+						<span class="marrison-browser-cache-label"><?php esc_html_e( 'Server PHP rilevato', 'marrison-addon' ); ?></span>
 						<strong><?php echo esc_html( $server['label'] ); ?></strong>
 						<?php if ( ! empty( $server['raw'] ) ) : ?>
 							<span class="description"><?php echo esc_html( $server['raw'] ); ?></span>
@@ -147,6 +147,7 @@ class Marrison_Addon_Browser_Cache_Admin {
 				<?php if ( ! empty( $state['message'] ) ) : ?>
 					<p class="description marrison-browser-cache-state-message"><?php echo esc_html( $state['message'] ); ?></p>
 				<?php endif; ?>
+				<p class="description"><?php esc_html_e( 'PHP puo essere servito da Apache mentre Nginx distribuisce gli asset. Solo la verifica degli header pubblici conferma la cache effettiva.', 'marrison-addon' ); ?></p>
 			</div>
 
 			<div class="marrison-module-card marrison-settings-card">
@@ -170,14 +171,14 @@ class Marrison_Addon_Browser_Cache_Admin {
 											checked>
 										<span class="marrison-slider"></span>
 									</label>
-									<p class="description"><?php esc_html_e( 'Spegnendo il modulo vengono rimosse solo le regole Marrison da .htaccess. Le impostazioni restano salvate.', 'marrison-addon' ); ?></p>
+									<p class="description"><?php esc_html_e( 'Spegnendo il modulo vengono rimosse solo le regole Marrison da .htaccess. Le direttive Nginx inserite dal sistemista restano attive e vanno rimosse manualmente. Le impostazioni restano salvate.', 'marrison-addon' ); ?></p>
 								</td>
 							</tr>
 							<tr>
 								<th scope="row"><label for="marrison-browser-cache-versioned-ttl"><?php esc_html_e( 'TTL asset versionati', 'marrison-addon' ); ?></label></th>
 								<td>
 									<input type="number" min="<?php echo esc_attr( HOUR_IN_SECONDS ); ?>" max="<?php echo esc_attr( 5 * YEAR_IN_SECONDS ); ?>" class="regular-text" id="marrison-browser-cache-versioned-ttl" name="<?php echo esc_attr( Marrison_Addon_Browser_Cache_Server::OPTION_SETTINGS ); ?>[versioned_ttl]" value="<?php echo esc_attr( $settings['versioned_ttl'] ); ?>">
-									<p class="description"><?php echo esc_html( sprintf( __( 'Default: %s. Usato per URL con ?ver=, ?v=, ?version= o file con hash/versione nel nome.', 'marrison-addon' ), $this->server->seconds_to_human_label( YEAR_IN_SECONDS ) ) ); ?></p>
+									<p class="description"><?php echo esc_html( sprintf( __( 'Default: %s. ?ver= identifica una versione, ma il TTL lungo e sicuro solo se l URL cambia ad ogni modifica.', 'marrison-addon' ), $this->server->seconds_to_human_label( WEEK_IN_SECONDS ) ) ); ?></p>
 								</td>
 							</tr>
 							<tr>
@@ -194,6 +195,7 @@ class Marrison_Addon_Browser_Cache_Admin {
 										<input type="checkbox" name="<?php echo esc_attr( Marrison_Addon_Browser_Cache_Server::OPTION_SETTINGS ); ?>[immutable_versioned]" value="1" <?php checked( ! empty( $settings['immutable_versioned'] ) ); ?>>
 										<?php esc_html_e( 'Aggiungi immutable solo agli asset versionati o hashati', 'marrison-addon' ); ?>
 									</label>
+									<p class="description"><?php esc_html_e( 'Default disattivato. Abilitalo solo dopo aver verificato il cambio URL per CSS Elementor, immagini rigenerate e altri file aggiornabili.', 'marrison-addon' ); ?></p>
 								</td>
 							</tr>
 							<tr>
@@ -237,7 +239,7 @@ class Marrison_Addon_Browser_Cache_Admin {
 			</div>
 
 			<?php if ( 'htaccess' === $method['slug'] ) : ?>
-				<p class="marrison-card-desc"><?php esc_html_e( 'Su Apache/LiteSpeed Marrison puo gestire un blocco .htaccess isolato e idempotente. Le direttive sono protette da IfModule per evitare errori 500 quando mod_expires, mod_headers o mod_setenvif non sono disponibili.', 'marrison-addon' ); ?></p>
+				<p class="marrison-card-desc"><?php esc_html_e( 'Su Apache 2.4 o server compatibili Marrison gestisce un blocco .htaccess isolato e idempotente con mod_headers. Le regole scritte richiedono una verifica degli header reali; le politiche Cache-Control gia presenti vengono conservate.', 'marrison-addon' ); ?></p>
 				<div class="marrison-browser-cache-actions">
 					<form method="post">
 						<?php wp_nonce_field( self::NONCE_ACTION, 'marrison_browser_cache_nonce' ); ?>
@@ -256,8 +258,12 @@ class Marrison_Addon_Browser_Cache_Admin {
 					<label for="marrison-browser-cache-htaccess"><?php esc_html_e( 'Regole .htaccess generate', 'marrison-addon' ); ?></label>
 					<textarea id="marrison-browser-cache-htaccess" class="large-text code marrison-browser-cache-code" rows="13" readonly><?php echo esc_textarea( $htaccess_rules ); ?></textarea>
 				<?php endif; ?>
+			<?php elseif ( 'manual' === $method['slug'] ) : ?>
+				<p class="marrison-card-desc"><?php esc_html_e( 'Questo server richiede una configurazione specifica del sistemista. OpenLiteSpeed non applica le direttive Header da .htaccess: usa il pannello del server. I valori sotto descrivono la policy desiderata per gli asset pubblici.', 'marrison-addon' ); ?></p>
+				<p><code><?php echo esc_html( $this->server->get_expected_cache_control( home_url( '/style.css?ver=1' ), $settings ) ); ?></code> — <?php esc_html_e( 'URL versionati', 'marrison-addon' ); ?></p>
+				<p><code><?php echo esc_html( $this->server->get_expected_cache_control( home_url( '/image.webp' ), $settings ) ); ?></code> — <?php esc_html_e( 'URL non versionati', 'marrison-addon' ); ?></p>
 			<?php else : ?>
-				<p class="marrison-card-desc"><?php esc_html_e( 'Marrison non modifica configurazioni Nginx o server esterne a WordPress. Copia la configurazione nel server block corretto e ricarica Nginx dal pannello hosting o via SSH.', 'marrison-addon' ); ?></p>
+				<p class="marrison-card-desc"><?php esc_html_e( 'Affida la configurazione al sistemista: i map richiedono il contesto http; le direttive finali vanno integrate nella location statica esistente. Non incollare tutto nel campo server di Plesk e non creare location concorrenti. Conserva gli header di sicurezza, CORS e Vary; esegui nginx -t prima del reload.', 'marrison-addon' ); ?></p>
 				<textarea id="marrison-browser-cache-nginx" class="large-text code marrison-browser-cache-code" rows="18" readonly><?php echo esc_textarea( $nginx_config ); ?></textarea>
 				<p>
 					<button type="button" class="button button-secondary" id="marrison-browser-cache-copy-nginx" data-target="marrison-browser-cache-nginx"><?php esc_html_e( 'Copia configurazione Nginx', 'marrison-addon' ); ?></button>
@@ -317,6 +323,7 @@ class Marrison_Addon_Browser_Cache_Admin {
 							<tr>
 								<td>
 									<strong><?php echo esc_html( $sample['label'] ); ?></strong>
+									<span class="description"><?php echo esc_html( 'HTTP ' . (int) $sample['status_code'] ); ?></span>
 									<span class="description"><?php echo esc_html( ! empty( $sample['versioned'] ) ? __( 'Versionato', 'marrison-addon' ) : __( 'Non versionato', 'marrison-addon' ) ); ?></span>
 									<code><?php echo esc_html( $sample['url'] ); ?></code>
 								</td>
@@ -360,11 +367,17 @@ class Marrison_Addon_Browser_Cache_Admin {
 			if ( ! empty( $summary['all_ok'] ) ) {
 				$this->server->update_state(
 					array(
-						'status'        => $this->server->htaccess_has_rules() ? 'active' : 'already_configured',
+						'status'        => 'htaccess' === $this->server->get_method()['slug'] && $this->server->htaccess_has_rules() ? 'active' : 'already_configured',
 						'message'       => __( 'Browser cache gia configurata sugli asset verificati.', 'marrison-addon' ),
 						'settings_hash' => $this->server->get_settings_hash( $settings ),
 					)
 				);
+			} else {
+				$this->server->update_state( array(
+					'status' => 'error',
+					'message' => $summary['message'],
+					'settings_hash' => $this->server->get_settings_hash( $settings ),
+				) );
 			}
 
 			return array(
@@ -382,10 +395,13 @@ class Marrison_Addon_Browser_Cache_Admin {
 					'message' => $result->get_error_message(),
 				);
 			}
+			if ( 'htaccess' !== $this->server->get_method()['slug'] ) {
+				return array( 'type' => 'warning', 'message' => __( 'Configurazione manuale necessaria: nessuna regola server e stata applicata.', 'marrison-addon' ) );
+			}
 
 			return array(
 				'type'    => 'success',
-				'message' => __( 'Configurazione Browser Cache aggiornata.', 'marrison-addon' ),
+				'message' => __( 'Regole aggiornate. Esegui Verifica cache browser per confermare il risultato sugli asset pubblici.', 'marrison-addon' ),
 			);
 		}
 
@@ -414,7 +430,8 @@ class Marrison_Addon_Browser_Cache_Admin {
 		$state    = $this->server->get_state();
 		$hash     = $this->server->get_settings_hash( $settings );
 
-		if ( ! $force && isset( $state['settings_hash'], $state['status'] ) && $hash === $state['settings_hash'] && in_array( $state['status'], array( 'active', 'already_configured', 'manual', 'error' ), true ) ) {
+		$rules_present = $this->server->htaccess_has_rules();
+		if ( ! $force && isset( $state['settings_hash'], $state['status'] ) && $hash === $state['settings_hash'] && in_array( $state['status'], array( 'active', 'already_configured', 'manual', 'error', 'pending_verification' ), true ) && ( 'htaccess' !== $method['slug'] || 'already_configured' === $state['status'] || $rules_present ) ) {
 			return true;
 		}
 
@@ -430,7 +447,8 @@ class Marrison_Addon_Browser_Cache_Admin {
 			return true;
 		}
 
-		$diagnostic = $this->diagnostics->run( $settings );
+		// Public HTTP checks run only on an explicit diagnostic/apply action, never on admin page load.
+		$diagnostic = $force ? $this->diagnostics->run( $settings ) : array();
 
 		if ( ! empty( $diagnostic['summary']['all_ok'] ) && ! $this->server->htaccess_has_rules() ) {
 			$this->server->update_state(
@@ -463,7 +481,7 @@ class Marrison_Addon_Browser_Cache_Admin {
 		$status = isset( $state['status'] ) ? $state['status'] : 'inactive';
 
 		if ( 'nginx_manual' === $method['slug'] || 'manual' === $method['slug'] ) {
-			$status = in_array( $status, array( 'active', 'already_configured' ), true ) ? $status : 'manual';
+			$status = in_array( $status, array( 'already_configured', 'error' ), true ) ? $status : 'manual';
 		}
 
 		$map = array(
@@ -486,6 +504,10 @@ class Marrison_Addon_Browser_Cache_Admin {
 			'inactive'           => array(
 				'class' => 'muted',
 				'label' => __( 'NON ATTIVO', 'marrison-addon' ),
+			),
+			'pending_verification' => array(
+				'class' => 'warning',
+				'label' => __( 'DA VERIFICARE', 'marrison-addon' ),
 			),
 		);
 

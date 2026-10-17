@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Marrison_Addon_Video_Thumbnail {
 
-	private const VERSION = '1.1.0';
+	private const VERSION = '1.1.1';
 	private const OPTION_NAME = 'marrison_video_thumbnail_settings';
 	private const META_LOCAL_COVER_ID = '_mvt_local_cover_id';
 	private const META_LOCAL_COVER_ERROR = '_mvt_local_cover_error';
@@ -110,8 +110,8 @@ class Marrison_Addon_Video_Thumbnail {
 				<div class="marrison-card-header">
 					<h2 class="marrison-card-title"><?php esc_html_e( 'Video locali', 'marrison-addon' ); ?></h2>
 				</div>
-				<div class="mvt-ffmpeg-status <?php echo $ffmpeg_status['available'] ? 'success' : 'error'; ?>">
-					<strong><?php esc_html_e( 'Stato FFmpeg:', 'marrison-addon' ); ?></strong>
+				<div class="mvt-ffmpeg-status <?php echo $ffmpeg_status['available'] ? 'success' : 'warning'; ?>">
+					<strong><?php esc_html_e( 'Cover dei video locali:', 'marrison-addon' ); ?></strong>
 					<?php echo esc_html( $ffmpeg_status['message'] ); ?>
 				</div>
 
@@ -124,9 +124,15 @@ class Marrison_Addon_Video_Thumbnail {
 								<th scope="row"><?php esc_html_e( 'Generazione automatica', 'marrison-addon' ); ?></th>
 								<td>
 									<label>
-										<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[local_video_enabled]" value="1" <?php checked( $settings['local_video_enabled'], true ); ?> />
+										<?php if ( ! $ffmpeg_status['available'] && $settings['local_video_enabled'] ) : ?>
+										<input type="hidden" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[local_video_enabled]" value="1" />
+									<?php endif; ?>
+									<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[local_video_enabled]" value="1" <?php checked( $settings['local_video_enabled'] && $ffmpeg_status['available'], true ); ?> <?php disabled( ! $ffmpeg_status['available'] ); ?> />
 										<?php esc_html_e( 'Genera una cover quando viene caricato un video MP4 o WebM.', 'marrison-addon' ); ?>
 									</label>
+									<?php if ( ! $ffmpeg_status['available'] ) : ?>
+										<p class="description"><?php esc_html_e( 'Puoi caricare normalmente i video e assegnare una cover manualmente. Le preferenze salvate restano disponibili per i server che dispongono già di FFmpeg.', 'marrison-addon' ); ?></p>
+									<?php endif; ?>
 								</td>
 							</tr>
 							<tr>
@@ -156,7 +162,7 @@ class Marrison_Addon_Video_Thumbnail {
 								</th>
 								<td>
 									<input type="text" id="mvt-ffmpeg-path" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[ffmpeg_path]" value="<?php echo esc_attr( $settings['ffmpeg_path'] ); ?>" class="regular-text" placeholder="ffmpeg" />
-									<p class="description"><?php esc_html_e( 'Lascia vuoto se FFmpeg e disponibile nel PATH del server.', 'marrison-addon' ); ?></p>
+									<p class="description"><?php esc_html_e( 'Facoltativo. Indica il percorso di FFmpeg solo se è già disponibile sul server; altrimenti lascia vuoto.', 'marrison-addon' ); ?></p>
 								</td>
 							</tr>
 						</table>
@@ -300,6 +306,12 @@ class Marrison_Addon_Video_Thumbnail {
 		}
 
 		if ( get_post_meta( $attachment_id, self::META_LOCAL_COVER_ID, true ) ) {
+			return;
+		}
+
+		$ffmpeg_status = $this->get_ffmpeg_status();
+
+		if ( ! $ffmpeg_status['available'] ) {
 			return;
 		}
 
@@ -566,7 +578,7 @@ class Marrison_Addon_Video_Thumbnail {
 		if ( ! function_exists( 'exec' ) ) {
 			return array(
 				'available' => false,
-				'message'   => __( 'non disponibile: la funzione PHP exec e disabilitata.', 'marrison-addon' ),
+				'message'   => __( 'generazione automatica non disponibile: il server non permette di eseguire FFmpeg. Il caricamento dei video e le miniature YouTube restano disponibili.', 'marrison-addon' ),
 			);
 		}
 
@@ -576,16 +588,16 @@ class Marrison_Addon_Video_Thumbnail {
 
 		@exec( $command, $output, $exit_code );
 
-		if ( 0 === (int) $exit_code ) {
+		if ( 0 === (int) $exit_code && preg_match( '/^ffmpeg version\b/im', implode( "\n", $output ) ) ) {
 			return array(
 				'available' => true,
-				'message'   => __( 'disponibile.', 'marrison-addon' ),
+				'message'   => __( 'generazione automatica disponibile.', 'marrison-addon' ),
 			);
 		}
 
 		return array(
 			'available' => false,
-			'message'   => __( 'non trovato. Inserisci il percorso assoluto di FFmpeg oppure installalo nel PATH del server.', 'marrison-addon' ),
+			'message'   => __( 'generazione automatica non disponibile: FFmpeg non è accessibile su questo server. Il caricamento dei video e le miniature YouTube restano disponibili.', 'marrison-addon' ),
 		);
 	}
 

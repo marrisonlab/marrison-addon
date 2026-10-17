@@ -86,6 +86,12 @@ class Marrison_Addon_Admin {
 
 		// Handle array updates if key is provided
 		$key = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : null;
+		if ( 'marrison_addon_modules' === $option_name && ! current_user_can( 'unfiltered_html' ) ) {
+			$old_modules = get_option( 'marrison_addon_modules', [] );
+			if ( 'php_snippets' === $key || ( null === $key && ( ! empty( $value['php_snippets'] ) !== ! empty( $old_modules['php_snippets'] ) ) ) ) {
+				wp_send_json_error( [ 'message' => __( 'PHP Snippets richiede anche la capability unfiltered_html.', 'marrison-addon' ) ] );
+			}
+		}
 		
 		if ( $key !== null ) {
 			$current_value = get_option( $option_name, [] );
@@ -100,16 +106,25 @@ class Marrison_Addon_Admin {
 				$current_value[ $key ] = 0; // Or unset if preferred, but 0 is safer for checkboxes
 			}
 			
+			if ( 'marrison_addon_modules' === $option_name && 'browser_cache' === $key && empty( $current_value[ $key ] ) ) {
+				$cleanup_result = $this->cleanup_browser_cache_server_rules();
+				if ( is_wp_error( $cleanup_result ) ) {
+					wp_send_json_error( [ 'message' => $cleanup_result->get_error_message() ] );
+				}
+			}
 			update_option( $option_name, $current_value );
 			if ( class_exists( 'Marrison_Addon' ) ) {
 				Marrison_Addon::clear_runtime_caches();
 			}
 
 			if ( 'marrison_addon_modules' === $option_name ) {
-				if ( 'browser_cache' === $key && empty( $current_value[ $key ] ) ) {
-					$this->cleanup_browser_cache_server_rules();
+				// Also runs on OFF -> ON, before the new module has been loaded.
+				if ( 'dynamic_background_image_size' === $key ) {
+					delete_option( 'marrison_addon_dynamic_background_css_version' );
+					if ( isset( \Elementor\Plugin::$instance->files_manager ) ) {
+						\Elementor\Plugin::$instance->files_manager->clear_cache();
+					}
 				}
-
 				do_action( 'marrison_addon/module_status_changed', $key, ! empty( $current_value[ $key ] ) );
 			}
 		} else {
@@ -123,13 +138,13 @@ class Marrison_Addon_Admin {
 		$server_file = dirname( __DIR__ ) . '/modules/browser-cache/class-browser-cache-server.php';
 
 		if ( ! file_exists( $server_file ) ) {
-			return;
+			return new WP_Error( 'browser_cache_module_missing', __( 'Modulo Browser Cache non trovato: rimozione delle regole non verificata.', 'marrison-addon' ) );
 		}
 
 		require_once $server_file;
 
 		if ( ! class_exists( 'Marrison_Addon_Browser_Cache_Server' ) ) {
-			return;
+			return new WP_Error( 'browser_cache_module_unavailable', __( 'Browser Cache non disponibile: rimozione delle regole non verificata.', 'marrison-addon' ) );
 		}
 
 		$server = new Marrison_Addon_Browser_Cache_Server();
@@ -143,6 +158,7 @@ class Marrison_Addon_Admin {
 				]
 			);
 		}
+		return $result;
 	}
 
 	public function add_admin_menu() {
@@ -219,6 +235,9 @@ class Marrison_Addon_Admin {
 					$badge = '';
 
 					$missing_requirements = [];
+					if ( 'php_snippets' === $id && ! current_user_can( 'unfiltered_html' ) ) {
+						$missing_requirements[] = 'unfiltered_html';
+					}
 
 					if ( isset( $module['requires_elementor'] ) && $module['requires_elementor'] && ! $is_elementor_active ) {
 						$missing_requirements[] = esc_html__( 'Elementor', 'marrison-addon' );

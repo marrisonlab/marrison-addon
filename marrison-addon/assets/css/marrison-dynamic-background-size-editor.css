@@ -1,0 +1,4 @@
+/* Reveal Elementor's existing resolution field only for supported dynamic backgrounds. */
+.marrison-dynamic-background-size-control .elementor-control-media.e-media-empty-placeholder .e-control-image-size {
+    display: flex;
+}

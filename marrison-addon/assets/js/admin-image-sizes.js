@@ -8,19 +8,46 @@ jQuery(document).ready(function($) {
     var $stopBtn = $('#marrison-stop-btn');
     var $testAvifBtn = $('#marrison-test-avif-btn');
     var $avifTestResult = $('#marrison-avif-test-result');
+    var $sizeSelect = $('#marrison-regenerate-size');
+    var $cleanupControls = $('#marrison-cleanup-disabled-controls');
+    var $cleanupCheckbox = $('#marrison-cleanup-disabled');
 
     var isProcessing = false;
     var totalImages = 0;
     var processedImages = 0;
     var imageIds = [];
     var cleanupDisabled = false;
+    var selectedSize = '';
+    var successfulImages = 0;
+    var skippedImages = 0;
+    var failedImages = 0;
+
+    function updateSizeSelection() {
+        var singleSize = !!$sizeSelect.val();
+        $regenerateBtn.text(singleSize ? marrison_vars.regenerate_selected : marrison_vars.regenerate_all);
+        $cleanupControls.toggle(!singleSize);
+        $cleanupCheckbox.prop('disabled', singleSize);
+    }
+
+    function restoreControls() {
+        $regenerateBtn.show().prop('disabled', false);
+        $sizeSelect.prop('disabled', false);
+        $stopBtn.hide();
+        updateSizeSelection();
+    }
+
+    $sizeSelect.on('change', updateSizeSelection);
+    updateSizeSelection();
 
     $regenerateBtn.on('click', function(e) {
         e.preventDefault();
         
         if (isProcessing) return;
         
-        if (!confirm(marrison_vars.confirm_message)) {
+        var message = $sizeSelect.val()
+            ? marrison_vars.confirm_size_message.replace('%s', $sizeSelect.find('option:selected').text())
+            : marrison_vars.confirm_message;
+        if (!confirm(message)) {
             return;
         }
 
@@ -31,7 +58,7 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         isProcessing = false;
         $stopBtn.hide();
-        $regenerateBtn.show().prop('disabled', false);
+        // Keep controls locked until the current request returns, so a new run cannot overlap it.
         $logList.prepend('<li><span style="color: red;">' + marrison_vars.process_stopped + '</span></li>');
     });
 
@@ -69,7 +96,10 @@ jQuery(document).ready(function($) {
 
     function startRegeneration() {
         isProcessing = true;
-        cleanupDisabled = $('#marrison-cleanup-disabled').is(':checked');
+        selectedSize = $sizeSelect.val() || '';
+        cleanupDisabled = !selectedSize && $cleanupCheckbox.is(':checked');
+        $sizeSelect.prop('disabled', true);
+        $cleanupCheckbox.prop('disabled', true);
         $regenerateBtn.prop('disabled', true).hide();
         $stopBtn.show();
         $progressBar.show();
@@ -78,6 +108,9 @@ jQuery(document).ready(function($) {
         $progressFill.css('width', '0%');
         $progressText.text('0%');
         processedImages = 0;
+        successfulImages = 0;
+        skippedImages = 0;
+        failedImages = 0;
 
         // Step 1: Get all image IDs
         $.ajax({
@@ -88,6 +121,10 @@ jQuery(document).ready(function($) {
                 nonce: marrison_vars.nonce
             },
             success: function(response) {
+                if (!isProcessing) {
+                    restoreControls();
+                    return;
+                }
                 if (response.success) {
                     imageIds = response.data.ids;
                     totalImages = imageIds.length;
@@ -104,16 +141,24 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function() {
+                if (!isProcessing) {
+                    restoreControls();
+                    return;
+                }
                 finishRegeneration('Server Error getting image IDs');
             }
         });
     }
 
     function processNextImage() {
-        if (!isProcessing) return;
+        if (!isProcessing) {
+            finishRegeneration(null, false);
+            return;
+        }
 
         if (imageIds.length === 0) {
-            finishRegeneration(marrison_vars.done_message);
+            var summary = failedImages ? marrison_vars.done_with_errors : marrison_vars.done_summary;
+            finishRegeneration(summary.replace('%1$d', successfulImages).replace('%2$d', skippedImages).replace('%3$d', failedImages));
             return;
         }
 
@@ -126,15 +171,21 @@ jQuery(document).ready(function($) {
                 action: 'marrison_regenerate_single_image',
                 nonce: marrison_vars.nonce,
                 id: id,
+                size: selectedSize,
                 cleanup: cleanupDisabled
             },
             success: function(response) {
                 processedImages++;
                 updateProgress();
 
-                if (response.success) {
+                if (response.success && response.data.skipped) {
+                    skippedImages++;
+                    $logList.prepend('<li class="skipped">' + response.data.message + '</li>');
+                } else if (response.success) {
+                    successfulImages++;
                     $logList.prepend('<li class="success">' + response.data.message + '</li>');
                 } else {
+                    failedImages++;
                     $logList.prepend('<li class="error">' + response.data.message + '</li>');
                 }
                 
@@ -142,6 +193,7 @@ jQuery(document).ready(function($) {
             },
             error: function(xhr, status, error) {
                 processedImages++;
+                failedImages++;
                 updateProgress();
                 $logList.prepend('<li class="error">Error processing ID ' + id + ': ' + error + '</li>');
                 processNextImage();
@@ -155,12 +207,15 @@ jQuery(document).ready(function($) {
         $progressText.text(percentage + '% (' + processedImages + '/' + totalImages + ')');
     }
 
-    function finishRegeneration(message) {
+    function finishRegeneration(message, completed) {
         isProcessing = false;
-        $regenerateBtn.show().prop('disabled', false);
-        $stopBtn.hide();
-        $logList.prepend('<li><strong>' + message + '</strong></li>');
-        $progressFill.css('width', '100%');
+        restoreControls();
+        if (message) {
+            $logList.prepend('<li><strong>' + message + '</strong></li>');
+        }
+        if (completed !== false) {
+            $progressFill.css('width', '100%');
+        }
 
         $.ajax({
             url: marrison_vars.ajax_url,

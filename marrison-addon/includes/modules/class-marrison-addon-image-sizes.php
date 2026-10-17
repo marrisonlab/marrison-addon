@@ -14,12 +14,18 @@ class Marrison_Addon_Image_Sizes {
 	const BACKGROUND_RESOLVE_CACHE_GROUP = 'marrison_addon_bg_webp';
 	const BACKGROUND_RESOLVE_CACHE_PREFIX = 'marrison_bg_webp_';
 	const BACKGROUND_RESOLVE_CACHE_TTL = 43200;
+	const BACKGROUND_CACHE_REVISION_OPTION = 'marrison_addon_background_cache_revision';
 
 	private $webp_enabled_sizes = null;
 	private $url_replacement_cache = [];
 	private $lcp_preloaded_urls = [];
 	private $lcp_hero_container_stack = [];
+	private $lcp_document_elements = [];
+	private $lcp_preload_media = [];
+	private $lcp_breakpoints = null;
 	private $skip_automatic_modern_format_generation = false;
+	private $modern_format_generation_errors = [];
+	private $modern_format_files_changed = false;
 
 	public function __construct() {
 		// Hooks for functionality
@@ -35,6 +41,9 @@ class Marrison_Addon_Image_Sizes {
 		add_filter( 'wp_calculate_image_srcset', [ $this, 'serve_webp_srcset' ], 20, 5 );
 		add_filter( 'wp_generate_attachment_metadata', [ $this, 'add_modern_formats_to_generated_metadata' ], 20, 3 );
 		add_filter( 'elementor/files/css/property', [ $this, 'filter_elementor_css_property_value' ], 20, 4 );
+		if ( class_exists( 'Marrison_Addon' ) && Marrison_Addon::is_module_enabled( 'dynamic_background_image_size' ) ) {
+			add_filter( 'marrison_addon/image_sizes/selected_background_url', [ $this, 'resolve_selected_background_url' ], 10, 3 );
+		}
 		add_action( 'template_redirect', [ $this, 'start_frontend_webp_rewrite' ], 1 );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_scripts' ] );
 		add_action( 'elementor/element/container/section_layout/after_section_end', [ $this, 'register_lcp_hero_controls' ] );
@@ -76,9 +85,14 @@ class Marrison_Addon_Image_Sizes {
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce' => wp_create_nonce( 'marrison_regenerate_nonce' ),
 			'confirm_message' => __( 'Sei sicuro di voler rigenerare tutte le miniature? Questa operazione potrebbe richiedere del tempo.', 'marrison-addon' ),
+			'confirm_size_message' => __( 'Rigenerare solo la dimensione %s per tutte le immagini? Verranno aggiornate anche le sue varianti WebP/AVIF abilitate. Salva prima le modifiche alle impostazioni.', 'marrison-addon' ),
+			'regenerate_all' => __( 'Rigenera Tutte le Miniature', 'marrison-addon' ),
+			'regenerate_selected' => __( 'Rigenera la dimensione selezionata', 'marrison-addon' ),
 			'no_images' => __( 'Nessuna immagine trovata da rigenerare.', 'marrison-addon' ),
 			'found_images' => __( 'Trovate %d immagini. Avvio rigenerazione...', 'marrison-addon' ),
 			'done_message' => __( 'Finito!', 'marrison-addon' ),
+			'done_summary' => __( 'Rigenerazione completata. Riuscite: %1$d. Saltate: %2$d. Errori: %3$d.', 'marrison-addon' ),
+			'done_with_errors' => __( 'Rigenerazione terminata con errori. Riuscite: %1$d. Saltate: %2$d. Errori: %3$d.', 'marrison-addon' ),
 			'process_stopped' => __( 'Processo interrotto dall\'utente.', 'marrison-addon' ),
 			'cache_cleared' => __( 'Cache CSS Elementor aggiornata.', 'marrison-addon' ),
 			'avif_testing' => __( 'Test supporto AVIF in corso...', 'marrison-addon' ),
@@ -188,7 +202,8 @@ class Marrison_Addon_Image_Sizes {
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'uploadsBaseUrl' => $uploads['baseurl'],
 				'preferAvif' => $this->client_prefers_avif(),
-				'cacheVersion' => Marrison_Addon::VERSION,
+				'cacheVersion' => $this->get_background_cache_version(),
+				'preserveDynamicBackgroundSize' => Marrison_Addon::is_module_enabled( 'dynamic_background_image_size' ),
 			]
 		);
 	}
@@ -229,7 +244,7 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	/**
-	 * Mark LCP containers and emit an early preload tag before the container HTML.
+	 * Mark LCP containers and collect preloads for the frontend head buffer.
 	 */
 	public function before_render_lcp_hero_container( $container ) {
 		if ( ! method_exists( $container, 'get_settings_for_display' ) || Marrison_Addon_Context::is_elementor_editor_context() ) {
@@ -250,14 +265,8 @@ class Marrison_Addon_Image_Sizes {
 			$container->add_render_attribute( '_wrapper', 'data-marrison-lcp-hero', '1' );
 		}
 
-		$preload_url = $this->get_lcp_preload_url_from_container_settings( $settings );
-		if ( ! $preload_url || isset( $this->lcp_preloaded_urls[ $preload_url ] ) ) {
-			return;
-		}
-
-		$this->lcp_preloaded_urls[ $preload_url ] = true;
-
-		echo '<link rel="preload" as="image" href="' . esc_url( $preload_url ) . '" fetchpriority="high" />' . "\n";
+		$settings = apply_filters( 'marrison_addon/image_sizes/lcp_background_settings', $settings, $container );
+		$this->register_lcp_background_preloads( $settings, true );
 	}
 
 	/**
@@ -280,27 +289,136 @@ class Marrison_Addon_Image_Sizes {
 			}
 		}
 
-		if ( ! empty( $settings['background_image'] ) && is_array( $settings['background_image'] ) && ! empty( $settings['background_image']['url'] ) ) {
-			return $this->get_preload_webp_url( $settings['background_image']['url'], isset( $settings['background_image']['id'] ) ? (int) $settings['background_image']['id'] : 0 );
+		if ( ! empty( $settings['background_image'] ) && is_array( $settings['background_image'] ) && ( ! empty( $settings['background_image']['url'] ) || ! empty( $settings['background_image']['id'] ) ) ) {
+			$image = $settings['background_image'];
+			if ( empty( $image['url'] ) && ! empty( $image['id'] ) ) {
+				$image['url'] = wp_get_attachment_url( (int) $image['id'] );
+			}
+			$replacement = $this->get_elementor_css_image_url( $image );
+			if ( $replacement ) {
+				return $replacement;
+			}
+			if ( ! empty( $image['id'] ) ) {
+				$selected_url = wp_get_attachment_image_url( (int) $image['id'], ! empty( $image['size'] ) ? $image['size'] : 'full' );
+				return $selected_url ? $selected_url : $image['url'];
+			}
+			return ! empty( $image['url'] ) ? $image['url'] : '';
 		}
 
 		return '';
 	}
 
+	/** Collect disjoint viewport preloads while retaining the existing selected-size resolver. */
+	private function register_lcp_background_preloads( array $settings, $resolved = false ) {
+		$preloads = $this->get_responsive_lcp_preloads_from_settings( $settings, $resolved );
+		foreach ( $preloads as $preload ) {
+			$this->lcp_preloaded_urls[ $preload['url'] ] = true;
+			$this->lcp_preload_media[ $preload['url'] ][ $preload['media'] ] = true;
+		}
+		return $preloads ? $preloads[0]['url'] : '';
+	}
+
+	/** Resolve CSS's responsive inheritance: max devices cascade down; widescreen starts from desktop. */
+	private function get_responsive_lcp_preloads_from_settings( array $settings, $resolved = false ) {
+		if ( ! $resolved && ( ! empty( $settings['__dynamic__']['background_image'] ) || ! empty( $settings['__dynamic__']['background_slideshow_gallery'] ) ) ) {
+			return [];
+		}
+		$base_url = $this->get_lcp_preload_url_from_container_settings( $settings );
+		if ( ! empty( $settings['background_slideshow_gallery'] ) ) {
+			return $base_url ? [ [ 'url' => $base_url, 'media' => '' ] ] : [];
+		}
+		if ( null === $this->lcp_breakpoints ) {
+			$this->lcp_breakpoints = [ 'mobile' => [ 'value' => 767, 'direction' => 'max' ], 'tablet' => [ 'value' => 1024, 'direction' => 'max' ] ];
+			if ( class_exists( '\\Elementor\\Plugin' ) && isset( \Elementor\Plugin::$instance->breakpoints ) && method_exists( \Elementor\Plugin::$instance->breakpoints, 'get_active_breakpoints' ) ) {
+				$this->lcp_breakpoints = [];
+				foreach ( \Elementor\Plugin::$instance->breakpoints->get_active_breakpoints() as $device => $breakpoint ) {
+					if ( is_object( $breakpoint ) && method_exists( $breakpoint, 'get_value' ) && method_exists( $breakpoint, 'get_direction' ) && $breakpoint->get_value() > 0 ) {
+						$this->lcp_breakpoints[ $device ] = [ 'value' => (int) $breakpoint->get_value(), 'direction' => $breakpoint->get_direction() ];
+					}
+				}
+			}
+		}
+		$max = [];
+		$min = [];
+		foreach ( $this->lcp_breakpoints as $device => $breakpoint ) {
+			$field = 'background_image_' . $device;
+			if ( ! $resolved && ! empty( $settings['__dynamic__'][ $field ] ) ) {
+				$url = '';
+			} elseif ( ! empty( $settings[ $field ] ) && is_array( $settings[ $field ] ) ) {
+				$url = $this->get_lcp_preload_url_from_container_settings( [ 'background_image' => $settings[ $field ] ] );
+				if ( ! $url ) {
+					continue;
+				}
+			} else {
+				continue;
+			}
+			$profile = [ 'url' => $url, 'value' => $breakpoint['value'] ];
+			if ( 'max' === $breakpoint['direction'] ) {
+				$max[] = $profile;
+			} elseif ( 'min' === $breakpoint['direction'] ) {
+				$min[] = $profile;
+			}
+		}
+		usort( $max, function ( $a, $b ) { return $b['value'] <=> $a['value']; } );
+		usort( $min, function ( $a, $b ) { return $a['value'] <=> $b['value']; } );
+		$ranges = [];
+		$current_url = $base_url;
+		$upper = null;
+		foreach ( $max as $profile ) {
+			$ranges[] = [ 'url' => $current_url, 'min' => $profile['value'], 'min_inclusive' => false, 'max' => $upper, 'max_inclusive' => true ];
+			$current_url = $profile['url'];
+			$upper = $profile['value'];
+		}
+		$ranges[] = [ 'url' => $current_url, 'min' => null, 'min_inclusive' => false, 'max' => $upper, 'max_inclusive' => true ];
+		foreach ( $min as $profile ) {
+			$top = $ranges[0];
+			if ( null !== $top['min'] && $profile['value'] <= $top['min'] ) {
+				$ranges[0]['url'] = $profile['url'];
+				continue;
+			}
+			$ranges[0]['max'] = $profile['value'];
+			$ranges[0]['max_inclusive'] = false;
+			array_unshift( $ranges, [ 'url' => $profile['url'], 'min' => $profile['value'], 'min_inclusive' => true, 'max' => null, 'max_inclusive' => true ] );
+		}
+		$urls = array_unique( array_column( $ranges, 'url' ) );
+		if ( 1 === count( $urls ) && $ranges[0]['url'] ) {
+			return [ [ 'url' => $ranges[0]['url'], 'media' => '' ] ];
+		}
+		$preloads = [];
+		foreach ( $ranges as $range ) {
+			if ( ! $range['url'] ) {
+				continue;
+			}
+			$media = [];
+			if ( null !== $range['min'] ) {
+				$media[] = '(width ' . ( $range['min_inclusive'] ? '>=' : '>' ) . ' ' . $range['min'] . 'px)';
+			}
+			if ( null !== $range['max'] ) {
+				$media[] = '(width ' . ( $range['max_inclusive'] ? '<=' : '<' ) . ' ' . $range['max'] . 'px)';
+			}
+			$preloads[ $range['url'] ][] = implode( ' and ', $media );
+		}
+		$result = [];
+		foreach ( $preloads as $url => $media ) {
+			$result[] = [ 'url' => $url, 'media' => implode( ', ', $media ) ];
+		}
+		return $result;
+	}
+
 	/**
-	 * Prefer a generated WebP URL, then fall back to a cheap extension rewrite.
+	 * Use only generated files; a missing conversion keeps the original URL.
 	 */
-	private function get_preload_webp_url( $url, $attachment_id = 0 ) {
+	private function get_preload_webp_url( $url, $attachment_id = 0, $preferred_format = '' ) {
 		if ( ! is_string( $url ) || '' === $url ) {
 			return '';
 		}
 
-		$replacement = $this->get_webp_replacement_for_url( $url, $attachment_id );
+		$replacement = $this->get_webp_replacement_for_url( $url, $attachment_id, null, true, $preferred_format );
 		if ( $replacement ) {
 			return $replacement;
 		}
 
-		return $this->replace_image_extension_with_webp( $url );
+		return $url;
 	}
 
 	/**
@@ -340,14 +458,36 @@ class Marrison_Addon_Image_Sizes {
 			wp_send_json_error( [ 'message' => 'Invalid ID' ] );
 		}
 
+		if ( isset( $_POST['size'] ) && ! is_string( $_POST['size'] ) ) {
+			wp_send_json_error( [ 'message' => __( 'Dimensione non valida.', 'marrison-addon' ) ] );
+		}
+		$requested_size = isset( $_POST['size'] ) ? wp_unslash( $_POST['size'] ) : '';
+		$size_slug = sanitize_key( $requested_size );
+		if ( $size_slug !== $requested_size ) {
+			wp_send_json_error( [ 'message' => __( 'Dimensione non valida.', 'marrison-addon' ) ] );
+		}
+		$size_definitions = '' !== $size_slug ? $this->get_regeneration_size_definitions() : [];
+		if ( '' !== $size_slug && ! isset( $size_definitions[ $size_slug ] ) ) {
+			wp_send_json_error( [ 'message' => __( 'La dimensione selezionata non è registrata o è disabilitata. Salva le impostazioni e ricarica la pagina.', 'marrison-addon' ) ] );
+		}
+
 		$fullsizepath = get_attached_file( $id );
+
+		if ( $this->is_svg_attachment( $id, $fullsizepath ) ) {
+			$filename = is_string( $fullsizepath ) && '' !== $fullsizepath ? basename( $fullsizepath ) : 'SVG';
+			wp_send_json_success( [
+				'skipped' => true,
+				'reason' => 'svg',
+				'message' => sprintf( __( 'Saltato: %1$s (ID: %2$d). SVG: conversione non necessaria.', 'marrison-addon' ), $filename, $id ),
+			] );
+		}
 
 		if ( false === $fullsizepath || ! file_exists( $fullsizepath ) ) {
 			wp_send_json_error( [ 'message' => sprintf( __( 'File non trovato per ID %d', 'marrison-addon' ), $id ) ] );
 		}
 
 		// Optional: Cleanup disabled sizes
-		$cleanup = isset( $_POST['cleanup'] ) && $_POST['cleanup'] === 'true';
+		$cleanup = '' === $size_slug && isset( $_POST['cleanup'] ) && $_POST['cleanup'] === 'true';
 		if ( $cleanup ) {
 			$disabled_sizes = get_option( 'marrison_addon_disabled_sizes', [] );
 			if ( ! empty( $disabled_sizes ) ) {
@@ -355,8 +495,8 @@ class Marrison_Addon_Image_Sizes {
 				if ( ! empty( $old_metadata['sizes'] ) ) {
 					$base_dir = dirname( $fullsizepath );
 
-					foreach ( $old_metadata['sizes'] as $size_slug => $size_data ) {
-						if ( isset( $disabled_sizes[ $size_slug ] ) && $disabled_sizes[ $size_slug ] ) {
+					foreach ( $old_metadata['sizes'] as $disabled_slug => $size_data ) {
+						if ( isset( $disabled_sizes[ $disabled_slug ] ) && $disabled_sizes[ $disabled_slug ] ) {
 							if ( isset( $size_data['file'] ) ) {
 								$file_path = $base_dir . '/' . $size_data['file'];
 								if ( file_exists( $file_path ) ) {
@@ -375,7 +515,10 @@ class Marrison_Addon_Image_Sizes {
 		}
 
 		// Generate metadata with upscaling support
-		$metadata = $this->generate_metadata_with_upscaling( $id, $fullsizepath );
+		$this->modern_format_generation_errors = [];
+		$metadata = '' === $size_slug
+			? $this->generate_metadata_with_upscaling( $id, $fullsizepath )
+			: $this->generate_metadata_for_size( $id, $fullsizepath, $size_slug, $size_definitions[ $size_slug ] );
 
 		if ( is_wp_error( $metadata ) ) {
 			wp_send_json_error( [ 'message' => sprintf( __( 'Errore generazione metadata per ID %d: %s', 'marrison-addon' ), $id, $metadata->get_error_message() ) ] );
@@ -386,9 +529,23 @@ class Marrison_Addon_Image_Sizes {
 		}
 
 		// Update metadata in DB
-		wp_update_attachment_metadata( $id, $metadata );
+		$updated = wp_update_attachment_metadata( $id, $metadata );
+		if ( '' !== $size_slug && false === $updated && wp_get_attachment_metadata( $id ) !== $metadata ) {
+			wp_send_json_error( [ 'message' => sprintf( __( 'Impossibile salvare i metadati della dimensione %1$s per ID %2$d.', 'marrison-addon' ), $size_slug, $id ) ] );
+		}
+		$this->invalidate_background_resolve_cache();
+
+		if ( ! empty( $this->modern_format_generation_errors ) ) {
+			wp_send_json_error( [
+				'message' => sprintf( __( 'Rigenerazione incompleta per ID %d: %s', 'marrison-addon' ), $id, implode( '; ', $this->modern_format_generation_errors ) ),
+				'partial' => true,
+			] );
+		}
 
 		$filename = basename( $fullsizepath );
+		if ( '' !== $size_slug ) {
+			wp_send_json_success( [ 'message' => sprintf( __( 'Rigenerata dimensione %1$s: %2$s (ID: %3$d)', 'marrison-addon' ), $size_slug, $filename, $id ) ] );
+		}
 		wp_send_json_success( [ 'message' => sprintf( __( 'Rigenerato: %s (ID: %d)', 'marrison-addon' ), $filename, $id ) ] );
 	}
 
@@ -537,7 +694,17 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	private function get_background_resolve_cache_key( $url, $width, $height, $fit, $format ) {
-		return md5( implode( '|', [ (string) $url, absint( $width ), absint( $height ), sanitize_key( $fit ), sanitize_key( $format ) ] ) );
+		return md5( implode( '|', [ $this->get_background_cache_version(), (string) $url, absint( $width ), absint( $height ), sanitize_key( $fit ), sanitize_key( $format ) ] ) );
+	}
+
+	private function get_background_cache_version() {
+		$version = class_exists( 'Marrison_Addon' ) ? Marrison_Addon::VERSION : '1';
+		return $version . '|' . (string) get_option( self::BACKGROUND_CACHE_REVISION_OPTION, '0' );
+	}
+
+	private function invalidate_background_resolve_cache() {
+		update_option( self::BACKGROUND_CACHE_REVISION_OPTION, wp_generate_uuid4(), false );
+		$this->url_replacement_cache = [];
 	}
 
 	private function get_background_resolve_cache( $cache_key ) {
@@ -631,6 +798,48 @@ class Marrison_Addon_Image_Sizes {
 		return $this->generate_modern_formats_for_metadata( $attachment_id, $file, $metadata, $webp_sizes, false );
 	}
 
+	/** Active sizes with their saved conversion settings, shared by the selector and AJAX validation. */
+	private function get_regeneration_size_definitions() {
+		$sizes = wp_get_registered_image_subsizes();
+		$custom_sizes = get_option( 'marrison_addon_image_sizes', [] );
+		foreach ( (array) $custom_sizes as $size ) {
+			if ( ! empty( $size['slug'] ) ) {
+				$sizes[ $size['slug'] ] = [
+					'width' => (int) $size['width'],
+					'height' => (int) $size['height'],
+					'crop' => ! empty( $size['crop'] ),
+				];
+			}
+		}
+		$definitions = $this->get_image_size_generation_definitions();
+		$sizes = array_replace( $sizes, $definitions['modern'] );
+		$disabled_sizes = get_option( 'marrison_addon_disabled_sizes', [] );
+		foreach ( $sizes as $slug => $size ) {
+			if ( ! empty( $disabled_sizes[ $slug ] ) || ( empty( $size['width'] ) && empty( $size['height'] ) ) ) {
+				unset( $sizes[ $slug ] );
+			}
+		}
+		return $sizes;
+	}
+
+	/** Replace only the requested size; retain full-size sources and every other metadata entry. */
+	private function generate_metadata_for_size( $attachment_id, $file, $slug, $size_data ) {
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		if ( empty( $metadata ) || ! is_array( $metadata ) ) {
+			return new WP_Error( 'missing_metadata', __( 'Metadati originali non disponibili. Esegui prima una rigenerazione completa per questa immagine.', 'marrison-addon' ) );
+		}
+		$generated_size = null;
+		$size_path = $this->generate_single_size( $file, $slug, $size_data, $generated_size, true );
+		if ( is_wp_error( $size_path ) ) {
+			return $size_path;
+		}
+		if ( ! file_exists( $size_path ) ) {
+			return new WP_Error( 'missing_size', __( 'File della dimensione rigenerata non trovato.', 'marrison-addon' ) );
+		}
+		$metadata['sizes'][ $slug ] = $generated_size;
+		return $this->generate_modern_formats_for_metadata( $attachment_id, $file, $metadata, [ $slug => $size_data ], false, false );
+	}
+
 	private function get_image_size_generation_definitions() {
 		$custom_sizes = get_option( 'marrison_addon_image_sizes', [] );
 		$disabled_sizes = get_option( 'marrison_addon_disabled_sizes', [] );
@@ -672,6 +881,13 @@ class Marrison_Addon_Image_Sizes {
 		];
 	}
 
+	/** SVGs retain their original files and metadata; they never enter the raster pipeline. */
+	private function is_svg_attachment( $attachment_id, $file ) {
+		$mime_type = function_exists( 'get_post_mime_type' ) ? get_post_mime_type( $attachment_id ) : '';
+		return 'image/svg+xml' === strtolower( (string) $mime_type )
+			|| ( is_string( $file ) && in_array( strtolower( pathinfo( $file, PATHINFO_EXTENSION ) ), [ 'svg', 'svgz' ], true ) );
+	}
+
 	public function add_modern_formats_to_generated_metadata( $metadata, $attachment_id, $context = 'create' ) {
 		if ( $this->skip_automatic_modern_format_generation ) {
 			return $metadata;
@@ -687,6 +903,9 @@ class Marrison_Addon_Image_Sizes {
 		}
 
 		$file = get_attached_file( $attachment_id );
+		if ( $this->is_svg_attachment( $attachment_id, $file ) ) {
+			return $metadata;
+		}
 		if ( false === $file || ! is_string( $file ) || ! file_exists( $file ) ) {
 			$this->log_modern_format_generation_error( $attachment_id, '', 'metadata', __( 'File originale non trovato.', 'marrison-addon' ) );
 			return $metadata;
@@ -695,7 +914,12 @@ class Marrison_Addon_Image_Sizes {
 		return $this->generate_modern_formats_for_metadata( $attachment_id, $file, $metadata, null, true );
 	}
 
-	private function generate_modern_formats_for_metadata( $attachment_id, $file, $metadata, $webp_sizes = null, $reuse_existing_files = true ) {
+	private function generate_modern_formats_for_metadata( $attachment_id, $file, $metadata, $webp_sizes = null, $reuse_existing_files = true, $generate_full_formats = true ) {
+		$this->modern_format_generation_errors = [];
+		$this->modern_format_files_changed = false;
+		if ( $this->is_svg_attachment( $attachment_id, $file ) ) {
+			return $metadata;
+		}
 		if ( empty( $metadata ) || ! is_array( $metadata ) ) {
 			return $metadata;
 		}
@@ -708,8 +932,9 @@ class Marrison_Addon_Image_Sizes {
 		if ( empty( $webp_sizes ) ) {
 			return $metadata;
 		}
+		$original_metadata = $metadata;
 
-		if ( ! empty( $webp_sizes ) && $this->size_definitions_include_format( $webp_sizes, 'webp' ) ) {
+		if ( $generate_full_formats && $this->size_definitions_include_format( $webp_sizes, 'webp' ) ) {
 			$full_webp_quality = $this->get_full_webp_quality( $webp_sizes );
 			$full_webp_path = $this->get_or_create_modern_format_file( $file, 'image/webp', $full_webp_quality, $reuse_existing_files );
 
@@ -725,7 +950,7 @@ class Marrison_Addon_Image_Sizes {
 			}
 		}
 
-		if ( ! empty( $webp_sizes ) && $this->size_definitions_include_format( $webp_sizes, 'avif' ) ) {
+		if ( $generate_full_formats && $this->size_definitions_include_format( $webp_sizes, 'avif' ) ) {
 			$full_avif_quality = $this->get_full_avif_quality( $webp_sizes );
 			$full_avif_path = $this->get_or_create_modern_format_file( $file, 'image/avif', $full_avif_quality, $reuse_existing_files );
 
@@ -785,13 +1010,16 @@ class Marrison_Addon_Image_Sizes {
 			}
 		}
 
+		if ( $metadata !== $original_metadata || $this->modern_format_files_changed || ! $reuse_existing_files ) {
+			$this->invalidate_background_resolve_cache();
+		}
 		return $metadata;
 	}
 
 	/**
 	 * Generate a single image size.
 	 */
-	private function generate_single_size( $file, $slug, $size_data, &$generated_size = null ) {
+	private function generate_single_size( $file, $slug, $size_data, &$generated_size = null, $unique_filename = false ) {
 		$editor = wp_get_image_editor( $file );
 
 		if ( is_wp_error( $editor ) ) {
@@ -806,13 +1034,29 @@ class Marrison_Addon_Image_Sizes {
 		$dest_h = $size_data['height'];
 		$crop = $size_data['crop'];
 
-		// Use center-center crop position for hard crop
-		$crop_position = $crop ? ['center', 'center'] : false;
+		// Preserve directional crops registered by themes and plugins.
+		$crop_position = is_array( $crop ) ? $crop : ( $crop ? [ 'center', 'center' ] : false );
 		$resized = $editor->resize( $dest_w, $dest_h, $crop_position );
 		if ( is_wp_error( $resized ) ) {
 			return $resized;
 		}
-		$saved = $editor->save( $editor->generate_filename( $slug ) );
+		$save_path = $editor->generate_filename( $slug );
+		if ( $unique_filename ) {
+			// Old files may also be referenced by another size or a cached page.
+			$base_path = $save_path;
+			$suffix = 0;
+			do {
+				$filename = 0 === $suffix ? basename( $base_path ) : pathinfo( $base_path, PATHINFO_FILENAME ) . '-' . $suffix . '.' . pathinfo( $base_path, PATHINFO_EXTENSION );
+				$save_path = dirname( $base_path ) . '/' . wp_unique_filename( dirname( $base_path ), $filename );
+				++$suffix;
+			} while ( file_exists( $this->get_modern_format_file_path( $save_path, 'image/webp' ) ) || file_exists( $this->get_modern_format_file_path( $save_path, 'image/avif' ) ) );
+			$extension = strtolower( pathinfo( $save_path, PATHINFO_EXTENSION ) );
+			if ( in_array( $extension, [ 'webp', 'avif' ], true ) && ! empty( $size_data[ $extension ] ) ) {
+				$quality = isset( $size_data[ $extension . '_quality' ] ) ? (int) $size_data[ $extension . '_quality' ] : ( 'avif' === $extension ? 75 : 85 );
+				$editor->set_quality( $quality );
+			}
+		}
+		$saved = $editor->save( $save_path );
 
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
@@ -830,13 +1074,21 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	private function get_or_create_modern_format_file( $file_path, $mime_type, $quality, $reuse_existing_files ) {
+		// Native WebP/AVIF originals are already valid sources, also during regeneration.
+		if ( strtolower( pathinfo( $file_path, PATHINFO_EXTENSION ) ) === $this->get_extension_for_mime_type( $mime_type ) && file_exists( $file_path ) ) {
+			return $file_path;
+		}
 		$output_path = $this->get_modern_format_file_path( $file_path, $mime_type );
 
 		if ( $reuse_existing_files && $output_path && file_exists( $output_path ) ) {
 			return $output_path;
 		}
 
-		return $this->convert_to_format( $file_path, $mime_type, $quality );
+		$result = $this->convert_to_format( $file_path, $mime_type, $quality );
+		if ( ! is_wp_error( $result ) && is_string( $result ) && file_exists( $result ) ) {
+			$this->modern_format_files_changed = true;
+		}
+		return $result;
 	}
 
 	private function get_modern_format_file_path( $file_path, $mime_type ) {
@@ -1155,10 +1407,6 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	private function log_modern_format_generation_error( $attachment_id, $mime_type, $size_slug, $error ) {
-		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG || ! function_exists( 'error_log' ) ) {
-			return;
-		}
-
 		$format = $this->get_extension_for_mime_type( $mime_type );
 		if ( '' === $format ) {
 			$format = $mime_type ? $mime_type : 'n/a';
@@ -1166,6 +1414,11 @@ class Marrison_Addon_Image_Sizes {
 
 		$reason = is_wp_error( $error ) ? $error->get_error_message() : (string) $error;
 		$reason = function_exists( 'wp_strip_all_tags' ) ? wp_strip_all_tags( $reason ) : strip_tags( $reason );
+		$this->modern_format_generation_errors[] = strtoupper( $format ) . ' (' . $size_slug . '): ' . $reason;
+
+		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG || ! function_exists( 'error_log' ) ) {
+			return;
+		}
 
 		error_log(
 			sprintf(
@@ -1246,7 +1499,8 @@ class Marrison_Addon_Image_Sizes {
 				continue;
 			}
 
-			$replacement = $this->get_webp_replacement_for_url( $source['url'], $attachment_id, $image_meta );
+			// Width descriptors must keep the same dimensions and crop as the original candidate.
+			$replacement = $this->get_webp_replacement_for_url( $source['url'], $attachment_id, $image_meta, false );
 			if ( $replacement ) {
 				$sources[ $width ]['url'] = $replacement;
 			}
@@ -1266,11 +1520,33 @@ class Marrison_Addon_Image_Sizes {
 		return $this->replace_webp_urls_in_value( $value );
 	}
 
+	/** Existing modern source of exactly the requested size; never generate or substitute another size. */
+	public function resolve_selected_background_url( $url, $id, $size ) {
+		$metadata = wp_get_attachment_metadata( $id );
+		if ( is_array( $metadata ) && ( 'full' === $size ? ! empty( $this->get_webp_enabled_sizes() ) : $this->is_webp_enabled_size( $size ) ) ) {
+			// Shared CSS must not depend on the generating request's Accept header.
+			$source = 'full' === $size ? $this->get_full_preferred_source( $metadata, 'webp' ) : $this->get_preferred_source_for_size( $metadata, $size, 'webp' );
+			if ( $source && ! empty( $source['file'] ) && $this->metadata_file_exists( $metadata, $source['file'] ) ) {
+				return $this->build_metadata_file_url( $metadata, $source['file'] );
+			}
+		}
+		// Bypass only this module's negotiated/global full-size substitution.
+		$removed = remove_filter( 'image_downsize', [ $this, 'serve_webp_downsize' ], 20 );
+		try {
+			return 'full' === $size ? wp_get_attachment_url( $id ) : wp_get_attachment_image_url( $id, $size );
+		} finally {
+			if ( $removed ) {
+				add_filter( 'image_downsize', [ $this, 'serve_webp_downsize' ], 20, 3 );
+			}
+		}
+	}
+
 	/**
 	 * Start a frontend output buffer that catches inline styles and plugin-rendered HTML.
 	 */
 	public function start_frontend_webp_rewrite() {
-		if ( ! $this->should_serve_webp_on_frontend() || is_feed() || is_robots() || is_trackback() ) {
+		$is_public = class_exists( 'Marrison_Addon_Context' ) ? Marrison_Addon_Context::is_public_frontend_request() : ( ! is_admin() && ! wp_doing_ajax() );
+		if ( ! $is_public || is_feed() || is_robots() || is_trackback() ) {
 			return;
 		}
 
@@ -1285,10 +1561,13 @@ class Marrison_Addon_Image_Sizes {
 			return $html;
 		}
 
-		$html = $this->rewrite_elementor_lightbox_action_hashes( $html );
-		$html = $this->rewrite_elementor_data_settings( $html );
 		$html = $this->optimize_lcp_hero_internal_images( $html );
 		$html = $this->inject_lcp_hero_background_preloads( $html );
+		if ( empty( $this->get_webp_enabled_sizes() ) ) {
+			return $html;
+		}
+		$html = $this->rewrite_elementor_lightbox_action_hashes( $html );
+		$html = $this->rewrite_elementor_data_settings( $html );
 		$this->maybe_send_vary_accept_header();
 
 		$uploads = wp_get_upload_dir();
@@ -1311,6 +1590,26 @@ class Marrison_Addon_Image_Sizes {
 		}
 
 		$pattern = '~(?P<url>(?:' . implode( '|', array_unique( array_filter( $patterns ) ) ) . ')[^\\s\\\'"<>)]*\\.(?:jpe?g|png|gif|webp|avif)(?:\\?[^\\s\\\'"<>)]*)?)~i';
+		// Preserve srcset geometry and already resolved head preloads during the general rewrite.
+		$html = preg_replace_callback(
+			'~\bsrcset\s*=\s*(["\'])(.*?)\1~is',
+			function ( $attribute ) use ( $pattern ) {
+				$value = preg_replace_callback( $pattern, function ( $candidate ) {
+					$replacement = $this->get_webp_replacement_for_url( $candidate['url'], 0, null, false );
+					return $replacement ? $replacement : $candidate['url'];
+				}, $attribute[2] );
+				return 'srcset=' . $attribute[1] . $value . $attribute[1];
+			},
+			$html
+		);
+		$html = preg_replace_callback( '~url\(\s*(["\']?)([^)]*?)\1\s*\)~i', function ( $css_url ) use ( $pattern ) {
+			$value = preg_replace_callback( $pattern, function ( $candidate ) {
+				$replacement = $this->get_webp_replacement_for_url( $candidate['url'], 0, null, true, 'webp' );
+				return $replacement ? $replacement : $candidate['url'];
+			}, $css_url[2] );
+			return 'url(' . $css_url[1] . $value . $css_url[1] . ')';
+		}, $html );
+		$pattern = '~(?:\bsrcset\s*=\s*(["\']).*?\1|url\([^)]*\)|<link\b[^>]*\brel\s*=\s*["\']preload["\'][^>]*>)(*SKIP)(*F)|' . substr( $pattern, 1, -2 ) . '~is';
 
 		return preg_replace_callback(
 			$pattern,
@@ -1404,35 +1703,45 @@ class Marrison_Addon_Image_Sizes {
 			return $html;
 		}
 
-		$marker = 'data-marrison-lcp-hero';
-		$offset = 0;
-
-		while ( false !== ( $marker_pos = strpos( $html, $marker, $offset ) ) ) {
-			$next_marker_pos = strpos( $html, $marker, $marker_pos + strlen( $marker ) );
-			$img_pos = strpos( $html, '<img', $marker_pos );
-
-			if ( false === $img_pos || ( false !== $next_marker_pos && $next_marker_pos < $img_pos ) ) {
-				$offset = $marker_pos + strlen( $marker );
-				continue;
+		$images = [];
+		foreach ( $this->get_lcp_hero_html_regions( $html ) as $region ) {
+			$segment = substr( $html, $region[0], $region[1] - $region[0] );
+			if ( preg_match( '~<!--.*?-->(*SKIP)(*F)|<(?:script|style)\b[^>]*>.*?</(?:script|style)\s*>(*SKIP)(*F)|<img\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>~is', $segment, $match, PREG_OFFSET_CAPTURE ) ) {
+				$images[ $region[0] + $match[0][1] ] = $match[0][0];
 			}
-
-			$img_end = strpos( $html, '>', $img_pos );
-			if ( false === $img_end ) {
-				break;
-			}
-
-			$img_tag = substr( $html, $img_pos, $img_end - $img_pos + 1 );
-			$updated_img_tag = $this->prioritize_lcp_image_tag( $img_tag );
-
-			if ( $updated_img_tag !== $img_tag ) {
-				$html = substr_replace( $html, $updated_img_tag, $img_pos, strlen( $img_tag ) );
-				$img_end = $img_pos + strlen( $updated_img_tag ) - 1;
-			}
-
-			$offset = $img_end + 1;
+		}
+		krsort( $images );
+		foreach ( $images as $position => $tag ) {
+			$html = substr_replace( $html, $this->prioritize_lcp_image_tag( $tag ), $position, strlen( $tag ) );
 		}
 
 		return $html;
+	}
+
+	/** Locate complete marked containers without crossing their closing tag. */
+	private function get_lcp_hero_html_regions( $html ) {
+		$regions = [];
+		$stack = [];
+		$container_tags = 'div|section|article|aside|header|footer|main|nav|a|form';
+		preg_match_all( '~<!--.*?-->|<(?:script|style)\b[^>]*>.*?</(?:script|style)\s*>|</?(?:' . $container_tags . ')\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>~is', $html, $matches, PREG_OFFSET_CAPTURE );
+		foreach ( $matches[0] as $match ) {
+			$tag = $match[0];
+			if ( preg_match( '~^</(' . $container_tags . ')\b~i', $tag, $closing ) ) {
+				$opening = array_pop( $stack );
+				if ( $opening && $opening[1] && $opening[2] === strtolower( $closing[1] ) ) {
+					$regions[] = [ $opening[0], $match[1] + strlen( $tag ), $opening[3], $opening[4] ];
+				}
+			} elseif ( preg_match( '~^<(' . $container_tags . ')\b~i', $tag, $opening ) ) {
+				$document_id = $stack ? $stack[ count( $stack ) - 1 ][3] : 0;
+				if ( preg_match( '~\sdata-elementor-id\s*=\s*(["\'])([0-9]+)\1~i', $tag, $document ) ) {
+					$document_id = (int) $document[2];
+				}
+				$is_hero = (bool) preg_match( '~\sdata-marrison-lcp-hero\s*=\s*(["\'])1\1~i', $tag );
+				$element_id = $is_hero && preg_match( '~\sdata-id\s*=\s*(["\'])([a-z0-9_-]+)\1~i', $tag, $element ) ? $element[2] : '';
+				$stack[] = [ $match[1], $is_hero, strtolower( $opening[1] ), $document_id, $element_id ];
+			}
+		}
+		return $regions;
 	}
 
 	/**
@@ -1466,20 +1775,47 @@ class Marrison_Addon_Image_Sizes {
 			return $html;
 		}
 
-		$preload_urls = array_unique( array_merge( array_keys( $this->lcp_preloaded_urls ), $this->find_lcp_hero_background_preload_urls( $html ) ) );
+		$found_urls = $this->find_lcp_hero_background_preload_urls( $html );
+		$preload_urls = array_unique( array_merge( array_keys( $this->lcp_preloaded_urls ), $found_urls ) );
 		if ( empty( $preload_urls ) ) {
 			return $html;
 		}
 
 		$links = '';
-		$head_html = substr( $html, 0, stripos( $html, '</head>' ) );
+		$head_end = stripos( $html, '</head>' );
+		$head_html = substr( $html, 0, $head_end );
+		$media_by_url = [];
 		foreach ( $preload_urls as $url ) {
-			if ( false !== strpos( $head_html, 'href="' . esc_url( $url ) . '"' ) ) {
+			$media = isset( $this->lcp_preload_media[ $url ] ) ? array_keys( $this->lcp_preload_media[ $url ] ) : [ '' ];
+			$media_by_url[ html_entity_decode( $url, ENT_QUOTES, 'UTF-8' ) ] = in_array( '', $media, true ) ? '' : implode( ', ', $media );
+		}
+		$existing_preloads = [];
+		$head_html = preg_replace_callback( '~<link\b[^>]*>~i', function ( $match ) use ( $media_by_url, &$existing_preloads ) {
+			$link = $match[0];
+			if ( ! preg_match( '~\brel\s*=\s*(["\'])preload\1~i', $link ) || ! preg_match( '~\bas\s*=\s*(["\'])image\1~i', $link ) || ! preg_match( '~\bhref\s*=\s*(["\'])(.*?)\1~i', $link, $href ) ) {
+				return $link;
+			}
+			$url = html_entity_decode( $href[2], ENT_QUOTES, 'UTF-8' );
+			if ( ! array_key_exists( $url, $media_by_url ) ) {
+				return $link;
+			}
+			if ( isset( $existing_preloads[ $url ] ) ) {
+				return '';
+			}
+			$existing_preloads[ $url ] = true;
+			$link = $this->set_lcp_preload_attribute( $link, 'media', $media_by_url[ $url ] );
+			return $this->set_lcp_preload_attribute( $link, 'fetchpriority', 'high' );
+		}, $head_html );
+		$html = substr_replace( $html, $head_html, 0, $head_end );
+		foreach ( $preload_urls as $url ) {
+			$decoded_url = html_entity_decode( $url, ENT_QUOTES, 'UTF-8' );
+			if ( isset( $existing_preloads[ $decoded_url ] ) ) {
 				continue;
 			}
 
 			$this->lcp_preloaded_urls[ $url ] = true;
-			$links .= '<link rel="preload" as="image" href="' . esc_url( $url ) . '" fetchpriority="high" />' . "\n";
+			$media = $media_by_url[ $decoded_url ];
+			$links .= '<link rel="preload" as="image" href="' . esc_url( $url ) . '" fetchpriority="high"' . ( '' !== $media ? ' media="' . esc_attr( $media ) . '"' : '' ) . ' />' . "\n";
 		}
 
 		if ( '' === $links ) {
@@ -1489,28 +1825,93 @@ class Marrison_Addon_Image_Sizes {
 		return preg_replace( '~</head>~i', $links . '</head>', $html, 1 );
 	}
 
+	/** Keep existing preload attributes while correcting its viewport and priority. */
+	private function set_lcp_preload_attribute( $tag, $attribute, $value ) {
+		$tag = preg_replace( '~\s' . $attribute . '\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+)~i', '', $tag );
+		return '' === $value ? $tag : preg_replace_callback( '~\s*/?>$~', function ( $match ) use ( $attribute, $value ) {
+			return ' ' . $attribute . '="' . esc_attr( $value ) . '"' . $match[0];
+		}, $tag, 1 );
+	}
+
 	/**
 	 * Locate the first Elementor background image in each marked LCP region.
 	 */
 	private function find_lcp_hero_background_preload_urls( $html ) {
 		$urls = [];
-		$marker = 'data-marrison-lcp-hero';
-		$offset = 0;
-
-		while ( false !== ( $marker_pos = strpos( $html, $marker, $offset ) ) ) {
-			$next_marker_pos = strpos( $html, $marker, $marker_pos + strlen( $marker ) );
-			$segment_length = false === $next_marker_pos ? null : $next_marker_pos - $marker_pos;
-			$segment = substr( $html, $marker_pos, $segment_length );
+		foreach ( $this->get_lcp_hero_html_regions( $html ) as $region ) {
+			$segment = substr( $html, $region[0], $region[1] - $region[0] );
 			$url = $this->extract_lcp_background_preload_url_from_html_segment( $segment );
+			if ( ! $url && $region[2] && $region[3] ) {
+				$url = $this->get_cached_lcp_background_preload_url( $region[2], $region[3] );
+			}
 
 			if ( $url && ! in_array( $url, $urls, true ) ) {
 				$urls[] = $url;
 			}
-
-			$offset = $marker_pos + strlen( $marker );
 		}
 
 		return $urls;
+	}
+
+	/** Recover external CSS backgrounds when Elementor serves a cached container without render hooks. */
+	private function get_cached_lcp_background_preload_url( $document_id, $element_id ) {
+		if ( ! class_exists( '\\Elementor\\Plugin' ) || ! isset( \Elementor\Plugin::$instance->documents ) ) {
+			return '';
+		}
+		$documents = \Elementor\Plugin::$instance->documents;
+		if ( ! method_exists( $documents, 'get_doc_for_frontend' ) ) {
+			return '';
+		}
+		if ( ! array_key_exists( $document_id, $this->lcp_document_elements ) ) {
+			$document = $documents->get_doc_for_frontend( $document_id );
+			$elements = is_object( $document ) && method_exists( $document, 'get_elements_data' ) ? $document->get_elements_data() : [];
+			$this->lcp_document_elements[ $document_id ] = is_array( $elements ) ? $elements : [];
+		}
+		$element = $this->find_lcp_document_element( $this->lcp_document_elements[ $document_id ], $element_id );
+		if ( ! $element || empty( $element['settings'][ self::LCP_HERO_CONTROL ] ) || 'yes' !== $element['settings'][ self::LCP_HERO_CONTROL ] ) {
+			return '';
+		}
+		return $this->get_first_lcp_element_background( $element );
+	}
+
+	/** Match the exact container within its owning document, including nested containers. */
+	private function find_lcp_document_element( array $elements, $element_id ) {
+		foreach ( $elements as $element ) {
+			if ( ! is_array( $element ) ) {
+				continue;
+			}
+			if ( isset( $element['id'] ) && $element_id === (string) $element['id'] ) {
+				return $element;
+			}
+			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
+				$found = $this->find_lcp_document_element( $element['elements'], $element_id );
+				if ( $found ) {
+					return $found;
+				}
+			}
+		}
+		return [];
+	}
+
+	/** Inspect only the marked subtree; unresolved dynamic backgrounds cannot supply a reliable URL. */
+	private function get_first_lcp_element_background( array $element ) {
+		$settings = isset( $element['settings'] ) && is_array( $element['settings'] ) ? $element['settings'] : [];
+		if ( ! empty( $settings['__dynamic__']['background_image'] ) || ! empty( $settings['__dynamic__']['background_slideshow_gallery'] ) ) {
+			return '';
+		}
+		$url = $this->register_lcp_background_preloads( $settings );
+		if ( $url ) {
+			return $url;
+		}
+		foreach ( isset( $element['elements'] ) && is_array( $element['elements'] ) ? $element['elements'] : [] as $child ) {
+			if ( is_array( $child ) ) {
+				$url = $this->get_first_lcp_element_background( $child );
+				if ( $url ) {
+					return $url;
+				}
+			}
+		}
+		return '';
 	}
 
 	/**
@@ -1531,13 +1932,13 @@ class Marrison_Addon_Image_Sizes {
 		if ( preg_match_all( '~background-image\s*:\s*url\((["\']?)(?P<url>.*?)\1\)~is', $html, $matches ) ) {
 			foreach ( $matches['url'] as $url ) {
 				if ( $this->is_uploads_url( $url ) ) {
-					return $this->get_preload_webp_url( $url );
+					return $this->get_preload_webp_url( $url, 0, 'webp' );
 				}
 			}
 		}
 
 		if ( preg_match( '~url\((["\']?)(?P<url>.*?)\1\)~is', $html, $match ) && $this->is_uploads_url( $match['url'] ) ) {
-			return $this->get_preload_webp_url( $match['url'] );
+			return $this->get_preload_webp_url( $match['url'], 0, 'webp' );
 		}
 
 		return '';
@@ -1556,23 +1957,26 @@ class Marrison_Addon_Image_Sizes {
 			return '';
 		}
 
-		if ( ! empty( $data['background_slideshow_gallery'] ) && is_array( $data['background_slideshow_gallery'] ) ) {
-			$first_slide = reset( $data['background_slideshow_gallery'] );
-			if ( is_array( $first_slide ) && ! empty( $first_slide['url'] ) ) {
-				return $this->get_preload_webp_url( $first_slide['url'], isset( $first_slide['id'] ) ? (int) $first_slide['id'] : 0 );
-			}
-		}
+		return $this->register_lcp_background_preloads( $data );
+	}
 
-		if ( ! empty( $data['background_image'] ) && is_array( $data['background_image'] ) && ! empty( $data['background_image']['url'] ) ) {
-			return $this->get_preload_webp_url( $data['background_image']['url'], isset( $data['background_image']['id'] ) ? (int) $data['background_image']['id'] : 0 );
+	/** Resolve media controls explicitly: Elementor otherwise resolves their ID again in admin CSS generation. */
+	private function get_elementor_css_image_url( array $image ) {
+		if ( empty( $image['url'] ) || empty( $this->get_webp_enabled_sizes() ) ) {
+			return '';
 		}
-
-		return '';
+		$id = ! empty( $image['id'] ) ? (int) $image['id'] : 0;
+		if ( $id && ! empty( $image['size'] ) && 'full' !== $image['size'] ) {
+			$metadata = wp_get_attachment_metadata( $id );
+			$source = $this->is_webp_enabled_size( $image['size'] ) ? $this->get_preferred_source_for_size( $metadata, $image['size'], 'webp' ) : false;
+			return $source ? $this->build_metadata_file_url( $metadata, $source['file'] ) : '';
+		}
+		return $this->get_webp_replacement_for_url( $image['url'], $id, null, true, 'webp' );
 	}
 
 	private function replace_webp_urls_in_value( $value ) {
 		if ( is_string( $value ) ) {
-			$replacement = $this->get_webp_replacement_for_url( $value );
+			$replacement = $this->get_webp_replacement_for_url( $value, 0, null, true, 'webp' );
 			return $replacement ? $replacement : $value;
 		}
 
@@ -1581,11 +1985,12 @@ class Marrison_Addon_Image_Sizes {
 		}
 
 		if ( ! empty( $value['id'] ) && ! empty( $value['url'] ) ) {
-			$metadata = wp_get_attachment_metadata( (int) $value['id'] );
-			$replacement = $this->get_webp_replacement_for_url( $value['url'], (int) $value['id'], $metadata );
+			$replacement = $this->get_elementor_css_image_url( $value );
 
 			if ( $replacement ) {
 				$value['url'] = $replacement;
+				// Only the transient CSS value loses its ID; saved Elementor settings stay intact.
+				$value['id'] = 0;
 			}
 
 			return $value;
@@ -1665,7 +2070,7 @@ class Marrison_Addon_Image_Sizes {
 			return $replacement;
 		}
 
-		return $this->replace_image_extension_with_webp( $url );
+		return $url;
 	}
 
 	/**
@@ -1678,7 +2083,7 @@ class Marrison_Addon_Image_Sizes {
 
 		$uploads = wp_get_upload_dir();
 		if ( empty( $uploads['baseurl'] ) ) {
-			return $this->replace_image_extensions_with_webp( $value );
+			return $value;
 		}
 
 		$base_url = preg_quote( $uploads['baseurl'], '~' );
@@ -1700,7 +2105,7 @@ class Marrison_Addon_Image_Sizes {
 				$replacement = $this->get_webp_replacement_for_url( $url );
 
 				if ( ! $replacement ) {
-					$replacement = $this->replace_image_extension_with_webp( $url );
+					$replacement = $url;
 				}
 
 				return false !== strpos( $matches['url'], '\\/' ) ? str_replace( '/', '\\/', $replacement ) : $replacement;
@@ -1757,12 +2162,16 @@ class Marrison_Addon_Image_Sizes {
 		return preg_replace( '~\.(?:jpe?g|png)(?=([?#&\\\\/"\'\s<>)])|$)~i', '.webp', $url, 1 );
 	}
 
-	private function get_webp_replacement_for_url( $url, $attachment_id = 0, $metadata = null ) {
+	private function get_webp_replacement_for_url( $url, $attachment_id = 0, $metadata = null, $use_full_replacement = true, $preferred_format = '' ) {
 		if ( ! is_string( $url ) || '' === $url || ! $this->string_may_contain_known_image( $url ) ) {
 			return false;
 		}
+		$selected = apply_filters( 'marrison_addon/image_sizes/url_replacement', null, $url, $preferred_format );
+		if ( null !== $selected ) {
+			return $selected;
+		}
 
-		$cache_key = $attachment_id . '|' . $url;
+		$cache_key = $attachment_id . '|' . $url . '|' . (int) $use_full_replacement . '|' . implode( ',', $this->get_preferred_output_mime_types( $preferred_format ) );
 		if ( array_key_exists( $cache_key, $this->url_replacement_cache ) ) {
 			return $this->url_replacement_cache[ $cache_key ];
 		}
@@ -1803,7 +2212,7 @@ class Marrison_Addon_Image_Sizes {
 			|| ( ! empty( $metadata[ self::WEBP_FULL_METADATA_KEY ]['file'] ) && $this->metadata_file_matches_basename( $metadata[ self::WEBP_FULL_METADATA_KEY ]['file'], $basename ) )
 			|| ( ! empty( $metadata[ self::AVIF_FULL_METADATA_KEY ]['file'] ) && $this->metadata_file_matches_basename( $metadata[ self::AVIF_FULL_METADATA_KEY ]['file'], $basename ) )
 		) {
-			$source = $this->get_full_replacement_preferred_source( $metadata );
+			$source = $use_full_replacement ? $this->get_full_replacement_preferred_source( $metadata, $preferred_format ) : $this->get_full_preferred_source( $metadata, $preferred_format );
 		}
 
 		if ( ! $source && ! empty( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
@@ -1813,14 +2222,14 @@ class Marrison_Addon_Image_Sizes {
 				}
 
 				if ( ! empty( $size_data['file'] ) && $this->metadata_file_matches_basename( $size_data['file'], $basename ) ) {
-					$source = $this->get_preferred_source_for_size( $metadata, $slug );
+					$source = $this->get_preferred_source_for_size( $metadata, $slug, $preferred_format );
 					break;
 				}
 
 				if ( ! empty( $size_data['sources'] ) && is_array( $size_data['sources'] ) ) {
 					foreach ( $size_data['sources'] as $source_data ) {
 						if ( ! empty( $source_data['file'] ) && $this->metadata_file_matches_basename( $source_data['file'], $basename ) ) {
-							$source = $this->get_preferred_source_for_size( $metadata, $slug );
+							$source = $this->get_preferred_source_for_size( $metadata, $slug, $preferred_format );
 							break 2;
 						}
 					}
@@ -2115,7 +2524,7 @@ class Marrison_Addon_Image_Sizes {
 	private function get_preferred_source_for_size( $metadata, $slug, $preferred_format = '' ) {
 		foreach ( $this->get_preferred_output_mime_types( $preferred_format ) as $mime_type ) {
 			$source = $this->get_source_for_size_by_mime_type( $metadata, $slug, $mime_type );
-			if ( $source ) {
+			if ( $source && ! empty( $source['file'] ) && $this->metadata_file_exists( $metadata, $source['file'] ) ) {
 				return $source;
 			}
 		}
@@ -2124,11 +2533,15 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	private function get_source_for_size_by_mime_type( $metadata, $slug, $mime_type ) {
-		if ( empty( $metadata['sizes'][ $slug ]['sources'] ) ) {
+		if ( empty( $metadata['sizes'][ $slug ] ) ) {
 			return false;
 		}
+		$size = $metadata['sizes'][ $slug ];
+		if ( ! empty( $size['file'] ) && strtolower( pathinfo( $size['file'], PATHINFO_EXTENSION ) ) === $this->get_extension_for_mime_type( $mime_type ) ) {
+			return $size;
+		}
 
-		$sources = $metadata['sizes'][ $slug ]['sources'];
+		$sources = ! empty( $size['sources'] ) && is_array( $size['sources'] ) ? $size['sources'] : [];
 		if ( isset( $sources[ $mime_type ]['file'] ) ) {
 			return $sources[ $mime_type ];
 		}
@@ -2144,11 +2557,18 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	private function get_full_webp_source( $metadata ) {
-		return ! empty( $metadata[ self::WEBP_FULL_METADATA_KEY ]['file'] ) ? $metadata[ self::WEBP_FULL_METADATA_KEY ] : false;
+		return $this->get_full_source_by_mime_type( $metadata, 'image/webp', self::WEBP_FULL_METADATA_KEY );
 	}
 
 	private function get_full_avif_source( $metadata ) {
-		return ! empty( $metadata[ self::AVIF_FULL_METADATA_KEY ]['file'] ) ? $metadata[ self::AVIF_FULL_METADATA_KEY ] : false;
+		return $this->get_full_source_by_mime_type( $metadata, 'image/avif', self::AVIF_FULL_METADATA_KEY );
+	}
+
+	private function get_full_source_by_mime_type( $metadata, $mime_type, $key ) {
+		if ( ! empty( $metadata['file'] ) && strtolower( pathinfo( $metadata['file'], PATHINFO_EXTENSION ) ) === $this->get_extension_for_mime_type( $mime_type ) ) {
+			return [ 'file' => basename( $metadata['file'] ), 'width' => isset( $metadata['width'] ) ? (int) $metadata['width'] : 0, 'height' => isset( $metadata['height'] ) ? (int) $metadata['height'] : 0, 'mime_type' => $mime_type ];
+		}
+		return ! empty( $metadata[ $key ]['file'] ) ? $metadata[ $key ] : false;
 	}
 
 	private function get_full_preferred_source( $metadata, $preferred_format = '' ) {
@@ -2159,7 +2579,7 @@ class Marrison_Addon_Image_Sizes {
 				$source = $this->get_full_webp_source( $metadata );
 			}
 
-			if ( $source ) {
+			if ( $source && ! empty( $source['file'] ) && $this->metadata_file_exists( $metadata, $source['file'] ) ) {
 				return $source;
 			}
 		}
@@ -2180,17 +2600,17 @@ class Marrison_Addon_Image_Sizes {
 		return $this->get_full_webp_source( $metadata );
 	}
 
-	private function get_full_replacement_preferred_source( $metadata ) {
+	private function get_full_replacement_preferred_source( $metadata, $preferred_format = '' ) {
 		$fallback_slug = $this->get_full_replacement_size_slug();
 
 		if ( $fallback_slug && ! empty( $metadata['sizes'][ $fallback_slug ] ) ) {
-			$source = $this->get_preferred_source_for_size( $metadata, $fallback_slug );
+			$source = $this->get_preferred_source_for_size( $metadata, $fallback_slug, $preferred_format );
 			if ( $source ) {
 				return $source;
 			}
 		}
 
-		return $this->get_full_preferred_source( $metadata );
+		return $this->get_full_preferred_source( $metadata, $preferred_format );
 	}
 
 	private function get_preferred_output_mime_types( $preferred_format = '' ) {
@@ -2212,7 +2632,7 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	private function maybe_send_vary_accept_header() {
-		if ( headers_sent() || ! $this->client_prefers_avif() ) {
+		if ( headers_sent() ) {
 			return;
 		}
 
@@ -2345,7 +2765,7 @@ class Marrison_Addon_Image_Sizes {
 			}
 
 			$size_data = $all_sizes[ $slug ];
-			if ( empty( $size_data['width'] ) || empty( $size_data['height'] ) ) {
+			if ( empty( $size_data['width'] ) && empty( $size_data['height'] ) ) {
 				continue;
 			}
 
@@ -2355,7 +2775,7 @@ class Marrison_Addon_Image_Sizes {
 			$definitions[ $slug ] = [
 				'width' => (int) $size_data['width'],
 				'height' => (int) $size_data['height'],
-				'crop' => ! empty( $size_data['crop'] ),
+				'crop' => isset( $size_data['crop'] ) ? $size_data['crop'] : false,
 				'webp' => ! empty( $setting['enabled'] ),
 				'webp_quality' => max( 0, min( 100, $quality ) ),
 				'avif' => ! empty( $setting['avif_enabled'] ),
@@ -2410,6 +2830,7 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	private function clear_elementor_css_cache() {
+		$this->invalidate_background_resolve_cache();
 		$cleared = false;
 
 		if ( class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->files_manager ) && method_exists( \Elementor\Plugin::$instance->files_manager, 'clear_cache' ) ) {
@@ -2659,6 +3080,7 @@ class Marrison_Addon_Image_Sizes {
 		$registered_webp = get_option( self::REGISTERED_WEBP_OPTION, [] );
 		$all_sizes = wp_get_registered_image_subsizes();
 		$custom_size_slugs = $this->get_custom_size_slugs( $sizes );
+		$regeneration_sizes = $this->get_regeneration_size_definitions();
 		$full_replacement_size = $this->get_full_replacement_size_slug();
 		$full_replacement_choices = $this->get_full_replacement_size_choices( $all_sizes );
 		$edit_index = null;
@@ -2960,9 +3382,18 @@ class Marrison_Addon_Image_Sizes {
 				<div class="marrison-card-header">
 					<h2 class="marrison-card-title" style="font-size: 1.3em; margin: 0;"><?php echo esc_html__( 'Rigenera Miniature', 'marrison-addon' ); ?></h2>
 				</div>
-				<p class="marrison-card-desc" style="margin-bottom: 15px;"><?php echo esc_html__( 'Usa questo strumento per rigenerare le miniature di tutte le immagini utilizzando le dimensioni attualmente registrate.', 'marrison-addon' ); ?></p>
+				<p class="marrison-card-desc" style="margin-bottom: 15px;"><?php echo esc_html__( 'Rigenera tutte le dimensioni oppure un solo taglio per tutte le immagini. La selezione singola aggiorna anche le varianti WebP/AVIF abilitate per quel taglio. Salva prima le modifiche alle impostazioni.', 'marrison-addon' ); ?></p>
+				<p>
+					<label for="marrison-regenerate-size" style="display: block; font-weight: 600; margin-bottom: 6px;"><?php echo esc_html__( 'Dimensione da rigenerare', 'marrison-addon' ); ?></label>
+					<select id="marrison-regenerate-size">
+						<option value=""><?php echo esc_html__( 'Tutte le dimensioni', 'marrison-addon' ); ?></option>
+						<?php foreach ( $regeneration_sizes as $slug => $size_data ) : ?>
+							<option value="<?php echo esc_attr( $slug ); ?>"><?php echo esc_html( sprintf( '%s (%d × %d px)', $slug, $size_data['width'], $size_data['height'] ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
 				
-				<p style="margin-bottom: 15px; background: #f0f0f1; padding: 10px; border-radius: 4px;">
+				<p id="marrison-cleanup-disabled-controls" style="margin-bottom: 15px; background: #f0f0f1; padding: 10px; border-radius: 4px;">
 					<label style="display: flex; align-items: center; gap: 8px;">
 						<input type="checkbox" id="marrison-cleanup-disabled" value="1"> 
 						<span style="font-weight: 600;"><?php echo esc_html__( 'Elimina immagini nei tagli non abilitati', 'marrison-addon' ); ?></span>

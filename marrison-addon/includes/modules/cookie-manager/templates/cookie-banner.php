@@ -8,7 +8,7 @@ $box_position = in_array($box_position, array('top-left', 'top-right', 'bottom-l
 $position_class = $banner_layout === 'box' ? 'marrison-box-' . $box_position : 'marrison-banner-' . $banner_position;
 $layout_class = 'marrison-banner-layout-' . $banner_layout;
 ?>
-<div id="marrison-cookie-banner" class="marrison-cookie-banner <?php echo esc_attr($layout_class); ?> <?php echo esc_attr($position_class); ?>" style="background-color: <?php echo esc_attr($banner_bg_color); ?>; color: <?php echo esc_attr($banner_text_color); ?>;">
+<div id="marrison-cookie-banner" class="marrison-cookie-banner <?php echo esc_attr($layout_class); ?> <?php echo esc_attr($position_class); ?>" style="<?php if ($banner_hidden) { echo 'display: none; '; } ?>background-color: <?php echo esc_attr($banner_bg_color); ?>; color: <?php echo esc_attr($banner_text_color); ?>; --marrison-cookie-button-background: <?php echo esc_attr($button_bg_color); ?>;">
     <div class="marrison-banner-container">
         <div class="marrison-banner-content">
             <h3 class="marrison-banner-title"><?php echo esc_html($banner_title); ?></h3>

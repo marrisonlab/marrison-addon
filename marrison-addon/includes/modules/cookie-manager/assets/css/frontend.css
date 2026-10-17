@@ -164,6 +164,11 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
+/* Il bordo segue il colore configurato anche con gli stili globali del tema. */
+#marrison-cookie-banner .marrison-banner-buttons .marrison-button {
+    border: 1px solid var(--marrison-cookie-button-background, #0073aa) !important;
+}
+
 .marrison-button:active {
     transform: translateY(0);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -217,7 +222,7 @@
     }
 
     .marrison-banner-layout-bar .marrison-banner-links {
-        grid-column: 2;
+        grid-column: 1 / -1;
         gap: 12px;
         margin-top: 1px;
     }
@@ -260,6 +265,28 @@
     .marrison-banner-layout-bar .marrison-button-customize {
         background-clip: padding-box;
     }
+}
+
+/* Elenco pubblico nella Cookie Policy, leggibile anche su schermi stretti. */
+.marrison-cookie-policy-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    margin-bottom: 24px;
+}
+
+.marrison-cookie-policy-table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+}
+
+.marrison-cookie-policy-table th,
+.marrison-cookie-policy-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
 }
 
 /* Modal personalizzazione */

@@ -1,0 +1,8 @@
+.marrison-php-snippets .marrison-module-card { margin-top: 20px; }
+.marrison-php-snippets .marrison-snippets-table { overflow-x: auto; }
+.marrison-php-snippets .marrison-snippet-action { display: inline-block; margin: 2px; }
+.marrison-php-snippets .marrison-snippet-actions { min-width: 230px; }
+.marrison-php-snippets pre { max-width: 460px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.marrison-php-snippets .CodeMirror { height: 360px; border: 1px solid #8c8f94; }
+.marrison-php-snippets input.regular-text { max-width: 100%; }
+.marrison-php-snippets td { vertical-align: middle; }

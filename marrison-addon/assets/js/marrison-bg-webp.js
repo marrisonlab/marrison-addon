@@ -170,6 +170,11 @@
         var itemIndex = 0;
 
         elements.forEach(function(element) {
+            // The native Elementor resolution is authoritative for dynamic backgrounds.
+            var owner = config.preserveDynamicBackgroundSize && element.closest && element.closest('.elementor-element');
+            if (owner && owner.hasAttribute && owner.hasAttribute('data-marrison-dynamic-bg-size')) {
+                return;
+            }
             if (items.length >= 50) {
                 return;
             }
@@ -196,6 +201,11 @@
 
             var url = extractBackgroundUrl(backgroundImage);
             if (!url) {
+                return;
+            }
+
+            // A resolved hero background must keep the URL already preloaded in the head.
+            if (element.closest && element.closest('[data-marrison-lcp-hero="1"]') && /\.(?:webp|avif)(?:[?#]|$)/i.test(url)) {
                 return;
             }
 

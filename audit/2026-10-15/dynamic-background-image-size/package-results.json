@@ -1,0 +1,30 @@
+{
+  "version": "1.3.57",
+  "path": "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon-1.3.57.zip",
+  "files": 81,
+  "bytes": 262728,
+  "sha256": "96f81f8138c802973bc794b4104c16c1ee72944f558aa13b0c2ae2f450636515",
+  "all_members_match_source": true,
+  "existing_zip_unchanged": true,
+  "verification": {
+    "elementor": "4.3.3",
+    "wordpress": "7.1.2",
+    "jetengine": "3.8.15.4",
+    "real_css_assertions_formats_on": 47,
+    "real_css_assertions_formats_off": 40,
+    "regression_suites_passed": [
+      "module-definitions-i18n",
+      "image-sizes-modern-upload",
+      "image-sizes-frontend-regression",
+      "image-sizes-background-js"
+    ],
+    "php_lint": "passed",
+    "js_syntax": "passed",
+    "diff_check": "passed"
+  },
+  "not_verified": [
+    "ACF and Elementor Pro end-to-end",
+    "live editor browser redraw",
+    "production page/CDN caching and rendered media"
+  ]
+}

@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.46
+*   **Stable tag:** 1.3.62
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -89,6 +89,10 @@
 13. **Image Sizes:**
     *   Define custom image sizes for your theme directly from the dashboard.
     *   Control cropping and dimensions without editing code.
+    *   Regenerate all thumbnails or a single saved default/custom size across the Media Library. Single-size regeneration updates only that size and its enabled WebP/AVIF variants, preserving other sizes and original/full-size sources; disabled-size cleanup is available only for full regeneration.
+    *   SVG attachments are skipped before thumbnail generation, cleanup and WebP/AVIF conversion. The regeneration report separates successful, skipped and failed images; automatic uploads preserve SVG metadata without conversion errors.
+    *   Generate WebP/AVIF variants and use existing native modern-format sizes. Elementor CSS respects the selected media size; static CSS uses WebP independently of the generating request's Accept header.
+    *   Mark an Elementor container under **Advanced > Ottimizzazione LCP > Imposta come Hero LCP** to preload its background once in the page head and prioritize its first internal image, including containers served from Elementor's document cache. After changing image settings or regenerating media, clear Elementor files/data and the page/CDN cache.
 
 14. **Fast Logout:**
     *   Automatically redirects users to the home page after logging out, bypassing the default WordPress login screen.
@@ -101,11 +105,14 @@
 16. **Cookie Manager:**
     *   Cookie banner, floating widget, preferences modal, and setup wizard.
     *   Automatic cookie scanning and category management.
+    *   Automatic scans use WP-Cron and respect the configured interval of 1–30 days (default: 7). The daily cron event checks whether a scan is due, while normal requests repair scheduling without running the scan inline. Disabling automatic scans removes scheduled events; manual scans remain available. WP-Cron execution depends on site traffic or a server cron invoking WordPress cron.
+    *   The generated Cookie Policy displays current scan results and a link to reopen cookie preferences; existing configured policy pages receive these details automatically. The `[marrison_cookie_policy]` shortcode can also be used on other pages.
+    *   Homepage scans save observed `Expires` and `Max-Age` metadata in either database or JSON storage. The policy distinguishes detected expiration (in the site timezone), session cookies, and unavailable expiration; it does not infer lifetimes from cookie names or request cookies. Run a new scan after updating to collect this metadata for existing records.
     *   Frontend UI only loads when the module is active and in a real frontend context.
 
 17. **Video Thumbnail:**
     *   Fetch YouTube thumbnails and import them directly into the WordPress Media Library.
-    *   Automatically generate JPG covers from uploaded MP4/WebM videos using FFmpeg.
+    *   Automatically generate JPG covers from uploaded MP4/WebM videos when FFmpeg is already available on the server. Otherwise, show an optional-feature warning and skip cover generation; uploads and YouTube thumbnails remain available.
     *   Configure capture second, cover destination, and optional FFmpeg binary path from the admin page.
     *   Keeps the original admin workflow while living as a module inside Marrison Addon.
 
@@ -117,9 +124,10 @@
 
 19. **Browser Cache:**
     *   Configure browser cache headers for static CSS, JavaScript, fonts, and images while preserving WordPress `?ver=` cache busting.
-    *   Uses long TTL plus `immutable` only for versioned or hashed assets, with a safer default TTL for unversioned assets.
-    *   Manages an isolated Apache/LiteSpeed `.htaccess` block when available and provides copy-ready Nginx configuration otherwise.
-    *   Includes manual diagnostics that verify real HTTP response headers for actual site assets.
+    *   New configurations default to 7 days and no `immutable`. Longer TTLs and `immutable` require reliable URL changes whenever content changes; existing saved settings are preserved.
+    *   Manages an isolated Apache 2.4-compatible `.htaccess` block when available; written rules remain unverified until public headers pass diagnostics. OpenLiteSpeed requires manual server configuration.
+    *   Nginx instructions separate `http` maps from directives for the existing static location, preserving response policies and excluding errors/dynamic responses. A system administrator must apply and later remove these directives; disabling the WordPress module cannot remove manual Nginx configuration.
+    *   Manual GET diagnostics check up to three assets per enabled category, including CSS backgrounds and fonts, with HTTP status, content type and cache directives. Missing categories and failed checks cannot retain a previous green status. The module does not configure HTTP/2, compression or page cache.
 
 20. **Scroll Orizzontale (Elementor):**
     *   Adds **Marrison — Scroll Orizzontale** to the Advanced tab of ordinary Elementor Containers; no separate widget is required.
@@ -141,6 +149,30 @@
     *   Supports subtle mouse influence, stable seeds, reduced-motion behavior, mobile disable before WebGL initialization, WebGL context loss handling, and a static CSS fallback when WebGL is unavailable.
     *   CSS and JavaScript are requested only when an enabled Container is actually rendered on the public frontend; the module's PHP and Elementor hooks are absent when its dashboard toggle is off.
 
+22. **CSS piccoli inline:**
+    *   Opt-in module that uses WordPress's native CSS inliner for local styles already queued in the page head. Off by default; activate it in the main Marrison Addon module dashboard and purge page caches after toggling it.
+    *   Eligible files are at most 16 KiB each, with at most 32 KiB selected per page; the native WordPress inline-size limit can reduce the selection further. The CSS stays in dependency order, before the handle's existing inline rules; relative asset URLs are rebased by WordPress.
+    *   No frontend HTTP calls, script deferral, async CSS, or generated files. Large, remote, imported, conditional, alternate, RTL-replacement and non-default-media styles retain their normal delivery. Editor, preview, admin, login, AJAX and JSON requests are excluded.
+    *   Embedded CSS travels with the cached HTML rather than a separate browser-cached stylesheet. Verify cold and repeat visits, rendering and real PageSpeed metrics before concluding that performance improved.
+
+23. **Dynamic Background Image Size (Elementor):**
+    *   Opt-in fix for Container dynamic backgrounds: the existing native **Image Resolution** field remains the only size selector. Medium requests Medium; Full retains full dimensions even when Image Sizes has a global replacement size.
+    *   Works through Elementor's PHP dynamic CSS pipeline on the frontend and server-rendered preview, including responsive, hover and overlay image controls. It preserves Elementor's selectors, media queries, cover, position and other background styles; saved settings are untouched.
+    *   Supports image dynamic tags exposing a WordPress attachment ID, including JetEngine and ACF integrations. URL-only tags use WordPress attachment lookup; URLs WordPress cannot resolve remain unchanged. Missing sizes or deleted local intermediates fall back to the original. Remote/offloaded URLs without a resolvable attachment ID cannot acquire a local size.
+    *   Uses native WordPress image APIs and the existing Image Sizes format resolver. Shared CSS keeps the existing deterministic WebP policy (native AVIF images remain supported), without Accept-dependent AVIF URLs in cached styles. It only reads existing files and never starts image generation or conversion. The ordinary browser size selector skips these dynamic containers.
+    *   The module works with Image Sizes disabled and adds no frontend assets or new Container controls. Editor-only assets keep Elementor's existing Image Resolution selector visible for supported dynamic backgrounds, even without a static image, and replace the generic ignored-size warning with an explanation of the module's behavior. The native media event handlers, settings command and history path remain intact; responsive controls display their saved dynamic size rather than an unrelated static placeholder size.
+    *   Its file and hooks are absent when disabled. Dashboard toggles invalidate Elementor CSS/document caches; the first enabled request after an Addon/Elementor version change also invalidates them once. Purge any external page/CDN cache after toggling or changing dynamic content.
+    *   Compatibility verified against the installed Elementor 4.3.3 and JetEngine 3.8.15.4 PHP CSS pipelines. The native Elementor Media view was also browser-tested in an isolated fixture. ACF's ID/URL contract is supported; a live ACF/Elementor Pro editor was not available for end-to-end verification. Full editor save/preview and production cache behavior still require site validation.
+
+24. **PHP Snippets:**
+    *   Optional module under **AM Addon > PHP Snippets**, off by default. Create, edit, duplicate, activate, deactivate and delete PHP snippets, with WordPress CodeMirror (plain textarea when syntax highlighting is disabled in the user profile). An opening PHP tag is optional; closing tags and non-PHP content are rejected.
+    *   Access and every write require both `manage_options` and `unfiltered_html`, using native capability checks including Multisite restrictions. All mutations use POST and operation-specific nonces. Database writes check the revision to reject stale forms and prevent an older failing request from disabling a newer revision.
+    *   A per-site database table stores snippets. Ordinary requests read only active rows with one indexed query, without a persistent code cache. Only this module starts during the Addon plugin file load, before `plugins_loaded`; other modules retain their bootstrap timing. Hook/filter/shortcode/JetEngine callback registration is supported. Hooks already fired by plugins loaded earlier cannot be intercepted: register integrations on their documented later hooks. User authentication/pluggable functions may not yet exist at snippet load time; call them from an appropriate later hook.
+    *   Scopes: **Ovunque**, **Solo frontend** (non-admin requests, including REST/cron) and **Solo backend** (`wp-admin`, including admin AJAX). WordPress login, the main module dashboard, snippet management, module-toggle AJAX and native Recovery Mode always bypass snippets. Saving an edit or making a copy leaves it inactive; activation applies on subsequent ordinary requests. Disabling the module loads neither its classes nor its snippets.
+    *   Code is included from a private read-only in-memory stream with a unique snippet/revision filename, without `eval()`, permanent PHP files, external packages or `allow_url_include`. Native parser validation runs before save/activation. It checks syntax, not runtime dependencies or every compiler/semantic error; failures during actual compilation/execution are quarantined too. The stream is not a sandbox: PHP has plugin-level privileges, `__FILE__`/`__DIR__` refer to virtual paths, and relative includes should use explicit WordPress paths.
+    *   Catchable load errors and identifiable fatal errors, including deferred WordPress hook/shortcode/JetEngine callbacks, disable the failing revision and record its diagnostic. Shutdown recovery reserves 512 KiB for resource exhaustion. If memory/time exhaustion has no attributable trace, all snippets loaded in that request are conservatively suspended; the actual cause may be another component. The current request can still fail. PHP shutdown cannot guarantee recovery after a killed process, intentional `exit`, fatal errors in later shutdown handlers/destructors, unavailable database, or failures in external code without a snippet trace. See [PHP shutdown behavior](https://www.php.net/manual/en/function.register-shutdown-function.php).
+    *   Recovery: open `/wp-admin/admin.php?page=marrison_addon_php_snippets` (or the module dashboard) and disable the offending entry or all snippets. If necessary add `define( 'MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE', true );` to `wp-config.php` before WordPress loads; remove it after correcting/deactivating the code. This bypass does not execute snippets or change stored activation states. Management still requires both capabilities and valid nonces.
+
 ## Installation
 
 1.  Upload the `marrison-addon` folder to the `/wp-content/plugins/` directory of your site.
@@ -149,6 +181,67 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.62
+*   **Fix:** PHP Snippets registers its admin submenu after the main Marrison Addon menu. This preserves WordPress's correct page hook and dashboard link, fixing the false permission-denied response for authorized users. Both capability checks and the early snippet runtime remain unchanged.
+
+### 1.3.61
+*   **New Module:** PHP Snippets adds database-backed PHP snippets, WordPress CodeMirror, individual activation and execution scopes, early hook/shortcode/JetEngine registration, native syntax validation and revision-aware fatal-error quarantine. Protected management requests and a wp-config safe-mode constant provide recovery without executing snippets. No external dependencies, eval or permanent snippet files.
+
+### 1.3.60
+*   **Fix:** Image Sizes skips SVG/SVGZ attachments by MIME type or extension before manual regeneration, disabled-size cleanup and automatic WebP/AVIF conversion. SVG files and metadata remain intact; the report marks them as skipped and counts them separately from regenerated images and errors. Full regeneration retains its selected scope when disabled-size cleanup is enabled.
+
+### 1.3.59
+*   **Enhancement:** Image Sizes adds a dimension selector to thumbnail regeneration. A single default/custom size can be regenerated across the Media Library using its saved dimensions, crop and WebP/AVIF quality settings, while retaining other sizes, full-size variants and attachment metadata. New filenames preserve shared existing files and avoid stale image URLs; disabled-size cleanup is limited to full regeneration. Invalid/disabled selections and partial conversion failures return errors. Queue controls remain locked until an interrupted request finishes.
+
+### 1.3.58
+*   **Fix:** Dynamic Background Image Size keeps the existing native Image Resolution selector accessible on Container dynamic backgrounds even when the static media field is empty. It updates Elementor's generic ignored-size warning only on supported dynamic background controls and displays the saved resolution for responsive/overlay/hover controls without replacing the native event handlers or settings/history commands. The added CSS and JavaScript load only in the editor while the module is enabled.
+
+### 1.3.57
+*   **New Module:** Dynamic Background Image Size restores the native Elementor Image Resolution selection for Container dynamic background images in frontend dynamic CSS, including responsive/hover/overlay controls. It supports attachment IDs and resolvable URL-only tags, uses existing Image Sizes variants without generation, preserves Full/missing-size fallbacks, and prevents automatic browser size selection on affected containers.
+*   **Cache:** Module toggles and Addon/Elementor version changes invalidate Elementor CSS/document caches. Dynamic URLs stay in Elementor's request-specific inline CSS, including JetEngine listing contexts, and hero preloads share the selected size.
+
+### 1.3.56
+*   **Fix:** Video Thumbnail treats FFmpeg as an optional server capability. Unavailable execution shows a warning without installation requirements, disables the unavailable automatic-cover control while preserving saved preferences, and skips cover attempts on upload. Availability requires a successful FFmpeg version response; real generation failures still retain their existing diagnostics.
+
+### 1.3.55
+*   **New Module:** CSS piccoli inline reduces separate render-blocking requests for eligible small local head styles through WordPress's native bounded inliner. It preserves CSS order and URL resolution, has no frontend HTTP work and starts disabled.
+
+### 1.3.54
+*   **Fix:** Local Google Fonts now reads the public homepage during the administrative scan, detecting Google Fonts URLs generated at runtime or missed by the bounded source scan. Previously confirmed sources are retained only for font families still detected in current usage.
+*   **Fix:** Local Google Fonts now preserves continuous variable weight ranges, weight 1000 and intermediate weights across scanning, downloads and local coverage checks. Downloads reuse complete original Google CSS requests to preserve their axes.
+*   **Fix:** Unresolved PHP format placeholders are excluded from Google Fonts downloads. Remote stylesheets remain available when local coverage cannot be verified.
+
+### 1.3.53
+*   **Fix:** LCP background preloads follow Elementor's active responsive breakpoints, including tablet/mobile overrides, additional devices and widescreen inheritance. Disjoint media conditions select the appropriate high-priority image in both fresh and cached renders; repeated URLs are deduplicated and existing matching preloads retain their other attributes.
+*   **Fix:** LCP media controls containing only an attachment ID retain their selected image size; unresolved dynamic responsive backgrounds do not preload stale saved URLs.
+
+### 1.3.52
+*   **Fix:** LCP background preloads are restored when Elementor serves cached containers with external CSS and skips render hooks. The selected image is resolved from the marked container's own document and emitted once in the head with high priority. Missing documents, inactive LCP settings and unresolved dynamic backgrounds do not produce guessed preloads.
+
+### 1.3.51
+*   **Fix:** Browser Cache Nginx rules use quoted regexes and a single Cache-Control policy, exclude error/HTML/private/dynamic responses, preserve existing Cache-Control and handle 304 validation. Instructions integrate with existing static locations and separate http/server contexts for Plesk.
+*   **Fix:** Apache Browser Cache resolves query versioning through QUERY_STRING, restricts headers to existing static files and successful GET/HEAD responses, and preserves existing policies. OpenLiteSpeed is correctly treated as requiring manual configuration.
+*   **Fix:** Browser Cache diagnostics use GET and check status, MIME, no-store/no-cache/private, duplicated max-age and missing categories; they discover fonts with CSS checks disabled and include CSS background images. A failed verification replaces earlier success; writing rules is marked as pending verification, and ordinary admin loads perform no HTTP diagnostics.
+*   **Fix:** Browser Cache disabling reports managed-rule removal failures before changing the saved toggle, malformed marker blocks fail explicitly, and clipboard confirmation follows the real copy result. New settings default to 7-day TTLs without immutable, preserving existing selections.
+
+### 1.3.50
+*   **Fix:** Elementor generated CSS now retains the resolved WebP URL even when the media control resolves its attachment ID again in admin/AJAX. Selected media sizes are respected, and shared CSS remains independent of AVIF request negotiation.
+*   **Fix:** LCP preloads use the same selected background as CSS and appear once in the head. Priority and background discovery stop at the marked container's closing tag; editor/preview remain excluded and LCP works with conversion disabled.
+*   **Fix:** Missing variants keep original URLs rather than inventing WebP paths. Missing AVIF falls back to existing WebP, native WebP/AVIF metadata is recognized, and srcset retains each candidate's real dimensions and crop through both WordPress and final HTML rewriting.
+*   **Fix:** Regeneration reports partial conversion failures even with WP_DEBUG disabled, preserving valid metadata and native originals. Media regeneration/settings changes invalidate server and browser background resolution caches; resolved hero backgrounds retain their preloaded URL. Format-negotiated frontend responses send Vary: Accept for both WebP and AVIF clients.
+
+### 1.3.49
+*   **Fix:** Cookie Manager automatic scans now respect the configured interval instead of scanning unconditionally every day. Normal requests restore scheduling, and the scan runs through WP-Cron when due, avoiding inline homepage requests and recursive automatic scans.
+*   **Fix:** Automatic scan intervals are bounded to 1–30 days at runtime, and disabling automatic scans prevents execution and clears scheduled events. Manual scans remain immediately available.
+
+### 1.3.48
+*   **Fix:** Cookie Manager now saves expiration metadata from homepage `Set-Cookie` headers, honoring `Max-Age` before `Expires`, in both database and JSON storage. Existing records can receive updated metadata without losing manually assigned categories.
+*   **Fix:** Cookie Policy shows detected expiration in the site's timezone, `Session` only when observed headers confirm a session cookie, and `Not detectable` when expiration is unavailable. Legacy records remain unknown until a new scan observes their attributes; no cookie lifetimes are invented.
+
+### 1.3.47
+*   **Fix:** Cookie Policy pages now show scanned cookies by category, with domain, detected expiration, and description, plus a link to reopen the preferences modal. Existing configured pages gain these details without overwriting their saved content.
+*   **Fix:** Cookie banner button borders follow the configured color instead of theme defaults, and desktop policy links align with the start of the banner content. Preferences remain accessible from the policy when the banner is disabled.
 
 ### 1.3.46
 *   **Fix:** Liquid Background now uses the order Elementor background → Liquid → Elementor overlay. Liquid opacity blends with the original background, and overlays remain above the animation even with video, slideshow, or motion effects, without duplicate overlays below Liquid.

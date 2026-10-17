@@ -22,19 +22,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        function copyFallback() {
+            target.focus();
+            target.select();
+            try {
+                if (document.execCommand('copy')) {
+                    markCopied();
+                    return;
+                }
+            } catch (e) {}
+            if (copyStatus) {
+                copyStatus.textContent = 'Copia non riuscita. Il testo è selezionato: copialo manualmente.';
+            }
+        }
+
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(value).then(markCopied).catch(function() {
-                target.focus();
-                target.select();
-                document.execCommand('copy');
-                markCopied();
-            });
+            navigator.clipboard.writeText(value).then(markCopied).catch(copyFallback);
             return;
         }
 
-        target.focus();
-        target.select();
-        document.execCommand('copy');
-        markCopied();
+        copyFallback();
     });
 });

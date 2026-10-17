@@ -673,6 +673,7 @@ class Marrison_Addon_Local_Google_Fonts {
 		$warnings          = array();
 		$elementor_document_ids = array();
 		$stats             = array(
+			'frontend_pages'  => 0,
 			'elementor_posts' => 0,
 			'post_content'    => 0,
 			'css_files'       => 0,
@@ -681,11 +682,13 @@ class Marrison_Addon_Local_Google_Fonts {
 			'source_bytes'    => 0,
 		);
 
+		$this->scan_frontend_google_stylesheets( $fonts, $remote_stylesheets, $stats, $warnings );
 		$this->scan_elementor_data( $fonts, $stats, $warnings, $elementor_document_ids );
 		$this->scan_elementor_global_settings( $fonts, $warnings );
 		$this->scan_post_content( $fonts, $remote_stylesheets, $stats, $warnings );
 		$this->scan_additional_css( $fonts, $remote_stylesheets );
 		$this->scan_css_files( $fonts, $remote_stylesheets, $stats, $warnings, $elementor_document_ids );
+		$this->scan_previous_google_stylesheets( $fonts, $remote_stylesheets );
 
 		$this->classify_fonts( $fonts );
 		$fonts = $this->prepare_fonts_for_manifest( $fonts );
@@ -700,6 +703,50 @@ class Marrison_Addon_Local_Google_Fonts {
 			'warnings'           => array_values( array_unique( $warnings ) ),
 			'stats'              => $stats,
 		);
+	}
+
+	private function scan_frontend_google_stylesheets( &$fonts, &$remote_stylesheets, &$stats, &$warnings ) {
+		// Run only within the existing administrative scan, never on frontend requests.
+		$response = wp_safe_remote_get(
+			home_url( '/' ),
+			array(
+				'timeout' => 12,
+				'redirection' => 0,
+				'limit_response_size' => self::MAX_CSS_FILE_BYTES,
+				'headers' => array( 'Accept' => 'text/html', 'Cache-Control' => 'no-cache', 'Pragma' => 'no-cache' ),
+			)
+		);
+		if ( is_wp_error( $response ) ) {
+			$warnings[] = __( 'Impossibile leggere la homepage pubblica per rilevare i Google Fonts caricati dinamicamente.', 'marrison-addon' );
+			return;
+		}
+		$body = wp_remote_retrieve_body( $response );
+		$type = wp_remote_retrieve_header( $response, 'content-type' );
+		if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) || ! is_string( $body ) || strlen( $body ) >= self::MAX_CSS_FILE_BYTES || ! preg_match( '/<html\b/i', $body ) || ! is_string( $type ) || ! preg_match( '#^(?:text/html|application/xhtml\+xml)\b#i', $type ) ) {
+			$warnings[] = __( 'Homepage non disponibile come HTML completo: rilevamento dei Google Fonts dinamici non completato.', 'marrison-addon' );
+			return;
+		}
+		$this->extract_fonts_from_html( $body, __( 'Homepage pubblica', 'marrison-addon' ), $fonts, $remote_stylesheets );
+		$stats['frontend_pages']++;
+	}
+
+	private function scan_previous_google_stylesheets( &$fonts, &$remote_stylesheets ) {
+		$manifest = $this->load_manifest();
+		$urls = isset( $manifest['active']['source_css_urls'] ) ? (array) $manifest['active']['source_css_urls'] : array();
+		foreach ( $urls as $url ) {
+			foreach ( $this->parse_google_stylesheet_families( $url ) as $family => $variants ) {
+				// Keep the proved source only while this family is still found in current usage.
+				if ( ! isset( $fonts[ $this->family_key( $family ) ] ) ) {
+					continue;
+				}
+				$source = __( 'Google Fonts locali gia confermati', 'marrison-addon' );
+				$this->mark_google_font_family( $family, $source, $variants );
+				foreach ( $variants as $variant ) {
+					$this->add_font_variant( $fonts, $family, $variant['weight'], $variant['style'], $source );
+				}
+				$remote_stylesheets[ $url ] = $url;
+			}
+		}
 	}
 
 	private function scan_elementor_data( &$fonts, &$stats, &$warnings, &$elementor_document_ids ) {
@@ -1239,9 +1286,11 @@ class Marrison_Addon_Local_Google_Fonts {
 			if ( 0 === strpos( $url, '//' ) ) {
 				$url = 'https:' . $url;
 			}
-			$remote_stylesheets[ $url ] = $url;
-
 			$families = $this->parse_google_stylesheet_families( $url );
+			if ( empty( $families ) ) {
+				continue;
+			}
+			$remote_stylesheets[ $url ] = $url;
 			foreach ( $families as $family => $variants ) {
 				$source_label = sprintf(
 					/* translators: %s: Google Font family. */
@@ -1715,7 +1764,7 @@ class Marrison_Addon_Local_Google_Fonts {
 			}
 
 			$variants = $variants_to_download;
-			$css_url  = $this->build_google_css_url( $family, $variants );
+			$css_url  = $this->get_google_css_url_for_font( $scan, $family, $variants );
 
 			if ( '' === $css_url ) {
 				$skipped[] = sprintf(
@@ -2104,10 +2153,9 @@ class Marrison_Addon_Local_Google_Fonts {
 		}
 
 		$family_key  = $this->family_key( $family );
-		$variant_key = $this->variant_key( $style, $weight );
 
 		foreach ( $external_local_fonts as $provider_fonts ) {
-			if ( ! empty( $provider_fonts[ $family_key ]['variants'][ $variant_key ] ) ) {
+			if ( ! empty( $provider_fonts[ $family_key ]['variants'] ) && $this->font_variants_cover_weight( $provider_fonts[ $family_key ]['variants'], $style, $weight ) ) {
 				return true;
 			}
 		}
@@ -2135,7 +2183,7 @@ class Marrison_Addon_Local_Google_Fonts {
 
 				foreach ( $font['variants'] as $variant ) {
 					$variant_key = $this->variant_key( $variant['style'], $variant['weight'] );
-					if ( empty( $provider_fonts[ $family_key ]['variants'][ $variant_key ] ) ) {
+					if ( ! $this->font_variants_cover_weight( $provider_fonts[ $family_key ]['variants'], $variant['style'], $variant['weight'] ) ) {
 						continue;
 					}
 
@@ -2146,7 +2194,7 @@ class Marrison_Addon_Local_Google_Fonts {
 						);
 					}
 
-					$filtered[ $provider ][ $family_key ]['variants'][ $variant_key ] = $provider_fonts[ $family_key ]['variants'][ $variant_key ];
+					$filtered[ $provider ][ $family_key ]['variants'][ $variant_key ] = $variant;
 				}
 			}
 		}
@@ -2236,6 +2284,33 @@ class Marrison_Addon_Local_Google_Fonts {
 		return implode( "\n", $rule );
 	}
 
+	private function get_google_css_url_for_font( $scan, $family, $variants ) {
+		foreach ( isset( $scan['remote_stylesheets'] ) ? (array) $scan['remote_stylesheets'] : array() as $url ) {
+			if ( ! $this->is_google_fonts_stylesheet_url( $url ) || preg_match( '/[?&]text=/i', html_entity_decode( $url, ENT_QUOTES, 'UTF-8' ) ) ) {
+				continue;
+			}
+			$families = $this->parse_google_stylesheet_families( $url );
+			if ( 1 !== count( $families ) ) {
+				continue;
+			}
+			$source_family = key( $families );
+			if ( $this->family_key( $source_family ) !== $this->family_key( $family ) ) {
+				continue;
+			}
+			$covered = true;
+			foreach ( $variants as $variant ) {
+				if ( ! $this->font_variants_cover_weight( $families[ $source_family ], $variant['style'], $variant['weight'] ) ) {
+					$covered = false;
+					break;
+				}
+			}
+			if ( $covered ) {
+				return html_entity_decode( $url, ENT_QUOTES, 'UTF-8' );
+			}
+		}
+		return $this->build_google_css_url( $family, $variants );
+	}
+
 	private function build_google_css_url( $family, $variants ) {
 		$family = $this->normalize_font_family( $family );
 		if ( '' === $family ) {
@@ -2264,7 +2339,7 @@ class Marrison_Addon_Local_Google_Fonts {
 			$items,
 			function ( $a, $b ) {
 				if ( $a['style'] === $b['style'] ) {
-					return (int) $a['weight'] <=> (int) $b['weight'];
+					return (float) $a['weight'] <=> (float) $b['weight'];
 				}
 
 				return 'normal' === $a['style'] ? -1 : 1;
@@ -2276,14 +2351,14 @@ class Marrison_Addon_Local_Google_Fonts {
 		if ( $has_italic ) {
 			$values = array();
 			foreach ( $items as $item ) {
-				$values[] = ( 'italic' === $item['style'] ? '1' : '0' ) . ',' . $item['weight'];
+				$values[] = ( 'italic' === $item['style'] ? '1' : '0' ) . ',' . str_replace( ' ', '..', $item['weight'] );
 			}
 
 			$family_query .= ':ital,wght@' . implode( ';', $values );
 		} else {
 			$weights = array();
 			foreach ( $items as $item ) {
-				$weights[] = $item['weight'];
+				$weights[] = str_replace( ' ', '..', $item['weight'] );
 			}
 
 			$family_query .= ':wght@' . implode( ';', array_unique( $weights ) );
@@ -2293,18 +2368,29 @@ class Marrison_Addon_Local_Google_Fonts {
 	}
 
 	private function unique_variants( $variants ) {
-		$unique = array();
-
+		$groups = array();
 		foreach ( $variants as $variant ) {
 			$weight = $this->normalize_font_weight( $variant['weight'] );
 			$style  = $this->normalize_font_style( $variant['style'] );
-			$unique[ $this->variant_key( $style, $weight ) ] = array(
-				'weight' => $weight,
-				'style'  => $style,
-			);
+			$groups[ $style ][] = $this->font_weight_bounds( $weight );
 		}
-
-		return array_values( $unique );
+		$unique = array();
+		foreach ( $groups as $style => $bounds ) {
+			usort( $bounds, function ( $a, $b ) { return $a[0] <=> $b[0]; } );
+			$merged = array();
+			foreach ( $bounds as $range ) {
+				$last = count( $merged ) - 1;
+				if ( $last >= 0 && $range[0] <= $merged[ $last ][1] ) {
+					$merged[ $last ][1] = max( $merged[ $last ][1], $range[1] );
+				} else {
+					$merged[] = $range;
+				}
+			}
+			foreach ( $merged as $range ) {
+				$unique[] = array( 'style' => $style, 'weight' => (string) $range[0] . ( $range[0] === $range[1] ? '' : ' ' . $range[1] ) );
+			}
+		}
+		return $unique;
 	}
 
 	private function parse_google_stylesheet_families( $url ) {
@@ -2355,7 +2441,7 @@ class Marrison_Addon_Local_Google_Fonts {
 		}
 
 		$family = $this->normalize_font_family( $family );
-		if ( '' === $family ) {
+		if ( '' === $family || preg_match( '/[%${}]/', $family ) ) {
 			return array();
 		}
 
@@ -2412,27 +2498,45 @@ class Marrison_Addon_Local_Google_Fonts {
 	}
 
 	private function expand_google_weight_value( $value ) {
-		$value = trim( (string) $value );
-
-		if ( preg_match( '/^([1-9]00)\.\.([1-9]00)$/', $value, $matches ) ) {
-			$start = max( 100, min( 900, (int) $matches[1] ) );
-			$end   = max( 100, min( 900, (int) $matches[2] ) );
-
-			if ( $start > $end ) {
-				$tmp = $start;
-				$start = $end;
-				$end = $tmp;
-			}
-
-			$weights = array();
-			for ( $weight = $start; $weight <= $end; $weight += 100 ) {
-				$weights[] = (string) $weight;
-			}
-
-			return $weights;
-		}
-
 		return array( $this->normalize_font_weight( $value ) );
+	}
+
+	private function font_weight_bounds( $weight ) {
+		$parts = explode( ' ', $this->normalize_font_weight( $weight ) );
+		return array( (float) $parts[0], (float) ( isset( $parts[1] ) ? $parts[1] : $parts[0] ) );
+	}
+
+	private function font_variants_cover_weight( $variants, $style, $weight ) {
+		$requested = $this->font_weight_bounds( $weight );
+		$ranges = array();
+		foreach ( (array) $variants as $key => $variant ) {
+			if ( ! is_array( $variant ) ) {
+				$parts = explode( '|', (string) $key, 2 );
+				if ( 2 !== count( $parts ) ) {
+					continue;
+				}
+				$variant = array( 'style' => $parts[0], 'weight' => $parts[1] );
+			}
+			if ( empty( $variant['weight'] ) || empty( $variant['style'] ) || $this->normalize_font_style( $variant['style'] ) !== $this->normalize_font_style( $style ) ) {
+				continue;
+			}
+			$ranges[] = $this->font_weight_bounds( $variant['weight'] );
+		}
+		usort( $ranges, function ( $a, $b ) { return $a[0] <=> $b[0]; } );
+		$covered_until = $requested[0];
+		foreach ( $ranges as $range ) {
+			if ( $range[1] < $covered_until ) {
+				continue;
+			}
+			if ( $range[0] > $covered_until ) {
+				return false;
+			}
+			$covered_until = max( $covered_until, $range[1] );
+			if ( $covered_until >= $requested[1] ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private function get_active_manifest() {
@@ -2529,7 +2633,15 @@ class Marrison_Addon_Local_Google_Fonts {
 			$result['requested'][ $family ] = $requested_variants;
 		}
 
-		$result['covered'] = empty( $result['missing'] ) && ! empty( $result['requested'] );
+		$extra_axes = false;
+		if ( preg_match_all( '/:([^&|:@]+)@/', rawurldecode( $url ), $axis_matches ) ) {
+			foreach ( $axis_matches[1] as $axes ) {
+				if ( array_diff( explode( ',', $axes ), array( 'ital', 'wght' ) ) ) {
+					$extra_axes = true;
+				}
+			}
+		}
+		$result['covered'] = ! $extra_axes && empty( $result['missing'] ) && ! empty( $result['requested'] );
 
 		return $result;
 	}
@@ -2540,9 +2652,8 @@ class Marrison_Addon_Local_Google_Fonts {
 		}
 
 		$family_key = $this->family_key( $family );
-		$variant_key = $this->variant_key( $this->normalize_font_style( $style ), $this->normalize_font_weight( $weight ) );
 
-		if ( ! empty( $active['families'][ $family_key ]['variants'][ $variant_key ] ) ) {
+		if ( ! empty( $active['families'][ $family_key ]['variants'] ) && $this->font_variants_cover_weight( $active['families'][ $family_key ]['variants'], $style, $weight ) ) {
 			return true;
 		}
 
@@ -2564,9 +2675,8 @@ class Marrison_Addon_Local_Google_Fonts {
 		}
 
 		$family_key = $this->family_key( $family );
-		$variant_key = $this->variant_key( $style, $weight );
 
-		return ! empty( $this->active_css_variant_cache[ $css_file ][ $family_key ][ $variant_key ] );
+		return ! empty( $this->active_css_variant_cache[ $css_file ][ $family_key ] ) && $this->font_variants_cover_weight( $this->active_css_variant_cache[ $css_file ][ $family_key ], $style, $weight );
 	}
 
 	private function read_active_local_css_variants( $css_file ) {
@@ -2976,6 +3086,7 @@ class Marrison_Addon_Local_Google_Fonts {
 
 	private function normalize_font_weight( $value ) {
 		$value = strtolower( trim( (string) $value ) );
+		$value = preg_replace( '/\s*!important\s*$/i', '', $value );
 
 		if ( '' === $value || false !== strpos( $value, 'var(' ) ) {
 			return '400';
@@ -2989,10 +3100,11 @@ class Marrison_Addon_Local_Google_Fonts {
 			return '700';
 		}
 
-		if ( preg_match( '/([1-9]00)/', $value, $matches ) ) {
-			$weight = (int) $matches[1];
-			if ( $weight >= 100 && $weight <= 900 ) {
-				return (string) $weight;
+		if ( preg_match( '/^(\d{1,4}(?:\.\d+)?)(?:(?:\s+|\.\.)(\d{1,4}(?:\.\d+)?))?$/', $value, $matches ) ) {
+			$start = (float) $matches[1];
+			$end = isset( $matches[2] ) ? (float) $matches[2] : $start;
+			if ( $start >= 1 && $end <= 1000 && $start <= $end ) {
+				return (string) $start . ( $start === $end ? '' : ' ' . $end );
 			}
 		}
 
@@ -3136,6 +3248,7 @@ class Marrison_Addon_Local_Google_Fonts {
 
 	private function format_stat_label( $label ) {
 		$labels = array(
+			'frontend_pages'  => __( 'Pagine pubbliche lette', 'marrison-addon' ),
 			'elementor_posts' => __( 'Contenuti Elementor', 'marrison-addon' ),
 			'post_content'    => __( 'Contenuti inline', 'marrison-addon' ),
 			'css_files'       => __( 'File CSS letti', 'marrison-addon' ),

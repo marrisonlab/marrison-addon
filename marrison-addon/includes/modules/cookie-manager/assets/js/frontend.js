@@ -129,8 +129,11 @@
             if (consent) {
                 $banner.hide();
                 MarrisonCookie.showFloatingWidget();
-            } else if ($banner.length) {
+            } else if ($banner.length && marrisonCookie.showBanner !== false) {
                 $banner.show();
+                MarrisonCookie.hideFloatingWidget();
+            } else if ($banner.length) {
+                $banner.hide();
                 MarrisonCookie.hideFloatingWidget();
             } else {
                 MarrisonCookie.showFloatingWidget();

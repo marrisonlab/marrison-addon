@@ -7,6 +7,7 @@ class Marrison_Cookie_Scanner {
     private static $instance = null;
     private $storage_mode = 'table';
     private $last_scan_error = '';
+    private $json_scan_categories = array();
     
     /**
      * Ottieni istanza singleton
@@ -29,8 +30,8 @@ class Marrison_Cookie_Scanner {
      * Inizializza hooks
      */
     private function init_hooks() {
-        // Hook per scansione automatica
-        add_action('init', array($this, 'maybe_auto_scan'));
+        // Ripristina la pianificazione senza eseguire la scansione nella richiesta del visitatore.
+        add_action('init', array($this, 'schedule_cron'));
         
         // Hook AJAX per scansione manuale
         add_action('wp_ajax_marrison_scan_cookies', array($this, 'ajax_scan_cookies'));
@@ -39,7 +40,7 @@ class Marrison_Cookie_Scanner {
         add_action('wp_ajax_marrison_update_cookie_category', array($this, 'ajax_update_cookie_category'));
         
         // Cron job per scansione periodica
-        add_action('marrison_cookie_daily_scan', array($this, 'perform_scan'));
+        add_action('marrison_cookie_daily_scan', array($this, 'maybe_auto_scan'));
         
         // Schedula cron se non esiste
         add_action('wp', array($this, 'schedule_cron'));
@@ -72,9 +73,9 @@ class Marrison_Cookie_Scanner {
         }
         
         $last_scan = get_option('marrison_cookie_last_scan', 0);
-        $interval = get_option('marrison_cookie_scan_interval', 7) * DAY_IN_SECONDS;
+        $interval = max(1, min(30, (int) get_option('marrison_cookie_scan_interval', 7))) * DAY_IN_SECONDS;
         
-        if (time() - $last_scan > $interval) {
+        if (time() - $last_scan >= $interval) {
             $this->perform_scan();
         }
     }
@@ -125,6 +126,7 @@ class Marrison_Cookie_Scanner {
             cookie_domain varchar(255) DEFAULT '',
             cookie_path varchar(255) DEFAULT '/',
             cookie_expiration datetime DEFAULT NULL,
+            cookie_expiration_status varchar(20) DEFAULT 'unknown',
             cookie_category varchar(50) DEFAULT 'functional',
             cookie_description text DEFAULT '',
             source varchar(255) DEFAULT '',
@@ -147,6 +149,7 @@ class Marrison_Cookie_Scanner {
                 cookie_domain varchar(255) DEFAULT '',
                 cookie_path varchar(255) DEFAULT '/',
                 cookie_expiration datetime DEFAULT NULL,
+                cookie_expiration_status varchar(20) DEFAULT 'unknown',
                 cookie_category varchar(50) DEFAULT 'functional',
                 cookie_description text DEFAULT '',
                 source varchar(255) DEFAULT '',
@@ -165,6 +168,12 @@ class Marrison_Cookie_Scanner {
                 $this->storage_mode = 'json';
                 return false;
             }
+        }
+
+        if ($wpdb->get_var("SHOW COLUMNS FROM $quoted_table_name WHERE Field = 'cookie_expiration_status'") !== 'cookie_expiration_status') {
+            $this->set_last_scan_error('Tabella cookie non aggiornata: manca il campo cookie_expiration_status.');
+            $this->storage_mode = 'json';
+            return false;
         }
 
         return true;
@@ -276,6 +285,16 @@ class Marrison_Cookie_Scanner {
 
         $saved_count = 0;
 
+        $headers = wp_remote_retrieve_headers($response);
+        // getValues evita di unire gli header Set-Cookie alle virgole di Expires.
+        $set_cookie_headers = is_object($headers) && is_callable(array($headers, 'getValues'))
+            ? $headers->getValues('set-cookie') : wp_remote_retrieve_header($response, 'set-cookie');
+        if (is_string($set_cookie_headers)) {
+            $set_cookie_headers = preg_split('/,(?=\s*[^=;,\s]+=)/', $set_cookie_headers);
+        }
+        $set_cookie_headers = is_array($set_cookie_headers) ? $set_cookie_headers : array();
+        $observed_at = time();
+
         foreach ($cookies as $cookie) {
             if (!is_a($cookie, 'WP_Http_Cookie')) {
                 continue;
@@ -292,12 +311,85 @@ class Marrison_Cookie_Scanner {
             $domain = $cookie->domain ? $cookie->domain : $this->get_cookie_domain();
             $path = $cookie->path ? $cookie->path : '/';
 
-            $saved_count += $this->save_cookie($name, 'homepage', $category, $description, $domain, $path);
+            $expiration = $this->get_http_cookie_expiration($cookie, $set_cookie_headers, $observed_at);
+            $saved_count += $this->save_cookie($name, 'homepage', $category, $description, $domain, $path, $expiration['value'], $expiration['status']);
         }
 
         return $saved_count;
     }
-    
+
+    /**
+     * Legge solo attributi osservati: Max-Age prevale su Expires.
+     * L'assenza di entrambi prova la sessione solo in un header Set-Cookie.
+     */
+    private function get_http_cookie_expiration($cookie, $headers, $observed_at) {
+        $unknown = array('value' => null, 'status' => 'unknown');
+        $attributes = null;
+        foreach ($headers as $header) {
+            if (!is_string($header)) {
+                continue;
+            }
+            $parts = explode(';', $header);
+            $pair = explode('=', array_shift($parts), 2);
+            if (count($pair) !== 2 || trim($pair[0]) !== $cookie->name) {
+                continue;
+            }
+            $candidate = array();
+            foreach ($parts as $part) {
+                $attribute = explode('=', trim($part), 2);
+                $candidate[strtolower(trim($attribute[0]))] = isset($attribute[1]) ? trim($attribute[1]) : '';
+            }
+            if (isset($candidate['domain']) && strtolower(ltrim($candidate['domain'], '.')) !== strtolower(ltrim((string) $cookie->domain, '.'))) {
+                continue;
+            }
+            if (isset($candidate['path']) && $candidate['path'] !== $cookie->path) {
+                continue;
+            }
+            $attributes = $candidate;
+        }
+
+        if ($attributes !== null) {
+            if (isset($attributes['max-age']) && preg_match('/^-?\d+$/', $attributes['max-age'])) {
+                if ((float) $attributes['max-age'] <= 253402300799 - $observed_at) {
+                    $seconds = (int) $attributes['max-age'];
+                    return $this->normalize_cookie_expiration($observed_at + max(0, $seconds));
+                }
+            }
+            if (isset($attributes['expires'])) {
+                if (preg_match('/^-?\d+$/', $attributes['expires'])) {
+                    return $unknown;
+                }
+                return $this->normalize_cookie_expiration($attributes['expires']);
+            }
+            if (!isset($attributes['max-age'])) {
+                return array('value' => null, 'status' => 'session');
+            }
+            return $unknown;
+        }
+
+        return isset($cookie->expires) ? $this->normalize_cookie_expiration($cookie->expires) : $unknown;
+    }
+
+    /** Memorizza le date in UTC, senza durata convenzionale per cookie sconosciuti. */
+    private function normalize_cookie_expiration($expires) {
+        if (is_string($expires) && !preg_match('/^-?\d+$/', $expires)) {
+            $expires = preg_replace('/^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)(?:day)?[,\s]+/i', '', trim($expires));
+            $parsed = date_parse($expires);
+            foreach (array('year', 'month', 'day', 'hour', 'minute', 'second') as $part) {
+                if ($parsed[$part] === false || $parsed['error_count'] || $parsed['warning_count']) {
+                    return array('value' => null, 'status' => 'unknown');
+                }
+            }
+        }
+        $timestamp = is_int($expires) || (is_string($expires) && preg_match('/^-?\d+$/', $expires))
+            ? (int) $expires : (is_string($expires) ? strtotime($expires) : false);
+        $date = $timestamp !== false ? gmdate('Y-m-d H:i:s', $timestamp) : '';
+        if (!preg_match('/^[1-9]\d{3}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $date)) {
+            return array('value' => null, 'status' => 'unknown');
+        }
+        return array('value' => $date, 'status' => 'persistent');
+    }
+
     /**
      * Categorizza un cookie in base al nome
      */
@@ -438,9 +530,9 @@ class Marrison_Cookie_Scanner {
     /**
      * Salva un cookie nel database
      */
-    private function save_cookie($cookie_name, $source = 'unknown', $category = 'functional', $description = '', $domain = '', $path = '/') {
+    private function save_cookie($cookie_name, $source = 'unknown', $category = 'functional', $description = '', $domain = '', $path = '/', $expiration = null, $expiration_status = 'unknown') {
         if ('json' === $this->storage_mode) {
-            return $this->save_cookie_to_json($cookie_name, $source, $category, $description, $domain, $path);
+            return $this->save_cookie_to_json($cookie_name, $source, $category, $description, $domain, $path, $expiration, $expiration_status);
         }
 
         global $wpdb;
@@ -452,11 +544,26 @@ class Marrison_Cookie_Scanner {
         
         // Verifica se il cookie esiste già
         $existing = $wpdb->get_row($wpdb->prepare(
-            "SELECT id FROM $table_name WHERE cookie_name = %s AND scan_date > DATE_SUB(NOW(), INTERVAL 1 DAY)",
+            "SELECT id FROM $table_name WHERE cookie_name = %s ORDER BY scan_date DESC LIMIT 1",
             $cookie_name
         ));
         
         if ($existing) {
+            // Aggiorna i metadati realmente osservati, preservando la categoria manuale.
+            if ($source === 'homepage') {
+                $updated = $wpdb->update($table_name, array(
+                    'cookie_expiration' => $expiration,
+                    'cookie_expiration_status' => $expiration_status,
+                    'cookie_domain' => $domain,
+                    'cookie_path' => $path,
+                    'source' => $source,
+                    'scan_date' => current_time('mysql'),
+                ), array('id' => $existing->id));
+                if ($updated === false) {
+                    $this->set_last_scan_error('Aggiornamento scadenza cookie "' . $cookie_name . '" fallito: ' . $this->get_db_error_message());
+                }
+                return $updated ? 1 : 0;
+            }
             return 0;
         }
 
@@ -468,6 +575,8 @@ class Marrison_Cookie_Scanner {
             'cookie_name' => $cookie_name,
             'cookie_domain' => $domain,
             'cookie_path' => $path,
+            'cookie_expiration' => $expiration,
+            'cookie_expiration_status' => $expiration_status,
             'cookie_category' => $category,
             'cookie_description' => $description,
             'source' => $source,
@@ -486,13 +595,19 @@ class Marrison_Cookie_Scanner {
      * Prepara lo storage fallback basato su file JSON.
      */
     private function prepare_json_scan() {
+        $this->json_scan_categories = array();
+        foreach ($this->read_json_cookies() as $cookie) {
+            if (is_array($cookie) && isset($cookie['cookie_name'], $cookie['cookie_category']) && is_string($cookie['cookie_name']) && is_string($cookie['cookie_category']) && array_key_exists($cookie['cookie_category'], $this->get_categories())) {
+                $this->json_scan_categories[$cookie['cookie_name']] = $cookie['cookie_category'];
+            }
+        }
         return $this->write_json_cookies(array());
     }
 
     /**
      * Salva un cookie nello storage JSON quando non e disponibile una tabella custom.
      */
-    private function save_cookie_to_json($cookie_name, $source = 'unknown', $category = 'functional', $description = '', $domain = '', $path = '/') {
+    private function save_cookie_to_json($cookie_name, $source = 'unknown', $category = 'functional', $description = '', $domain = '', $path = '/', $expiration = null, $expiration_status = 'unknown') {
         if (!is_string($cookie_name) || '' === $cookie_name) {
             return 0;
         }
@@ -501,12 +616,21 @@ class Marrison_Cookie_Scanner {
 
         $max_id = 0;
 
-        foreach ($cookies as $cookie) {
+        foreach ($cookies as $index => $cookie) {
             if (!is_array($cookie)) {
                 continue;
             }
 
             if (isset($cookie['cookie_name']) && $cookie['cookie_name'] === $cookie_name) {
+                if ($source === 'homepage') {
+                    $cookies[$index]['cookie_expiration'] = $expiration;
+                    $cookies[$index]['cookie_expiration_status'] = $expiration_status;
+                    $cookies[$index]['cookie_domain'] = $domain;
+                    $cookies[$index]['cookie_path'] = $path;
+                    $cookies[$index]['source'] = $source;
+                    $cookies[$index]['scan_date'] = current_time('mysql');
+                    return $this->write_json_cookies($cookies) ? 1 : 0;
+                }
                 return 0;
             }
 
@@ -522,8 +646,9 @@ class Marrison_Cookie_Scanner {
             'cookie_name' => $cookie_name,
             'cookie_domain' => $domain,
             'cookie_path' => $path ? $path : '/',
-            'cookie_expiration' => null,
-            'cookie_category' => $category,
+            'cookie_expiration' => $expiration,
+            'cookie_expiration_status' => $expiration_status,
+            'cookie_category' => isset($this->json_scan_categories[$cookie_name]) ? $this->json_scan_categories[$cookie_name] : $category,
             'cookie_description' => $description,
             'source' => $source,
             'scan_date' => current_time('mysql'),

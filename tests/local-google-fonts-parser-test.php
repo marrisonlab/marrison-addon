@@ -123,6 +123,23 @@ function lgf_assert( $condition, $message ) {
 	}
 }
 
+function wp_safe_remote_get( $url, $args ) {
+	$GLOBALS['lgf_home_request'] = array( 'url' => $url, 'args' => $args );
+	return $GLOBALS['lgf_home_response'];
+}
+
+function wp_remote_retrieve_response_code( $response ) {
+	return isset( $response['status'] ) ? $response['status'] : 0;
+}
+
+function wp_remote_retrieve_body( $response ) {
+	return isset( $response['body'] ) ? $response['body'] : '';
+}
+
+function wp_remote_retrieve_header( $response, $header ) {
+	return isset( $response['headers'][ $header ] ) ? $response['headers'][ $header ] : '';
+}
+
 class LGF_Test_Style {
 	public $src;
 	public $deps;
@@ -372,4 +389,106 @@ lgf_assert(
 $source = file_get_contents( __DIR__ . '/../marrison-addon/includes/modules/class-marrison-addon-local-google-fonts.php' );
 lgf_assert( false !== strpos( $source, "post_type <> %s" ) && false !== strpos( $source, "'revision'" ), 'Scanner queries should explicitly exclude revision post types.' );
 
+// Production regression: DM Sans declares wght@100..1000; the old parser kept only 100.
+lgf_assert( '1000' === lgf_invoke( $module, 'normalize_font_weight', array( '1000' ) ), 'Weight 1000 must not collapse to 100.' );
+lgf_assert( '450' === lgf_invoke( $module, 'normalize_font_weight', array( '450' ) ), 'Intermediate variable weights must not collapse to 400.' );
+$dm_range_url = 'https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap';
+$dm_range = lgf_invoke( $module, 'parse_google_stylesheet_families', array( $dm_range_url ) );
+lgf_assert( isset( $dm_range['DM Sans']['normal|100 1000'], $dm_range['DM Sans']['italic|100 1000'] ), 'DM Sans continuous ranges must survive parsing for both styles.' );
+$variable_active = array( 'families' => array( 'dm sans' => array( 'variants' => $dm_range['DM Sans'] ) ) );
+lgf_assert( lgf_invoke( $module, 'active_manifest_has_variant', array( $variable_active, 'DM Sans', 'normal', '450' ) ), 'Local variable faces must cover intermediate weights.' );
+lgf_assert( ! lgf_invoke( $module, 'active_manifest_has_variant', array( $variable_active, 'DM Sans', 'normal', '1 1000' ) ), 'Partial variable coverage must not suppress a broader request.' );
+$static_range_faces = array();
+for ( $weight = 100; $weight <= 1000; $weight += 100 ) {
+	$static_range_faces[] = array( 'style' => 'normal', 'weight' => (string) $weight );
+}
+lgf_assert( ! lgf_invoke( $module, 'font_variants_cover_weight', array( $static_range_faces, 'normal', '100 1000' ) ), 'Separate static faces cannot prove a continuous variable range.' );
+$gapped_faces = array( array( 'style' => 'normal', 'weight' => '100 400' ), array( 'style' => 'normal', 'weight' => '500 1000' ) );
+lgf_assert( ! lgf_invoke( $module, 'font_variants_cover_weight', array( $gapped_faces, 'normal', '100 1000' ) ), 'A gap between local variable faces must remain uncovered.' );
+$joined_faces = array( array( 'style' => 'normal', 'weight' => '100 500' ), array( 'style' => 'normal', 'weight' => '500 1000' ) );
+lgf_assert( lgf_invoke( $module, 'font_variants_cover_weight', array( $joined_faces, 'normal', '100 1000' ) ), 'Touching continuous local ranges may jointly cover a request.' );
+lgf_assert( ! lgf_invoke( $module, 'is_google_stylesheet_covered_by_active_manifest', array( $dm_range_url, $variable_active ) ), 'Additional optical-size axes must stay remote when their coverage has not been proved.' );
+lgf_assert( array() === lgf_invoke( $module, 'parse_google_stylesheet_families', array( 'https://fonts.googleapis.com/css?family=%1$s%2$s' ) ), 'Unresolved PHP format placeholders are not real Google font families.' );
+$placeholder_fonts = $placeholder_urls = array();
+lgf_invoke( $module, 'extract_remote_google_stylesheets', array( 'https://fonts.googleapis.com/css?family=%1$s%2$s', &$placeholder_urls, &$placeholder_fonts, 'PHP template' ) );
+lgf_assert( empty( $placeholder_urls ) && empty( $placeholder_fonts ), 'An unresolved template must not enter the remote download list.' );
+
+// Runtime links from Urbe: these may be constructed dynamically or beyond the source scan limit.
+$runtime_urls = array(
+	'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap',
+	'https://fonts.googleapis.com/css?family=DM+Sans:100,100italic,200,200italic,300,300italic,400,400italic,500,500italic,600,600italic,700,700italic,800,800italic,900,900italic&display=swap',
+	'https://fonts.googleapis.com/css?family=Poppins:100,100italic,200,200italic,300,300italic,400,400italic,500,500italic,600,600italic,700,700italic,800,800italic,900,900italic&display=swap',
+);
+$runtime_html = '<html><head>';
+foreach ( $runtime_urls as $runtime_url ) {
+	$runtime_html .= '<link rel="stylesheet" href="' . htmlspecialchars( $runtime_url, ENT_QUOTES, 'UTF-8' ) . '">';
+}
+$runtime_html .= '</head><body></body></html>';
+$GLOBALS['lgf_home_response'] = array( 'status' => 200, 'headers' => array( 'content-type' => 'text/html; charset=UTF-8' ), 'body' => $runtime_html );
+$runtime_module = new Marrison_Addon_Local_Google_Fonts();
+$runtime_fonts = $runtime_remote = $runtime_warnings = array();
+$runtime_stats = array( 'frontend_pages' => 0 );
+lgf_invoke( $runtime_module, 'scan_frontend_google_stylesheets', array( &$runtime_fonts, &$runtime_remote, &$runtime_stats, &$runtime_warnings ) );
+lgf_invoke( $runtime_module, 'classify_fonts', array( &$runtime_fonts ) );
+lgf_assert( 1 === $runtime_stats['frontend_pages'] && empty( $runtime_warnings ), 'A public homepage scan should find dynamic font URLs.' );
+lgf_assert( 18 === count( $runtime_fonts['poppins']['variants'] ) && 'google' === $runtime_fonts['poppins']['classification'], 'Runtime Poppins links must provide every requested weight and style.' );
+lgf_assert( home_url( '/' ) === $GLOBALS['lgf_home_request']['url'], 'The scan must request only the configured homepage.' );
+lgf_assert( 0 === $GLOBALS['lgf_home_request']['args']['redirection'] && $GLOBALS['lgf_home_request']['args']['limit_response_size'] <= 1048576, 'Loopback requests must have bounded redirects and body size.' );
+lgf_assert( ! isset( $GLOBALS['lgf_home_request']['args']['cookies'] ) && ! isset( $GLOBALS['lgf_home_request']['args']['headers']['Authorization'] ), 'The public scan must not forward an authenticated session.' );
+$runtime_active = array( 'families' => array() );
+foreach ( $runtime_fonts as $key => $font ) {
+	$runtime_active['families'][ $key ] = array( 'variants' => $font['variants'] );
+}
+foreach ( $runtime_urls as $runtime_url ) {
+	lgf_assert( lgf_invoke( $runtime_module, 'is_google_stylesheet_covered_by_active_manifest', array( $runtime_url, $runtime_active ) ), 'Each observed runtime URL must be suppressible after complete local coverage.' );
+}
+
+// A second scan must retain proved sources for fonts still used after remote links disappear.
+lgf_set_property( $runtime_module, 'manifest_cache', array( 'active' => array( 'source_css_urls' => $runtime_urls ) ) );
+$rescan_fonts = $rescan_remote = array();
+lgf_invoke( $runtime_module, 'add_font_variant', array( &$rescan_fonts, 'Poppins', '600', 'normal', 'Current Elementor CSS' ) );
+lgf_invoke( $runtime_module, 'scan_previous_google_stylesheets', array( &$rescan_fonts, &$rescan_remote ) );
+lgf_invoke( $runtime_module, 'classify_fonts', array( &$rescan_fonts ) );
+lgf_assert( 18 === count( $rescan_fonts['poppins']['variants'] ), 'A second scan must retain coverage for a font still used locally.' );
+lgf_assert( ! isset( $rescan_fonts['dm sans'] ), 'Historical sources must not reintroduce a family absent from the current scan.' );
+$rescan_active = array( 'families' => array( 'poppins' => array( 'variants' => $rescan_fonts['poppins']['variants'] ) ) );
+lgf_assert( lgf_invoke( $runtime_module, 'is_google_stylesheet_covered_by_active_manifest', array( $runtime_urls[2], $rescan_active ) ), 'The second update must retain enough Poppins coverage to suppress the full Elementor URL.' );
+
+$selected_url = lgf_invoke( $runtime_module, 'get_google_css_url_for_font', array( array( 'remote_stylesheets' => array_merge( $runtime_urls, array( $dm_range_url ) ) ), 'DM Sans', array_values( $dm_range['DM Sans'] ) ) );
+lgf_assert( $dm_range_url === $selected_url, 'Download requests must preserve original optical-size axes when they cover the requested family.' );
+$merged_url = lgf_invoke( $runtime_module, 'build_google_css_url', array( 'DM Sans', array( array( 'style' => 'normal', 'weight' => '100 1000' ), array( 'style' => 'normal', 'weight' => '400' ) ) ) );
+lgf_assert( false !== strpos( $merged_url, 'wght@100..1000&' ) && false === strpos( $merged_url, ';400' ), 'CSS2 requests must preserve ranges and omit overlapping static tuples.' );
+
+// Variable CSS files must remain usable through the existing Elementor provider and legacy fallback.
+file_put_contents( $elementor_font_dir . '/dm-variable.woff2', 'wOF2test' );
+file_put_contents( $elementor_css_dir . '/dm-variable.css', '@font-face{font-family:"DM Sans";font-style:normal;font-weight:100 1000;src:url("../fonts/dm-variable.woff2") format("woff2");}' );
+$variable_elementor = lgf_invoke( $runtime_module, 'get_elementor_local_google_fonts_map' );
+lgf_assert( lgf_invoke( $runtime_module, 'external_local_fonts_have_variant', array( array( 'elementor' => $variable_elementor ), 'DM Sans', 'normal', '450' ) ), 'Elementor variable files must cover nonstandard requested weights.' );
+file_put_contents( $upload_dir['basedir'] . '/marrison-addon/fonts/local-google-fonts/variable.css', '@font-face{font-family:"DM Sans";font-style:italic;font-weight:100 1000;src:url("./dm-variable.woff2") format("woff2");}' );
+file_put_contents( $upload_dir['basedir'] . '/marrison-addon/fonts/local-google-fonts/dm-variable.woff2', 'wOF2test' );
+lgf_assert( lgf_invoke( $runtime_module, 'active_local_css_has_variant', array( array( 'css_file' => 'variable.css' ), 'DM Sans', 'italic', '450' ) ), 'Legacy local CSS fallback must also recognize variable font intervals.' );
+
+$GLOBALS['lgf_home_response'] = array( 'status' => 403, 'body' => '<html>Blocked</html>' );
+$failed_fonts = $failed_remote = $failed_warnings = array();
+$failed_stats = array( 'frontend_pages' => 0 );
+lgf_invoke( $runtime_module, 'scan_frontend_google_stylesheets', array( &$failed_fonts, &$failed_remote, &$failed_stats, &$failed_warnings ) );
+lgf_assert( empty( $failed_fonts ) && 0 === $failed_stats['frontend_pages'] && ! empty( $failed_warnings ), 'A blocked homepage must warn without inventing fonts.' );
+
+if ( isset( $argv[1] ) ) {
+	$google_response_active = array( 'families' => array() );
+	foreach ( array( 'dm-sans', 'poppins' ) as $fixture_name ) {
+		$css = file_get_contents( rtrim( $argv[1], '/\\' ) . '/' . $fixture_name . '-google.css' );
+		$faces = lgf_invoke( $runtime_module, 'parse_google_font_faces', array( $css ) );
+		lgf_assert( ! empty( $faces ), 'Official Google CSS responses must contain readable WOFF2 faces.' );
+		foreach ( $faces as $face ) {
+			$key = strtolower( $face['family'] );
+			$variant_key = lgf_invoke( $runtime_module, 'variant_key', array( $face['style'], $face['weight'] ) );
+			$google_response_active['families'][ $key ]['variants'][ $variant_key ] = array( 'style' => $face['style'], 'weight' => $face['weight'] );
+		}
+	}
+	foreach ( $runtime_urls as $runtime_url ) {
+		lgf_assert( lgf_invoke( $runtime_module, 'is_google_stylesheet_covered_by_active_manifest', array( $runtime_url, $google_response_active ) ), 'Actual Google CSS faces must cover all three observed Urbe URLs.' );
+	}
+	echo "Official Google CSS response coverage passed.\n";
+}
 echo "Local Google Fonts parser tests passed.\n";
