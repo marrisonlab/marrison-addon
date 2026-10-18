@@ -97,6 +97,7 @@ class Marrison_Cookie_Banner {
             'cookiePolicy' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Cookie Policy', 'Cookie Policy') : __('Cookie Policy', 'marrison-cookie'),
             'hasConsent' => isset($_COOKIE['marrison_cookie_consent']),
             'showBanner' => (bool) get_option('marrison_cookie_show_banner', true),
+            'scanPhase' => class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::get_instance()->frame_phase() : null,
             'closedTriggerModes' => $this->get_closed_trigger_modes(),
         ));
     }
@@ -239,7 +240,17 @@ class Marrison_Cookie_Banner {
             return false;
         }
         $post = get_post(get_queried_object_id());
-        return $post && has_shortcode($post->post_content, 'marrison_cookie_policy');
+        if ($post && $this->has_policy_shortcode($post->post_content)) {
+            return true;
+        }
+
+        // Il widget Shortcode di Elementor salva il contenuto nei dati del documento.
+        $elementor_data = get_post_meta(get_queried_object_id(), '_elementor_data', true);
+        return is_string($elementor_data) && $this->has_policy_shortcode($elementor_data);
+    }
+
+    private function has_policy_shortcode($content) {
+        return has_shortcode($content, 'marrison_cookie_policy') || has_shortcode($content, 'marrison_cookie_policy_content');
     }
 
     /**
@@ -249,7 +260,7 @@ class Marrison_Cookie_Banner {
         if (is_admin() || is_feed() || !$this->is_cookie_policy_page() || get_the_ID() !== get_queried_object_id()) {
             return $content;
         }
-        if (has_shortcode($content, 'marrison_cookie_policy') || strpos($content, 'marrison-cookie-policy-details') !== false) {
+        if ($this->has_policy_shortcode($content) || $this->page_has_policy_shortcode() || strpos($content, 'marrison-cookie-policy-details') !== false) {
             return $content;
         }
 
@@ -463,10 +474,13 @@ class Marrison_Cookie_Banner {
                 }
             }
             
+            if (in_array($name, array('marrison_cookie_consent', 'marrison_cookie_categories'), true)) { $is_essential = true; }
+            if (!$is_essential && Marrison_Cookie_Scanner::get_instance()->classify_cookie($name)['category'] === 'necessary') { $is_essential = true; }
             if (!$is_essential) {
                 $this->delete_cookie($name);
             }
         }
+        $this->handle_custom_consent(array('necessary'));
     }
     
     /**
@@ -482,7 +496,7 @@ class Marrison_Cookie_Banner {
             
             // Se la categoria non è stata accettata, elimina il cookie
             if (!in_array($category, $categories, true) && $category !== 'necessary') {
-                $this->delete_cookie($cookie->cookie_name);
+                $this->delete_cookie($cookie->cookie_name, isset($cookie->cookie_domain) ? $cookie->cookie_domain : '', isset($cookie->cookie_path) ? $cookie->cookie_path : '/');
             }
         }
     }
@@ -490,18 +504,14 @@ class Marrison_Cookie_Banner {
     /**
      * Elimina un cookie
      */
-    private function delete_cookie($name) {
-        $domain = COOKIE_DOMAIN;
-        $path = '/';
-        
-        setcookie($name, '', time() - 3600, $path, $domain);
-        setcookie($name, '', time() - 3600, $path, $domain, is_ssl());
-        
-        // Elimina anche con sottodomini
-        if (strpos($domain, '.') !== false) {
-            $wildcard_domain = '.' . $domain;
-            setcookie($name, '', time() - 3600, $path, $wildcard_domain);
-            setcookie($name, '', time() - 3600, $path, $wildcard_domain, is_ssl());
+    private function delete_cookie($name, $domain = '', $path = '/') {
+        if (in_array($name, array('marrison_cookie_consent', 'marrison_cookie_categories'), true)) { return; }
+        $host = strtolower(wp_parse_url(home_url('/'), PHP_URL_HOST));
+        $domain = strtolower(ltrim((string) $domain, '.'));
+        if ($domain && $domain !== $host && substr($host, -strlen('.' . $domain)) !== '.' . $domain) { return; }
+        $domains = array_unique(array('', (string) COOKIE_DOMAIN, $domain, $domain ? '.' . $domain : ''));
+        foreach ($domains as $scope) {
+            setcookie($name, '', array('expires' => time() - 3600, 'path' => $path ?: '/', 'domain' => $scope, 'secure' => is_ssl(), 'httponly' => false, 'samesite' => 'Lax'));
         }
     }
     

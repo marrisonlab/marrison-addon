@@ -10,7 +10,7 @@
 *   **Requires at least:** 6.0
 *   **Tested up to:** 7.0.1
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.62
+*   **Stable tag:** 1.3.64
 *   **License:** GPL-3.0+
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -105,9 +105,15 @@
 16. **Cookie Manager:**
     *   Cookie banner, floating widget, preferences modal, and setup wizard.
     *   Automatic cookie scanning and category management.
-    *   Automatic scans use WP-Cron and respect the configured interval of 1–30 days (default: 7). The daily cron event checks whether a scan is due, while normal requests repair scheduling without running the scan inline. Disabling automatic scans removes scheduled events; manual scans remain available. WP-Cron execution depends on site traffic or a server cron invoking WordPress cron.
-    *   The generated Cookie Policy displays current scan results and a link to reopen cookie preferences; existing configured policy pages receive these details automatically. The `[marrison_cookie_policy]` shortcode can also be used on other pages.
-    *   Homepage scans save observed `Expires` and `Max-Age` metadata in either database or JSON storage. The policy distinguishes detected expiration (in the site timezone), session cookies, and unavailable expiration; it does not infer lifetimes from cookie names or request cookies. Run a new scan after updating to collect this metadata for existing records.
+    *   The scanner recursively crawls internal links, WordPress sitemaps and sitemap locations in robots.txt, with a visible page limit (default 500; maximum 5,000), incremental requests and saved progress. Administrative/action URLs, external hosts and asset downloads are excluded. The report exposes failed pages, limits and incomplete coverage; reaching a limit is a partial scan.
+    *   HTTP response cookies are observed without forwarding the administrator's cookies. In current Chrome/Edge, the admin panel then visits discovered pages in credentialless browser frames, first before consent and then with consent simulated. JavaScript and embedded resources execute, and readable cookies are measured with domain, path, observed expiration and page/phase evidence. Starting a scan reloads the admin panel to create a fresh isolated session. Keep the panel open for browser measurements; interrupted work can be resumed. Missing browser isolation, blocked frames and timeouts are reported without pretending that browser coverage completed.
+    *   The scanner records actual observations, never cookie catalog entries or cookie values. It can read same-site HTTP `Set-Cookie` headers (including HttpOnly) and browser-readable cookies; third-party HttpOnly cookies and interactions that require filling forms, signing in or clicking site controls need a separate browser audit. Page responses are capped at 2 MiB and browser observations at 200 cookies per page, with a maximum of 5,000 distinct cookies per report; exceeded limits mark coverage partial.
+    *   Inventory and policy lists consolidate duplicates by name, domain and path, retaining manual categories. A successful complete scan removes cookies no longer observed; partial scans retain earlier observations. Legacy catalog-only records and duplicates are cleaned on the next scan. Database and JSON fallback storage remain supported. Reports can be exported and show runtime version, loaded scanner path and source fingerprint so stale or conflicting installations cannot silently report successful scans.
+    *   Automatic scans use WP-Cron and respect the configured interval of 1–30 days (default: 7). They crawl HTTP pages incrementally; browser measurements remain pending until the administrator opens the scanner and resumes. Normal requests repair scheduling without crawling inline. Disabling the module removes scheduled events. WP-Cron execution depends on site traffic or a server cron invoking WordPress cron.
+    *   Policy codes are always available in **AM Addon > Cookie Manager > Shortcode**, each with a **Copy** button and Elementor instructions. `[marrison_privacy_policy]` renders the Privacy Policy; `[marrison_cookie_policy_content]` renders the full Cookie Policy with current scan results and a preferences link. Insert them in your own pages with Elementor's Shortcode widget or WordPress's Shortcode block, then configure their URLs in the **Banner** tab. The same copy controls appear in the wizard and banner settings, without creating pages automatically.
+    *   `[marrison_cookie_policy]` remains available for just the scanned cookie list and preferences link. Existing policy pages and configured URLs are preserved, and legacy Cookie Policy pages still receive current scan details without replacing saved content.
+    *   The policy distinguishes detected expiration (in the site timezone), session cookies and unavailable expiration; lifetimes are never inferred from cookie names. Run a new scan after updating to collect metadata for existing records.
+    *   Consent blocking covers known or explicitly categorized scripts, iframes, pixels and dynamic requests, plus optional JavaScript cookie writes. Additional service domains/paths can be configured per category in **Behavior**. Revoking a category removes accessible cookies at their detected scopes and reloads the page so already-executed integrations stop. Essential WordPress/WooCommerce sessions and the consent itself are preserved. Site-specific integrations and server-set cookies still require verification; unknown services cannot all be identified by their URL alone.
     *   Frontend UI only loads when the module is active and in a real frontend context.
 
 17. **Video Thumbnail:**
@@ -181,6 +187,19 @@
 4.  Configure each module's settings as needed.
 
 ## Changelog
+
+### 1.3.64
+*   **Enhancement:** Cookie Manager adds a dedicated **Shortcode** tab with selectable codes, individual Copy buttons, copy-failure feedback and instructions for Elementor and WordPress. The shared controls also appear in the wizard and Banner tab. Viewing/copying codes does not submit or change settings.
+*   **Enhancement:** Replaces the admin/wizard homepage scan with a resumable internal crawler and isolated Chrome/Edge browser measurements before/after simulated consent. Adds page/phase evidence, path and expiration in inventory, coverage/progress, cancellation/resume, report export and runtime fingerprints. Scheduled scans cover HTTP pages and leave browser work explicitly pending.
+*   **Fix:** Complete scans replace stale inventory while preserving manual categories; partial scans retain prior observations. Legacy catalog records and duplicates are removed, cookie values are discarded, and old AJAX clients receive a reload instruction instead of a misleading homepage-only success.
+*   **Enhancement:** Adds early consent enforcement for optional JavaScript cookies and known/custom dynamic scripts, frames, pixels and requests. Category-specific additional services can be configured in Behavior. Revocation clears accessible cookie scopes and reloads the page; signed scan phases never alter the administrator's consent or login session.
+*   **Fix:** Saving another settings tab no longer disables the banner or automatic scanning because their Behavior checkboxes are absent.
+
+### 1.3.63
+*   **Enhancement:** Cookie Manager now provides `[marrison_privacy_policy]` and `[marrison_cookie_policy_content]` instead of creating WordPress pages. The wizard and banner settings show the shortcodes and let administrators configure their own policy URLs. Elementor Shortcode widgets are detected for consent assets; `[marrison_cookie_policy]` keeps its existing cookie-list behavior, and saved policy pages are preserved.
+*   **Fix:** Cookie scans no longer insert the WordPress/third-party cookie catalogs as detected results. Only observed request cookies and homepage response headers are recorded, with administrator authentication/settings cookies excluded from request observations. Results are consolidated by name, domain and path, preserving manual categories and observed expiration metadata; a new scan removes legacy catalog-only records and duplicates from storage.
+*   **Fix:** Empty scans complete successfully without invented cookie entries. Cleanup, observation and persistence failures return errors even when older records exist, while successful JSON fallback scans retain the database diagnostic and report their actual storage.
+*   **Fix:** Cookie Manager removes the unsupported empty default from the `TEXT` description column in installation and scanner table definitions, including direct-query fallbacks, preventing database errors on affected MySQL/MariaDB servers.
 
 ### 1.3.62
 *   **Fix:** PHP Snippets registers its admin submenu after the main Marrison Addon menu. This preserves WordPress's correct page hook and dashboard link, fixing the false permission-denied response for authorized users. Both capability checks and the early snippet runtime remain unchanged.

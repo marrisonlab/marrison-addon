@@ -2,13 +2,20 @@
 /** Scanner fixture: observed headers, existing DB records and real JSON file persistence. */
 function add_action() {}
 function home_url($path = '') { return 'https://example.test' . $path; }
-function wp_parse_url($url) { return parse_url($url); }
+function wp_parse_url($url, $component = -1) { return parse_url($url, $component); }
 function current_time($format) { return gmdate('Y-m-d H:i:s'); }
-function wp_remote_get() { global $response; return $response; }
-function is_wp_error() { return false; }
+function wp_remote_get($url = '', $args = array()) {
+    global $response, $responses, $http_requests;
+    if (is_array($responses)) {
+        $http_requests[] = array($url, $args);
+        return isset($responses[$url]) ? $responses[$url] : array('response' => array('code' => 404), 'body' => '', 'response_headers' => array(), 'cookies' => array(), 'headers' => array(), 'raw_headers' => '');
+    }
+    return $response;
+}
+function is_wp_error($response) { return $response instanceof WP_Error; }
 function wp_remote_retrieve_cookies($response) { return $response['cookies']; }
 function wp_remote_retrieve_headers($response) { return $response['headers']; }
-function wp_remote_retrieve_header($response, $name) { return $response['raw_headers']; }
+function wp_remote_retrieve_header($response, $name) { return isset($response['response_headers'][$name]) ? $response['response_headers'][$name] : ($name === 'set-cookie' ? $response['raw_headers'] : ''); }
 function wp_upload_dir() { global $test_directory; return array('basedir' => $test_directory, 'error' => false); }
 function trailingslashit($path) { return rtrim($path, '/\\') . '/'; }
 function wp_mkdir_p($path) { return is_dir($path) || mkdir($path, 0777, true); }

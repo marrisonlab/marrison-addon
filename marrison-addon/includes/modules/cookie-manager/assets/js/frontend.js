@@ -333,6 +333,7 @@
         },
 
         saveConsent: function(consentType, categories) {
+            var previousCategories = MarrisonCookie.getAllowedCategories();
             MarrisonCookie.ajax({
                 url: marrisonCookie.ajaxUrl,
                 type: 'POST',
@@ -344,6 +345,12 @@
                 success: function(response) {
                     if (response.success) {
                         MarrisonCookie.applyConsentCookies(consentType, categories);
+                        var nextCategories = MarrisonCookie.getAllowedCategories();
+                        if (window.MarrisonConsentRuntime) { window.MarrisonConsentRuntime.enforce(); }
+                        if (previousCategories.some(function(category) { return category !== 'necessary' && nextCategories.indexOf(category) === -1; })) {
+                            location.reload();
+                            return;
+                        }
                         MarrisonCookie.activateAllowedBlockedContent();
                         $('#marrison-cookie-banner').hide();
                         $('#marrison-cookie-modal').hide();
@@ -389,6 +396,8 @@
                     MarrisonCookie.activateBlockedScript(element);
                 } else if ($element.data('marrison-cookie-blocked') === 'iframe') {
                     MarrisonCookie.activateBlockedIframe(element);
+                } else if ($element.data('marrison-cookie-blocked') === 'img') {
+                    MarrisonCookie.activateBlockedIframe(element);
                 }
             });
         },
@@ -421,15 +430,24 @@
 
         activateBlockedIframe: function(element) {
             var blockedSrc = element.getAttribute('data-marrison-blocked-src');
+            var blockedSrcset = element.getAttribute('data-marrison-blocked-srcset');
+
+            if (blockedSrcset) {
+                element.setAttribute('srcset', blockedSrcset);
+                element.removeAttribute('data-marrison-blocked-srcset');
+            }
 
             if (blockedSrc) {
                 element.setAttribute('src', blockedSrc);
                 element.removeAttribute('data-marrison-blocked-src');
                 element.removeAttribute('data-marrison-cookie-blocked');
             }
+            if (blockedSrcset) { element.removeAttribute('data-marrison-cookie-blocked'); }
         },
 
         getAllowedCategories: function() {
+            if (marrisonCookie.scanPhase === 'after') { return ['necessary', 'functional', 'analytics', 'marketing']; }
+            if (marrisonCookie.scanPhase === 'before') { return ['necessary']; }
             var consent = MarrisonCookie.getCookie('marrison_cookie_consent');
             var categoriesCookie = MarrisonCookie.getCookie('marrison_cookie_categories');
             var categories = ['necessary'];
@@ -438,11 +456,11 @@
                 return ['necessary', 'functional', 'analytics', 'marketing'];
             }
 
-            if (categoriesCookie) {
-                categories = decodeURIComponent(categoriesCookie).split('|');
+            if (consent === 'custom' && categoriesCookie) {
+                try { categories = decodeURIComponent(categoriesCookie).split('|').filter(function(category) { return ['necessary', 'functional', 'analytics', 'marketing'].indexOf(category) !== -1; }); }
+                catch (error) { categories = ['necessary']; }
             }
-
-            return categories;
+            return ['necessary'].concat(categories.filter(function(category) { return category !== 'necessary'; }));
         },
 
         updatePreferences: function(categories) {

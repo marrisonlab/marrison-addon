@@ -227,6 +227,7 @@
 }
 
 .marrison-form-group input[type="text"],
+.marrison-form-group input[type="url"],
 .marrison-form-group textarea,
 .marrison-form-group select {
     width: 100%;
@@ -240,6 +241,7 @@
 }
 
 .marrison-form-group input[type="text"]:focus,
+.marrison-form-group input[type="url"]:focus,
 .marrison-form-group textarea:focus,
 .marrison-form-group select:focus {
     border-color: #7546b9;

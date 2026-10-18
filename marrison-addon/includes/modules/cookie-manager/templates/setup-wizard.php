@@ -28,7 +28,7 @@ $total_steps = $wizard->get_total_steps();
                                 2 => __('Banner', 'marrison-cookie'),
                                 3 => __('Cookie', 'marrison-cookie'),
                                 4 => __('Aspetto', 'marrison-cookie'),
-                                5 => __('Pagine', 'marrison-cookie')
+                                5 => __('Shortcode', 'marrison-cookie')
                             );
                             echo esc_html($labels[$i]);
                             ?>
@@ -49,7 +49,7 @@ $total_steps = $wizard->get_total_steps();
                     <li><?php _e('Scansionare i cookie presenti sul tuo sito', 'marrison-cookie'); ?></li>
                     <li><?php _e('Personalizzare il banner di accettazione', 'marrison-cookie'); ?></li>
                     <li><?php _e('Categorizzare i cookie rilevati', 'marrison-cookie'); ?></li>
-                    <li><?php _e('Creare automaticamente le pagine Privacy e Cookie Policy', 'marrison-cookie'); ?></li>
+                    <li><?php echo esc_html(marrison_cookie_site_text('Inserire Privacy e Cookie Policy nelle tue pagine tramite shortcode', 'Add Privacy and Cookie Policies to your pages using shortcodes')); ?></li>
                 </ul>
                 <p class="marrison-step-description">
                     <?php _e('Il wizard può essere rieseguito in qualsiasi momento dalle impostazioni del plugin.', 'marrison-cookie'); ?>
@@ -205,32 +205,25 @@ $total_steps = $wizard->get_total_steps();
                 </div>
             </div>
             
-            <!-- Step 5: Pagine -->
+            <!-- Step 5: Shortcode e collegamenti policy -->
             <div class="marrison-wizard-step <?php echo $current_step === 5 ? 'active' : ''; ?>" data-step="5">
-                <h2 class="marrison-step-title"><?php _e('Crea Pagine Policy', 'marrison-cookie'); ?></h2>
+                <h2 class="marrison-step-title"><?php echo esc_html(marrison_cookie_site_text('Shortcode delle policy', 'Policy shortcodes')); ?></h2>
                 <p class="marrison-step-description">
-                    <?php _e('Crea automaticamente le pagine Privacy Policy e Cookie Policy con contenuti precompilati.', 'marrison-cookie'); ?>
+                    <?php echo esc_html(marrison_cookie_site_text('Scegli dove mostrare le policy nelle pagine del tuo sito.', 'Choose where to display the policies on your site pages.')); ?>
                 </p>
-                
-                <div class="marrison-page-options">
-                    <div class="marrison-page-option" id="privacy_option">
-                        <input type="checkbox" id="create_privacy" checked>
-                        <div>
-                            <h4><?php _e('Privacy Policy', 'marrison-cookie'); ?></h4>
-                            <p><?php _e('Crea una pagina Privacy Policy completa con tutti i requisiti GDPR.', 'marrison-cookie'); ?></p>
-                        </div>
-                    </div>
-                    
-                    <div class="marrison-page-option" id="cookie_option">
-                        <input type="checkbox" id="create_cookie" checked>
-                        <div>
-                            <h4><?php _e('Cookie Policy', 'marrison-cookie'); ?></h4>
-                            <p><?php _e('Crea una pagina Cookie Policy con spiegazioni dettagliate.', 'marrison-cookie'); ?></p>
-                        </div>
-                    </div>
+
+                <?php include MARRISON_COOKIE_PLUGIN_DIR . 'templates/policy-shortcodes.php'; ?>
+                <p><?php echo esc_html(marrison_cookie_site_text('Indica gli URL delle pagine da collegare nel banner. Puoi aggiungerli anche in seguito nelle impostazioni.', 'Enter the page URLs to link in the banner. You can also add them later in settings.')); ?></p>
+                <div class="marrison-form-group">
+                    <label for="wizard_privacy_policy_url">URL Privacy Policy</label>
+                    <input type="url" id="wizard_privacy_policy_url" value="<?php echo esc_attr(get_option('marrison_cookie_privacy_policy_url', '')); ?>">
+                </div>
+                <div class="marrison-form-group">
+                    <label for="wizard_cookie_policy_url">URL Cookie Policy</label>
+                    <input type="url" id="wizard_cookie_policy_url" value="<?php echo esc_attr(get_option('marrison_cookie_cookie_policy_url', '')); ?>">
                 </div>
                 
-                <div id="wizard_pages_status" class="marrison-scan-status" style="margin-top: 20px;"></div>
+                <div id="wizard_policy_status" class="marrison-scan-status" role="status" style="margin-top: 20px;"></div>
             </div>
             
             <!-- Step Completato -->

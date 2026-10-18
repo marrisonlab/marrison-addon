@@ -2,6 +2,7 @@
 /** Valid HTML attribute forms must be inert before consent. */
 function add_action() {}
 function add_shortcode() {}
+function get_option($name, $default = false) { return $default; }
 function get_current_user_id() { return 0; }
 function wp_unslash( $value ) { return $value; }
 function sanitize_text_field( $value ) { return trim( strip_tags( $value ) ); }
@@ -23,6 +24,10 @@ foreach ([ '"module"', "'module'", 'module' ] as $type) {
     if (substr_count($output,'type="text/plain"')!==1 || strpos($output,'data-marrison-script-type="module"')===false || strpos($output,'data-marrison-blocked-src="/google-analytics.com.js"')===false || strpos($output,'nonce="preserved"')===false || strpos($output,' TYPE ')!==false) {
         throw new RuntimeException('Failed script attribute form: '.$type);
     }
+}
+foreach (array('<img src="/facebook.com/tr?id=1" srcset="/facebook.com/tr?id=2 2x">', '<script data-marrison-cookie-category="functional" src="/custom-widget.js"></script>') as $tag) {
+    $blocked = $consent->filter_output($tag);
+    if (strpos($blocked, 'data-marrison-cookie-blocked') === false || preg_match('/\s(?:src|srcset)\s*=/', $blocked)) { throw new RuntimeException('Tracking pixel, srcset or explicit category was not blocked'); }
 }
 $_COOKIE=['marrison_cookie_consent'=>'accept_all'];
 if ($consent->filter_output($input)!==$input) { throw new RuntimeException('Allowed script changed'); }

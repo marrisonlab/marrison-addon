@@ -39,6 +39,9 @@ class Marrison_Setup_Wizard {
         add_action('wp_ajax_marrison_wizard_finish', array($this, 'ajax_finish'));
         add_action('wp_ajax_marrison_wizard_dismiss', array($this, 'ajax_dismiss'));
         add_action('wp_ajax_marrison_wizard_open', array($this, 'ajax_open'));
+
+        add_shortcode('marrison_privacy_policy', array($this, 'render_privacy_policy_shortcode'));
+        add_shortcode('marrison_cookie_policy_content', array($this, 'render_cookie_policy_shortcode'));
         
         // Enqueue wizard assets solo nella pagina del plugin
         add_action('admin_enqueue_scripts', array($this, 'enqueue_wizard_assets'));
@@ -100,9 +103,7 @@ class Marrison_Setup_Wizard {
             'scanErrorText' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Errore durante la scansione', 'Error while scanning') : __('Errore durante la scansione', 'marrison-cookie'),
             'connectionErrorText' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Errore di connessione', 'Connection error') : __('Errore di connessione', 'marrison-cookie'),
             'noCookiesText' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Nessun cookie rilevato', 'No cookies found') : __('Nessun cookie rilevato', 'marrison-cookie'),
-            'creatingPagesText' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Creazione pagine in corso...', 'Creating pages...') : __('Creazione pagine in corso...', 'marrison-cookie'),
-            'pagesCreatedText' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Pagine create con successo!', 'Pages created successfully!') : __('Pagine create con successo!', 'marrison-cookie'),
-            'pagesErrorText' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Errore durante la creazione delle pagine', 'Error while creating pages') : __('Errore durante la creazione delle pagine', 'marrison-cookie'),
+            'finishErrorText' => marrison_cookie_site_text('Impossibile completare la configurazione.', 'Unable to finish setup.'),
             'categoryNecessary' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Necessari', 'Necessary') : __('Necessari', 'marrison-cookie'),
             'categoryFunctional' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Funzionali', 'Functional') : __('Funzionali', 'marrison-cookie'),
             'categoryAnalytics' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Analitici', 'Analytics') : __('Analitici', 'marrison-cookie'),
@@ -171,20 +172,23 @@ class Marrison_Setup_Wizard {
         if (!current_user_can('manage_options')) {
             wp_send_json_error(array('message' => 'Permessi insufficienti'));
         }
+        if (class_exists('Marrison_Addon_Cookie_Scan_Engine', false)) {
+            wp_send_json_error(array('message' => 'Lo scanner è stato aggiornato. Ricarica Cookie Manager per usare la scansione completa.'));
+        }
         
         $scanner = Marrison_Cookie_Scanner::get_instance();
-        $result = $scanner->perform_scan();
+        $scanner->perform_scan();
         $cookies = $scanner->get_cookies('all');
+        $error = $scanner->get_last_scan_error();
         
-        if ($result || !empty($cookies)) {
+        if ($scanner->was_last_scan_successful()) {
             wp_send_json_success(array(
                 'message' => 'Scansione completata',
                 'cookies' => $cookies
             ));
         } else {
-            $error = $scanner->get_last_scan_error();
             wp_send_json_error(array(
-                'message' => $error ? 'Scansione completata senza cookie rilevati. Dettaglio: ' . $error : 'Scansione completata senza cookie rilevati'
+                'message' => 'Scansione non completata: ' . $error
             ));
         }
     }
@@ -321,7 +325,7 @@ class Marrison_Setup_Wizard {
     }
     
     /**
-     * AJAX: Crea pagine
+     * Compatibilità con vecchi wizard: restituisce gli shortcode senza creare pagine.
      */
     public function ajax_create_pages() {
         check_ajax_referer('marrison_wizard_nonce', 'nonce');
@@ -330,101 +334,56 @@ class Marrison_Setup_Wizard {
             wp_send_json_error(array('message' => 'Permessi insufficienti'));
         }
         
-        $create_privacy = isset($_POST['create_privacy']) && $_POST['create_privacy'] === 'true';
-        $create_cookie = isset($_POST['create_cookie']) && $_POST['create_cookie'] === 'true';
-        
-        $pages = array();
-        
-        if ($create_privacy) {
-            $privacy_page_id = $this->create_privacy_page();
-            if ($privacy_page_id) {
-                $pages['privacy'] = array(
-                    'id' => $privacy_page_id,
-                    'url' => get_permalink($privacy_page_id)
-                );
-                update_option('marrison_cookie_privacy_policy_url', get_permalink($privacy_page_id));
-            }
-        }
-        
-        if ($create_cookie) {
-            $cookie_page_id = $this->create_cookie_page();
-            if ($cookie_page_id) {
-                $pages['cookie'] = array(
-                    'id' => $cookie_page_id,
-                    'url' => get_permalink($cookie_page_id)
-                );
-                update_option('marrison_cookie_cookie_policy_url', get_permalink($cookie_page_id));
-            }
-        }
-        
-        wp_send_json_success(array('message' => 'Pagine create', 'pages' => $pages));
+        wp_send_json_error(array(
+            'message' => marrison_cookie_site_text('La creazione delle pagine è stata sostituita dagli shortcode disponibili nelle impostazioni.', 'Page creation has been replaced by the shortcodes available in settings.'),
+            'pages' => array(),
+            'shortcodes' => array(
+                'privacy' => '[marrison_privacy_policy]',
+                'cookie' => '[marrison_cookie_policy_content]',
+            ),
+        ));
     }
     
     /**
-     * Crea pagina privacy
+     * Testo Privacy Policy inseribile anche nel widget Shortcode di Elementor.
      */
-    private function create_privacy_page() {
-        $page_title = 'Privacy Policy';
-        $page_content = $this->get_privacy_page_content();
-        
-        // Verifica se esiste già
-        $existing_page = get_page_by_title($page_title);
-        
-        if ($existing_page) {
-            return $existing_page->ID;
-        }
-        
-        $page_data = array(
-            'post_title' => $page_title,
-            'post_content' => $page_content,
-            'post_status' => 'publish',
-            'post_type' => 'page',
-            'post_author' => get_current_user_id(),
-        );
-        
-        $page_id = wp_insert_post($page_data);
-        
-        return $page_id;
+    public function render_privacy_policy_shortcode() {
+        return '<div class="marrison-privacy-policy-content">' . $this->get_privacy_page_content() . '</div>';
     }
     
     /**
-     * Crea pagina cookie
+     * Testo Cookie Policy completo di elenco aggiornato e accesso alle preferenze.
      */
-    private function create_cookie_page() {
-        $page_title = 'Cookie Policy';
-        $page_content = $this->get_cookie_page_content();
-        
-        // Verifica se esiste già
-        $existing_page = get_page_by_title($page_title);
-        
-        if ($existing_page) {
-            return $existing_page->ID;
-        }
-        
-        $page_data = array(
-            'post_title' => $page_title,
-            'post_content' => $page_content,
-            'post_status' => 'publish',
-            'post_type' => 'page',
-            'post_author' => get_current_user_id(),
-        );
-        
-        $page_id = wp_insert_post($page_data);
-        
-        return $page_id;
+    public function render_cookie_policy_shortcode() {
+        return '<div class="marrison-cookie-policy-content">' . do_shortcode($this->get_cookie_page_content()) . '</div>';
     }
 
     /**
-     * Ottieni permalink pagina per titolo, se esiste.
+     * Usa gli URL scelti nelle impostazioni, indipendentemente da titolo ed editor.
      */
     private function get_policy_page_url($page_title) {
-        $page = get_page_by_title($page_title);
-
-        if (!$page) {
+        $options = array(
+            'Privacy Policy' => 'marrison_cookie_privacy_policy_url',
+            'Cookie Policy' => 'marrison_cookie_cookie_policy_url',
+        );
+        if (!isset($options[$page_title])) {
             return '';
         }
 
-        return get_permalink($page->ID);
+        return get_option($options[$page_title], '');
+    }
+
+    private function get_policy_page_link($page_title) {
+        $url = $this->get_policy_page_url($page_title);
+        return $url ? '<a href="' . esc_url($url) . '">' . esc_html($page_title) . '</a>' : esc_html($page_title);
+    }
+
+    private function save_policy_settings($data) {
+        foreach (array('privacy_policy_url', 'cookie_policy_url') as $key) {
+            if (isset($data[$key]) && is_string($data[$key])) {
+                update_option('marrison_cookie_' . $key, esc_url_raw($data[$key]));
+            }
+        }
     }
     
     /**
@@ -442,7 +401,7 @@ class Marrison_Setup_Wizard {
                 . '<h2>2. Information we collect</h2>'
                 . '<p>We may collect personal information that you voluntarily provide, including name, email address, phone number, and other information you choose to submit.</p>'
                 . '<h2>3. Use of cookies</h2>'
-                . '<p>We use cookies to improve your browsing experience. For more details, see our <a href="' . esc_url($this->get_policy_page_url('Cookie Policy')) . '">Cookie Policy</a>.</p>'
+                . '<p>We use cookies to improve your browsing experience. For more details, see our ' . $this->get_policy_page_link('Cookie Policy') . '.</p>'
                 . '<h2>4. Sharing of information</h2>'
                 . '<p>We do not share your personal information with third parties except when required by law or necessary to provide our services.</p>'
                 . '<h2>5. Your rights</h2>'
@@ -474,8 +433,7 @@ class Marrison_Setup_Wizard {
         $content .= '<li>Tempo di visita e pagine visualizzate</li>';
         $content .= '</ul>';
         $content .= '<h2>3. Utilizzo dei cookie</h2>';
-        $cookie_policy_url = $this->get_policy_page_url('Cookie Policy');
-        $content .= '<p>Utilizziamo i cookie per migliorare la tua esperienza di navigazione. Per maggiori dettagli, consulta la nostra <a href="' . esc_url($cookie_policy_url) . '">Cookie Policy</a>.</p>';
+        $content .= '<p>Utilizziamo i cookie per migliorare la tua esperienza di navigazione. Per maggiori dettagli, consulta la nostra ' . $this->get_policy_page_link('Cookie Policy') . '.</p>';
         $content .= '<h2>4. Condivisione delle informazioni</h2>';
         $content .= '<p>Non condividiamo le tue informazioni personali con terze parti, tranne quando richiesto dalla legge o necessario per fornire i nostri servizi.</p>';
         $content .= '<h2>5. I tuoi diritti</h2>';
@@ -519,7 +477,7 @@ class Marrison_Setup_Wizard {
                 . '<p>You can manage your cookie preferences using the banner that appears when you visit our website, or change your browser settings to block or delete cookies.</p>'
                 . '<h2>5. Useful links</h2>'
                 . '<ul>'
-                . '<li><a href="' . esc_url($this->get_policy_page_url('Privacy Policy')) . '">Privacy Policy</a></li>'
+                . '<li>' . $this->get_policy_page_link('Privacy Policy') . '</li>'
                 . '<li><a href="https://www.allaboutcookies.org/" target="_blank" rel="noopener">All About Cookies</a></li>'
                 . '</ul>'
                 . '<h2>6. Contact</h2>'
@@ -546,8 +504,7 @@ class Marrison_Setup_Wizard {
         $content .= '<p>Puoi gestire le tue preferenze sui cookie utilizzando il banner che appare quando visiti il nostro sito. Puoi anche modificare le impostazioni del tuo browser per bloccare o eliminare i cookie.</p>';
         $content .= '<h2>5. Link utili</h2>';
         $content .= '<ul>';
-        $privacy_policy_url = $this->get_policy_page_url('Privacy Policy');
-        $content .= '<li><a href="' . esc_url($privacy_policy_url) . '">Privacy Policy</a></li>';
+        $content .= '<li>' . $this->get_policy_page_link('Privacy Policy') . '</li>';
         $content .= '<li><a href="https://www.allaboutcookies.org/" target="_blank" rel="noopener">All About Cookies</a></li>';
         $content .= '</ul>';
         $content .= '<h2>6. Contatti</h2>';
@@ -567,6 +524,9 @@ class Marrison_Setup_Wizard {
             wp_send_json_error(array('message' => 'Permessi insufficienti'));
         }
         
+        $data = isset($_POST['data']) && is_array($_POST['data']) ? wp_unslash($_POST['data']) : array();
+        $this->save_policy_settings($data);
+
         // Segna wizard come completato
         update_option('marrison_cookie_wizard_completed', true);
         update_option('marrison_cookie_wizard_completed_date', current_time('mysql'));

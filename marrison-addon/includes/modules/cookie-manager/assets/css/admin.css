@@ -593,6 +593,32 @@ input[type="color"]:hover {
 }
 
 /* Responsive */
+.marrison-shortcodes-panel {
+    padding: 0 20px 16px;
+}
+
+.marrison-policy-shortcodes .marrison-shortcode-item {
+    margin: 16px 0;
+}
+
+.marrison-policy-shortcodes .marrison-shortcode-copy-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.marrison-policy-shortcodes .marrison-shortcode-value {
+    flex: 1 1 250px;
+    min-width: 0;
+    max-width: 440px;
+    font-family: monospace;
+}
+
+.marrison-policy-shortcodes .marrison-shortcode-copy-status {
+    display: block;
+    margin-top: 4px;
+}
+
 @media (max-width: 782px) {
     .marrison-admin-header {
         flex-direction: column;

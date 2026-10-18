@@ -155,7 +155,8 @@ class Marrison_Cookie_Admin_Settings {
         }
         
         // Behavior settings
-        update_option('marrison_cookie_show_banner', isset($_POST['show_banner']));
+        $behavior_tab = isset($_GET['tab']) && $_GET['tab'] === 'behavior';
+        if ($behavior_tab || isset($_POST['show_banner'])) { update_option('marrison_cookie_show_banner', isset($_POST['show_banner'])); }
 
         foreach (array('desktop', 'tablet', 'mobile') as $device) {
             $field = 'closed_trigger_' . $device;
@@ -168,10 +169,14 @@ class Marrison_Cookie_Admin_Settings {
             update_option('marrison_cookie_consent_duration', max(1, min(365, intval($_POST['consent_duration']))));
         }
 
-        update_option('marrison_cookie_auto_scan', isset($_POST['auto_scan']));
+        if ($behavior_tab || isset($_POST['auto_scan'])) { update_option('marrison_cookie_auto_scan', isset($_POST['auto_scan'])); }
 
         if (isset($_POST['scan_interval'])) {
             update_option('marrison_cookie_scan_interval', max(1, min(30, intval($_POST['scan_interval']))));
+        }
+        foreach (array('functional', 'analytics', 'marketing') as $category) {
+            $key = $category . '_sources';
+            if (isset($_POST[$key]) && is_string($_POST[$key])) { update_option('marrison_cookie_' . $key, $this->sanitize_sources(wp_unslash($_POST[$key]))); }
         }
         
         echo '<div class="notice notice-success"><p>Impostazioni salvate con successo!</p></div>';
@@ -210,6 +215,9 @@ class Marrison_Cookie_Admin_Settings {
             'consent_duration',
             'auto_scan',
             'scan_interval',
+            'functional_sources',
+            'analytics_sources',
+            'marketing_sources',
         );
         
         foreach ($settings as $key => $value) {
@@ -221,7 +229,9 @@ class Marrison_Cookie_Admin_Settings {
 
             $option_key = 'marrison_cookie_' . $key;
             
-            if (in_array($key, array('show_banner', 'auto_scan'), true)) {
+            if (in_array($key, array('functional_sources', 'analytics_sources', 'marketing_sources'), true)) {
+                update_option($option_key, $this->sanitize_sources($value));
+            } elseif (in_array($key, array('show_banner', 'auto_scan'), true)) {
                 update_option($option_key, (bool) $value);
             } elseif (in_array($key, array('closed_trigger_desktop', 'closed_trigger_tablet', 'closed_trigger_mobile'), true)) {
                 update_option($option_key, $this->sanitize_closed_trigger_mode($value));
@@ -275,7 +285,20 @@ class Marrison_Cookie_Admin_Settings {
             'consent_duration' => get_option('marrison_cookie_consent_duration', 30),
             'auto_scan' => get_option('marrison_cookie_auto_scan', true),
             'scan_interval' => get_option('marrison_cookie_scan_interval', 7),
+            'functional_sources' => get_option('marrison_cookie_functional_sources', ''),
+            'analytics_sources' => get_option('marrison_cookie_analytics_sources', ''),
+            'marketing_sources' => get_option('marrison_cookie_marketing_sources', ''),
         );
+    }
+
+    private function sanitize_sources($value) {
+        if (!is_string($value)) { return ''; }
+        $rules = array();
+        foreach (preg_split('/\R/', $value) as $line) {
+            $line = trim(sanitize_text_field($line));
+            if ($line !== '' && strlen($line) <= 255 && count($rules) < 100) { $rules[] = $line; }
+        }
+        return implode("\n", array_unique($rules));
     }
 
     /**

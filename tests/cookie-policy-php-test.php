@@ -9,6 +9,7 @@ $admin = false;
 $feed = false;
 $english = false;
 $post_content = '';
+$elementor_data = '';
 $localized = array();
 function add_action() {}
 function add_filter() {}
@@ -20,6 +21,7 @@ function get_queried_object_id() { global $queried_id; return $queried_id; }
 function get_the_ID() { global $loop_id; return $loop_id; }
 function url_to_postid($url) { return $url === 'http://cookie-fixture.local/cookie-policy' ? 42 : 0; }
 function get_post() { global $post_content; return (object) array('post_content' => $post_content); }
+function get_post_meta() { global $elementor_data; return $elementor_data; }
 function has_shortcode($content, $tag) { return strpos($content, '[' . $tag . ']') !== false; }
 function is_admin() { global $admin; return $admin; }
 function is_feed() { global $feed; return $feed; }
@@ -82,8 +84,14 @@ $options['marrison_cookie_show_banner'] = false;
 verify(!invoke_private($banner, 'should_render_consent_ui'), 'Disabled banner UI loaded on unrelated page');
 $post_content = '[marrison_cookie_policy]';
 verify(invoke_private($banner, 'should_render_consent_ui'), 'Explicit shortcode cannot open preferences with banner disabled');
+$post_content = '[marrison_cookie_policy_content]';
+verify(invoke_private($banner, 'should_render_consent_ui'), 'Full policy shortcode cannot open preferences with banner disabled');
 $post_content = '';
+$elementor_data = json_encode(array(array('widgetType' => 'shortcode', 'settings' => array('shortcode' => '[marrison_cookie_policy_content]'))));
+verify(invoke_private($banner, 'should_render_consent_ui'), 'Elementor policy shortcode cannot open preferences with banner disabled');
 $queried_id = 42;
+verify($banner->append_policy_details('<div>Elementor policy layout</div>') === '<div>Elementor policy layout</div>', 'Elementor policy gets a duplicate cookie list');
+$elementor_data = '';
 verify(invoke_private($banner, 'should_render_consent_ui'), 'Policy cannot open preferences with banner disabled');
 ob_start(); $banner->render_banner(); $hidden = ob_get_clean();
 verify(strpos($hidden, 'style="display: none;') !== false && strpos($hidden, 'id="marrison-cookie-modal"') !== false, 'Disabled banner visible or modal missing');

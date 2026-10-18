@@ -13,6 +13,9 @@
         },
 
         bindEvents: function() {
+            $(document).on('click', '.marrison-copy-shortcode', function() {
+                MarrisonCookieAdmin.copyShortcode(this);
+            });
             $(document).on('click', '#marrison-open-wizard', function(e) {
                 e.preventDefault();
                 MarrisonCookieAdmin.openWizard();
@@ -48,6 +51,31 @@
             });
         },
 
+        copyShortcode: function(button) {
+            var $button = $(button);
+            var $item = $button.closest('.marrison-shortcode-item');
+            var input = $item.find('.marrison-shortcode-value')[0];
+            var $status = $item.find('.marrison-shortcode-copy-status');
+            if (!input) { return; }
+            $button.prop('disabled', true);
+            $status.text('');
+            function done(success) {
+                $button.prop('disabled', false);
+                $status.text($button.attr(success ? 'data-copied-text' : 'data-copy-error-text'));
+            }
+            function fallback() {
+                input.focus();
+                input.select();
+                input.setSelectionRange(0, input.value.length);
+                var copied = false;
+                try { copied = document.execCommand('copy'); } catch (error) { /* Keep the value selected for manual copy. */ }
+                done(copied);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(input.value).then(function() { done(true); }, fallback);
+            } else { fallback(); }
+        },
+
         openWizard: function() {
             if ($('.marrison-wizard-overlay').length === 0) {
                 alert('Il wizard non e disponibile in questa pagina.');
@@ -75,6 +103,10 @@
         },
 
         scanCookies: function() {
+            if (window.MarrisonCookieScanner) {
+                window.MarrisonCookieScanner.start();
+                return;
+            }
             var $button = $('#marrison-scan-cookies');
             var $status = $('#marrison-scan-status');
             var $dbStatus = $('#marrison-db-status');
@@ -196,6 +228,10 @@
         },
 
         loadCookies: function(category) {
+            if (window.MarrisonCookieScanner) {
+                window.MarrisonCookieScanner.loadInventory(category || 'all');
+                return;
+            }
             category = category || 'all';
 
             $.ajax({
@@ -219,7 +255,7 @@
             $tbody.empty();
 
             if (!cookies || cookies.length === 0) {
-                $tbody.append('<tr><td colspan="6">' + (marrisonCookieAdmin.noCookiesFoundText || 'No cookies found') + '</td></tr>');
+                $tbody.append('<tr><td colspan="7">' + (marrisonCookieAdmin.noCookiesFoundText || 'No cookies found') + '</td></tr>');
                 return;
             }
 
@@ -241,8 +277,9 @@
                         '<td><span class="marrison-category-badge marrison-category-' + MarrisonCookieAdmin.escapeHtml(cookie.cookie_category) + '">' +
                             MarrisonCookieAdmin.getCategoryLabel(cookie.cookie_category) +
                         '</span></td>' +
-                        '<td>' + MarrisonCookieAdmin.escapeHtml(cookie.cookie_domain) + '</td>' +
-                        '<td>' + MarrisonCookieAdmin.escapeHtml(cookie.source) + '</td>' +
+                        '<td>' + MarrisonCookieAdmin.escapeHtml(cookie.cookie_domain) + '<br><small>Path: ' + MarrisonCookieAdmin.escapeHtml(cookie.cookie_path || '/') + '</small></td>' +
+                        '<td>' + MarrisonCookieAdmin.escapeHtml(cookie.cookie_expiration_status === 'session' ? 'Sessione' : (cookie.cookie_expiration ? MarrisonCookieAdmin.formatDate(cookie.cookie_expiration.replace(' ', 'T') + 'Z') : 'Non disponibile')) + '</td>' +
+                        '<td>' + MarrisonCookieAdmin.renderEvidence(cookie) + '</td>' +
                         '<td>' + MarrisonCookieAdmin.formatDate(cookie.scan_date) + '</td>' +
                         '<td><div class="marrison-cookie-actions">' +
                             '<select class="marrison-category-select" data-cookie-id="' + parseInt(cookie.id, 10) + '">' + selectedOptions + '</select>' +
@@ -252,6 +289,16 @@
 
                 $tbody.append(row);
             });
+        },
+
+        renderEvidence: function(cookie) {
+            var html = MarrisonCookieAdmin.escapeHtml(cookie.source);
+            if (!cookie.evidence || !cookie.evidence.observations) { return html; }
+            html += '<details><summary>Prove rilevate</summary><ul>';
+            cookie.evidence.observations.forEach(function(observation) {
+                html += '<li>' + MarrisonCookieAdmin.escapeHtml((observation.phase === 'before' ? 'Prima del consenso' : 'Dopo il consenso') + ' · ' + observation.method + ' · ' + observation.url) + '</li>';
+            });
+            return html + '</ul></details>';
         },
 
         deleteCookie: function(cookieId) {
@@ -328,6 +375,7 @@
         }
     };
 
+    window.MarrisonCookieAdmin = MarrisonCookieAdmin;
     $(document).ready(function() {
         MarrisonCookieAdmin.init();
     });

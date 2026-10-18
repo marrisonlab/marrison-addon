@@ -54,19 +54,6 @@
                 MarrisonWizard.scanCookies();
             });
             
-            // Selezione pagine
-            $(document).on('click', '.marrison-page-option', function(e) {
-                if (e.target.tagName !== 'INPUT') {
-                    var checkbox = $(this).find('input[type="checkbox"]');
-                    checkbox.prop('checked', !checkbox.prop('checked'));
-                    $(this).toggleClass('selected', checkbox.prop('checked'));
-                }
-            });
-            
-            $(document).on('change', '.marrison-page-option input', function(e) {
-                $(this).closest('.marrison-page-option').toggleClass('selected', $(this).prop('checked'));
-            });
-            
             // Color picker update
             $(document).on('input', 'input[type="color"]', function() {
                 $(this).siblings('span').text($(this).val());
@@ -112,10 +99,6 @@
             }
             $('#wizard_next').text(step === this.totalSteps ? marrisonWizard.completeText : marrisonWizard.nextText);
             
-            // Se è lo step 5, prepara creazione pagine
-            if (step === 5) {
-                this.preparePageCreation();
-            }
         },
         
         updateProgress: function() {
@@ -231,6 +214,10 @@
         },
         
         scanCookies: function() {
+            if (window.MarrisonCookieScanner) {
+                window.MarrisonCookieScanner.start(true);
+                return;
+            }
             var $button = $('#wizard_scan_button');
             var $status = $('#wizard_scan_status');
             
@@ -307,69 +294,31 @@
             });
         },
         
-        preparePageCreation: function() {
-            // Inizializza selezione pagine
-            $('.marrison-page-option').each(function() {
-                var checkbox = $(this).find('input[type="checkbox"]');
-                $(this).toggleClass('selected', checkbox.prop('checked'));
-            });
-        },
-        
         finishWizard: function() {
-            // Crea pagine se selezionate
-            var createPrivacy = $('#create_privacy').prop('checked');
-            var createCookie = $('#create_cookie').prop('checked');
-            
-            var $status = $('#wizard_pages_status');
-            
-            if (createPrivacy || createCookie) {
-                $status.removeClass('success error')
-                      .addClass('loading')
-                      .text(marrisonWizard.creatingPagesText)
-                      .show();
-                
-                $.ajax({
-                    url: marrisonWizard.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'marrison_wizard_create_pages',
-                        nonce: marrisonWizard.nonce,
-                        create_privacy: createPrivacy,
-                        create_cookie: createCookie
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            $status.removeClass('loading')
-                                  .addClass('success')
-                                  .text(marrisonWizard.pagesCreatedText);
-                            
-                            // Completa wizard
-                            MarrisonWizard.completeWizard();
-                        } else {
-                            $status.removeClass('loading')
-                                  .addClass('error')
-                                  .text(marrisonWizard.pagesErrorText);
-                        }
-                    },
-                    error: function() {
-                        $status.removeClass('loading')
-                              .addClass('error')
-                              .text(marrisonWizard.connectionErrorText);
-                    }
-                });
-            } else {
-                // Completa senza creare pagine
-                this.completeWizard();
+            var fields = $('#wizard_privacy_policy_url, #wizard_cookie_policy_url').toArray();
+            for (var i = 0; i < fields.length; i++) {
+                if (!fields[i].reportValidity()) {
+                    return;
+                }
             }
+            this.completeWizard();
         },
         
         completeWizard: function() {
+            var $button = $('#wizard_next');
+            var $status = $('#wizard_policy_status');
+            $button.prop('disabled', true);
+            $status.hide().removeClass('success error loading');
             $.ajax({
                 url: marrisonWizard.ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'marrison_wizard_finish',
-                    nonce: marrisonWizard.nonce
+                    nonce: marrisonWizard.nonce,
+                    data: {
+                        privacy_policy_url: $('#wizard_privacy_policy_url').val(),
+                        cookie_policy_url: $('#wizard_cookie_policy_url').val()
+                    }
                 },
                 success: function(response) {
                     if (response.success) {
@@ -387,7 +336,15 @@
                                 window.location.href = response.data.redirect_url;
                             }, 500);
                         }, 3000);
+                    } else {
+                        $status.addClass('error').text(response.data && response.data.message ? response.data.message : marrisonWizard.finishErrorText).show();
                     }
+                },
+                error: function() {
+                    $status.addClass('error').text(marrisonWizard.connectionErrorText).show();
+                },
+                complete: function() {
+                    $button.prop('disabled', false);
                 }
             });
         },

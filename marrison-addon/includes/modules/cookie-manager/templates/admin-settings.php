@@ -31,6 +31,9 @@ $categories = $scanner->get_categories();
         <a href="<?php echo esc_url(admin_url('admin.php?page=marrison-cookie&tab=scanner')); ?>" class="nav-tab <?php echo $active_tab === 'scanner' ? 'nav-tab-active' : ''; ?>">
             <?php _e('Scanner Cookie', 'marrison-cookie'); ?>
         </a>
+        <a href="<?php echo esc_url(admin_url('admin.php?page=marrison-cookie&tab=shortcodes')); ?>" class="nav-tab <?php echo $active_tab === 'shortcodes' ? 'nav-tab-active' : ''; ?>">
+            <?php _e('Shortcode', 'marrison-cookie'); ?>
+        </a>
     </h2>
     
     <form method="post" action="">
@@ -131,6 +134,13 @@ $categories = $scanner->get_categories();
                                    name="cookie_policy_url" 
                                    value="<?php echo esc_url($settings['cookie_policy_url']); ?>" 
                                    class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php echo esc_html(marrison_cookie_site_text('Shortcode policy', 'Policy shortcodes')); ?></th>
+                        <td>
+                            <?php include MARRISON_COOKIE_PLUGIN_DIR . 'templates/policy-shortcodes.php'; ?>
+                            <p class="description"><?php echo esc_html(marrison_cookie_site_text('Dopo aver inserito gli shortcode, indica qui sopra gli URL delle pagine da collegare nel banner.', 'After inserting the shortcodes, enter the page URLs above to link them in the banner.')); ?></p>
                         </td>
                     </tr>
                 </table>
@@ -361,6 +371,31 @@ $categories = $scanner->get_categories();
                 </table>
             </div>
             
+            <div class="marrison-card">
+                <div class="marrison-card-header">
+                    <h2><?php echo esc_html(marrison_cookie_site_text('Blocco preventivo: servizi aggiuntivi', 'Prior blocking: additional services')); ?></h2>
+                    <p><?php echo esc_html(marrison_cookie_site_text('I servizi noti vengono riconosciuti automaticamente. Per i tuoi servizi aggiungi un dominio o un percorso per riga, per esempio statistiche.example.it oppure /tracking/. Gli script, iframe, pixel e richieste corrispondenti attendono il consenso alla categoria.', 'Known services are recognized automatically. For your own services add one domain or path per line, for example stats.example.com or /tracking/. Matching scripts, iframes, pixels and requests wait for consent to the category.')); ?></p>
+                </div>
+                <table class="form-table">
+                    <?php foreach (array('functional' => 'Funzionali', 'analytics' => 'Analitici', 'marketing' => 'Marketing') as $category => $label): ?>
+                    <tr>
+                        <th scope="row"><label for="<?php echo esc_attr($category); ?>_sources"><?php echo esc_html($categories[$category] ?? $label); ?></label></th>
+                        <td><textarea class="large-text code" rows="3" id="<?php echo esc_attr($category); ?>_sources" name="<?php echo esc_attr($category); ?>_sources"><?php echo esc_textarea($settings[$category . '_sources']); ?></textarea></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+        <?php elseif ($active_tab === 'shortcodes'): ?>
+            <div class="marrison-card">
+                <div class="marrison-card-header">
+                    <h2><?php _e('Shortcode', 'marrison-cookie'); ?></h2>
+                    <p><?php echo esc_html(marrison_cookie_site_text('Copia il codice e inseriscilo nella pagina che hai creato.', 'Copy the code and insert it into the page you created.')); ?></p>
+                </div>
+                <div class="marrison-shortcodes-panel">
+                    <?php include MARRISON_COOKIE_PLUGIN_DIR . 'templates/policy-shortcodes.php'; ?>
+                    <p><?php echo esc_html(marrison_cookie_site_text('In Elementor usa il widget Shortcode; nell’editor WordPress usa il blocco Shortcode. Dopo aver pubblicato le pagine, imposta i loro URL nella scheda Banner per collegarle al banner cookie.', 'In Elementor use the Shortcode widget; in the WordPress editor use the Shortcode block. After publishing the pages, set their URLs in the Banner tab to link them from the cookie banner.')); ?></p>
+                </div>
+            </div>
         <?php elseif ($active_tab === 'scanner'): ?>
             <div class="marrison-card">
                 <div class="marrison-card-header">
@@ -380,7 +415,22 @@ $categories = $scanner->get_categories();
                     <span id="marrison-scan-status"></span>
                     <span id="marrison-db-status"></span>
                 </div>
-                
+                <div id="marrison-scan-engine" class="marrison-scanner-report" aria-live="polite">
+                    <p><strong><?php echo esc_html(marrison_cookie_site_text('Motore di scansione', 'Scan engine')); ?></strong> <span id="marrison-engine-runtime"><?php echo esc_html(marrison_cookie_site_text('Verifica in corso…', 'Checking…')); ?></span></p>
+                    <p>
+                        <label for="marrison-scan-limit"><?php echo esc_html(marrison_cookie_site_text('Limite pagine', 'Page limit')); ?></label>
+                        <input type="number" id="marrison-scan-limit" min="1" max="5000" value="500" class="small-text">
+                        <button type="button" id="marrison-scan-resume" class="button" hidden><?php echo esc_html(marrison_cookie_site_text('Riprendi scansione', 'Resume scan')); ?></button>
+                        <button type="button" id="marrison-scan-cancel" class="button" hidden><?php echo esc_html(marrison_cookie_site_text('Interrompi', 'Stop')); ?></button>
+                        <button type="button" id="marrison-scan-export" class="button"><?php echo esc_html(marrison_cookie_site_text('Esporta rapporto', 'Export report')); ?></button>
+                    </p>
+                    <progress id="marrison-engine-progress" max="1" value="0" style="width:100%"></progress>
+                    <p id="marrison-engine-summary"></p>
+                    <p id="marrison-engine-current" style="overflow-wrap:anywhere"></p>
+                    <p id="marrison-engine-coverage"></p>
+                    <details><summary><?php echo esc_html(marrison_cookie_site_text('Dettagli e problemi rilevati', 'Details and detected issues')); ?></summary><pre id="marrison-engine-details" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></details>
+                </div>
+
                 <div class="marrison-scanner-filters">
                     <label for="marrison-category-filter"><?php _e('Filtra per categoria:', 'marrison-cookie'); ?></label>
                     <select id="marrison-category-filter">
@@ -398,6 +448,7 @@ $categories = $scanner->get_categories();
                                 <th><?php _e('Nome Cookie', 'marrison-cookie'); ?></th>
                                 <th><?php _e('Categoria', 'marrison-cookie'); ?></th>
                                 <th><?php _e('Dominio', 'marrison-cookie'); ?></th>
+                                <th><?php _e('Scadenza rilevata', 'marrison-cookie'); ?></th>
                                 <th><?php _e('Fonte', 'marrison-cookie'); ?></th>
                                 <th><?php _e('Data Scansione', 'marrison-cookie'); ?></th>
                                 <th><?php _e('Azioni', 'marrison-cookie'); ?></th>
@@ -405,7 +456,7 @@ $categories = $scanner->get_categories();
                         </thead>
                         <tbody id="marrison-cookie-table-body">
                             <tr>
-                                <td colspan="6"><?php _e('Clicca su "Avvia Scansione" per vedere i cookie', 'marrison-cookie'); ?></td>
+                                <td colspan="7"><?php _e('Clicca su "Avvia Scansione" per vedere i cookie', 'marrison-cookie'); ?></td>
                             </tr>
                         </tbody>
                     </table>
@@ -413,7 +464,7 @@ $categories = $scanner->get_categories();
             </div>
         <?php endif; ?>
         
-        <?php if ($active_tab !== 'scanner'): ?>
+        <?php if (!in_array($active_tab, array('scanner', 'shortcodes'), true)): ?>
             <p class="submit">
                 <input type="submit" 
                        name="marrison_save_settings" 

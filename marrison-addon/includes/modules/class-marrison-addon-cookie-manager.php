@@ -85,6 +85,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 			'Marrison_Cookie_Admin_Settings' => MARRISON_COOKIE_PLUGIN_DIR . 'includes/class-admin-settings.php',
 			'Marrison_Cookie_Consent'        => MARRISON_COOKIE_PLUGIN_DIR . 'includes/class-cookie-consent.php',
 			'Marrison_Setup_Wizard'          => MARRISON_COOKIE_PLUGIN_DIR . 'includes/class-setup-wizard.php',
+			'Marrison_Addon_Cookie_Scan_Engine' => __DIR__ . '/cookie-manager/includes/class-scan-engine.php',
 		);
 
 		foreach ( $dependency_map as $class_name => $file_path ) {
@@ -128,6 +129,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 		Marrison_Cookie_Admin_Settings::get_instance();
 		Marrison_Cookie_Consent::get_instance();
 		Marrison_Setup_Wizard::get_instance();
+		Marrison_Addon_Cookie_Scan_Engine::get_instance();
 	}
 
 	public function load_textdomain() {
@@ -158,6 +160,22 @@ class Marrison_Addon_Cookie_Manager_Module {
 			$admin_js_version,
 			true
 		);
+
+		$root_file = dirname( dirname( __DIR__ ) ) . '/marrison-addon.php';
+		wp_enqueue_script(
+			'marrison-cookie-scanner',
+			plugins_url( 'includes/modules/cookie-manager/assets/js/scanner.js', $root_file ),
+			array( 'marrison-cookie-admin' ),
+			Marrison_Addon_Cookie_Scan_Engine::REVISION,
+			true
+		);
+		wp_localize_script( 'marrison-cookie-scanner', 'marrisonCookieScanner', array(
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'nonce' => wp_create_nonce( 'marrison_cookie_engine' ),
+			'protocol' => Marrison_Addon_Cookie_Scan_Engine::PROTOCOL,
+			'revision' => Marrison_Addon_Cookie_Scan_Engine::REVISION,
+			'origin' => wp_parse_url( home_url( '/' ), PHP_URL_SCHEME ) . '://' . wp_parse_url( home_url( '/' ), PHP_URL_HOST ) . ( wp_parse_url( home_url( '/' ), PHP_URL_PORT ) ? ':' . wp_parse_url( home_url( '/' ), PHP_URL_PORT ) : '' ),
+		) );
 
 		wp_localize_script(
 			'marrison-cookie-admin',
@@ -229,6 +247,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 			wp_unschedule_event( $timestamp, 'marrison_cookie_daily_scan' );
 			$timestamp = wp_next_scheduled( 'marrison_cookie_daily_scan' );
 		}
+		wp_clear_scheduled_hook( 'marrison_addon_cookie_engine_tick' );
 	}
 
 	private function create_default_options() {
@@ -277,7 +296,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 			cookie_expiration datetime DEFAULT NULL,
 			cookie_expiration_status varchar(20) DEFAULT 'unknown',
 			cookie_category varchar(50) DEFAULT 'functional',
-			cookie_description text DEFAULT '',
+			cookie_description text,
 			source varchar(255) DEFAULT '',
 			scan_date datetime DEFAULT NULL,
 			PRIMARY KEY  (id),
@@ -309,7 +328,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 				cookie_expiration datetime DEFAULT NULL,
 				cookie_expiration_status varchar(20) DEFAULT 'unknown',
 				cookie_category varchar(50) DEFAULT 'functional',
-				cookie_description text DEFAULT '',
+				cookie_description text,
 				source varchar(255) DEFAULT '',
 				scan_date datetime DEFAULT NULL,
 				PRIMARY KEY  (id),
