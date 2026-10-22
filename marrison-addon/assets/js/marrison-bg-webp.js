@@ -106,6 +106,16 @@
     }
 
     function requestBestSizes(items, elementsByKey) {
+        // Keep every background eligible while matching the public resolver's bounded work per request.
+        if (items.length > 10) {
+            for (var offset = 0; offset < items.length; offset += 10) {
+                var batch = items.slice(offset, offset + 10);
+                var batchElements = {};
+                batch.forEach(function(item) { batchElements[item.key] = elementsByKey[item.key]; });
+                requestBestSizes(batch, batchElements);
+            }
+            return;
+        }
         var formData = new FormData();
         formData.append('action', 'marrison_resolve_background_webp');
 

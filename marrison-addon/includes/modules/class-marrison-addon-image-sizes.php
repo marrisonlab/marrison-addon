@@ -15,6 +15,7 @@ class Marrison_Addon_Image_Sizes {
 	const BACKGROUND_RESOLVE_CACHE_PREFIX = 'marrison_bg_webp_';
 	const BACKGROUND_RESOLVE_CACHE_TTL = 43200;
 	const BACKGROUND_CACHE_REVISION_OPTION = 'marrison_addon_background_cache_revision';
+	const BACKGROUND_MAX_UNCACHED_ITEMS = 10;
 
 	private $webp_enabled_sizes = null;
 	private $url_replacement_cache = [];
@@ -26,6 +27,7 @@ class Marrison_Addon_Image_Sizes {
 	private $skip_automatic_modern_format_generation = false;
 	private $modern_format_generation_errors = [];
 	private $modern_format_files_changed = false;
+	private $conflicting_size_slugs = [];
 
 	public function __construct() {
 		// Hooks for functionality
@@ -631,22 +633,29 @@ class Marrison_Addon_Image_Sizes {
 
 		$items = array_slice( $items, 0, 50 );
 		$resolved = [];
+		$uncached_items = 0;
 
 		foreach ( $items as $item ) {
 			if ( ! is_array( $item ) ) {
 				continue;
 			}
 
-			$key = isset( $item['key'] ) ? sanitize_key( $item['key'] ) : '';
-			$url = isset( $item['url'] ) ? esc_url_raw( $item['url'] ) : '';
-			$target_width = isset( $item['width'] ) ? absint( $item['width'] ) : 0;
-			$target_height = isset( $item['height'] ) ? absint( $item['height'] ) : 0;
-			$fit = isset( $item['fit'] ) ? sanitize_key( $item['fit'] ) : 'width';
-			$preferred_format = isset( $item['format'] ) ? sanitize_key( $item['format'] ) : '';
-
-			if ( '' === $key || '' === $url || $target_width < 1 || ! $this->is_uploads_url( $url ) ) {
+			if ( ! isset( $item['key'], $item['url'], $item['width'] ) || ! is_scalar( $item['key'] ) || ! is_string( $item['url'] ) || strlen( $item['url'] ) > 2048 || ! is_numeric( $item['width'] ) || ( isset( $item['height'] ) && ! is_numeric( $item['height'] ) ) ) {
 				continue;
 			}
+			$key = substr( sanitize_key( $item['key'] ), 0, 100 );
+			$url = $this->normalize_background_resolve_url( $item['url'] );
+			$target_width = absint( $item['width'] );
+			$target_height = isset( $item['height'] ) ? absint( $item['height'] ) : 0;
+			$fit = isset( $item['fit'] ) && is_string( $item['fit'] ) && 'cover' === $item['fit'] ? 'cover' : 'width';
+			$preferred_format = isset( $item['format'] ) && is_string( $item['format'] ) && 'avif' === $item['format'] ? 'avif' : 'webp';
+
+			if ( '' === $key || '' === $url || $target_width < 1 || $target_width > 8192 || $target_height > 8192 ) {
+				continue;
+			}
+			// Match the frontend's dimension buckets so arbitrary pixel values cannot create unbounded cache entries.
+			$target_width = (int) ceil( $target_width / 100 ) * 100;
+			$target_height = $target_height ? (int) ceil( $target_height / 100 ) * 100 : 0;
 
 			$cache_key = $this->get_background_resolve_cache_key( $url, $target_width, $target_height, $fit, $preferred_format );
 			$cached = $this->get_background_resolve_cache( $cache_key );
@@ -656,6 +665,11 @@ class Marrison_Addon_Image_Sizes {
 				}
 				continue;
 			}
+			// Cached items remain available; bound expensive metadata LIKE fallbacks on public requests.
+			if ( $uncached_items >= self::BACKGROUND_MAX_UNCACHED_ITEMS ) {
+				continue;
+			}
+			$uncached_items++;
 
 			$attachment_id = $this->resolve_attachment_id_from_upload_url( $url );
 			if ( ! $attachment_id ) {
@@ -693,6 +707,22 @@ class Marrison_Addon_Image_Sizes {
 		wp_send_json_success( [ 'items' => $resolved ] );
 	}
 
+	private function normalize_background_resolve_url( $url ) {
+		$url = preg_replace( '/[?#].*$/', '', html_entity_decode( $url, ENT_QUOTES ) );
+		if ( ! is_string( $url ) || ! $this->is_uploads_url( $url ) ) {
+			return '';
+		}
+		$uploads = wp_get_upload_dir();
+		$base = wp_parse_url( $uploads['baseurl'] );
+		$parts = wp_parse_url( $url );
+		$base_path = isset( $base['path'] ) ? trailingslashit( $base['path'] ) : '/';
+		$path = isset( $parts['path'] ) ? $parts['path'] : '';
+		if ( ! is_array( $parts ) || isset( $parts['user'] ) || isset( $parts['pass'] ) || ( ! empty( $parts['host'] ) && ( empty( $base['host'] ) || 0 !== strcasecmp( $parts['host'], $base['host'] ) ) ) || 0 !== strpos( $path, $base_path ) || preg_match( '#(?:^|/)\.{1,2}(?:/|$)#', rawurldecode( $path ) ) || ! preg_match( '/\.(?:jpe?g|png|gif|webp|avif)$/i', $path ) ) {
+			return '';
+		}
+		return rtrim( $uploads['baseurl'], '/' ) . '/' . substr( $path, strlen( $base_path ) );
+	}
+
 	private function get_background_resolve_cache_key( $url, $width, $height, $fit, $format ) {
 		return md5( implode( '|', [ $this->get_background_cache_version(), (string) $url, absint( $width ), absint( $height ), sanitize_key( $fit ), sanitize_key( $format ) ] ) );
 	}
@@ -708,15 +738,17 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	private function get_background_resolve_cache( $cache_key ) {
-		$cached = wp_cache_get( $cache_key, self::BACKGROUND_RESOLVE_CACHE_GROUP );
-		if ( is_array( $cached ) ) {
-			return $cached;
+		// A fixed set of 256 slots bounds persistent cache growth on this public endpoint.
+		$slot = 'slot_' . substr( $cache_key, 0, 2 );
+		$cached = wp_cache_get( $slot, self::BACKGROUND_RESOLVE_CACHE_GROUP );
+		if ( is_array( $cached ) && isset( $cached['key'], $cached['value'] ) && $cache_key === $cached['key'] ) {
+			return $cached['value'];
 		}
 
-		$cached = get_transient( self::BACKGROUND_RESOLVE_CACHE_PREFIX . $cache_key );
-		if ( is_array( $cached ) ) {
-			wp_cache_set( $cache_key, $cached, self::BACKGROUND_RESOLVE_CACHE_GROUP, self::BACKGROUND_RESOLVE_CACHE_TTL );
-			return $cached;
+		$cached = get_transient( self::BACKGROUND_RESOLVE_CACHE_PREFIX . $slot );
+		if ( is_array( $cached ) && isset( $cached['key'], $cached['value'] ) && $cache_key === $cached['key'] ) {
+			wp_cache_set( $slot, $cached, self::BACKGROUND_RESOLVE_CACHE_GROUP, self::BACKGROUND_RESOLVE_CACHE_TTL );
+			return $cached['value'];
 		}
 
 		return null;
@@ -724,8 +756,10 @@ class Marrison_Addon_Image_Sizes {
 
 	private function set_background_resolve_cache( $cache_key, $value ) {
 		$value = is_array( $value ) ? $value : [];
-		wp_cache_set( $cache_key, $value, self::BACKGROUND_RESOLVE_CACHE_GROUP, self::BACKGROUND_RESOLVE_CACHE_TTL );
-		set_transient( self::BACKGROUND_RESOLVE_CACHE_PREFIX . $cache_key, $value, self::BACKGROUND_RESOLVE_CACHE_TTL );
+		$slot = 'slot_' . substr( $cache_key, 0, 2 );
+		$entry = [ 'key' => $cache_key, 'value' => $value ];
+		wp_cache_set( $slot, $entry, self::BACKGROUND_RESOLVE_CACHE_GROUP, self::BACKGROUND_RESOLVE_CACHE_TTL );
+		set_transient( self::BACKGROUND_RESOLVE_CACHE_PREFIX . $slot, $entry, self::BACKGROUND_RESOLVE_CACHE_TTL );
 	}
 
 	/**
@@ -2939,13 +2973,20 @@ class Marrison_Addon_Image_Sizes {
 	 */
 	public function register_image_sizes() {
 		$sizes = get_option( 'marrison_addon_image_sizes', [] );
+		$registered = wp_get_registered_image_subsizes();
+		$seen = [];
 		
 		if ( ! empty( $sizes ) && is_array( $sizes ) ) {
 			foreach ( $sizes as $size ) {
-				if ( ! empty( $size['slug'] ) && ! empty( $size['width'] ) && ! empty( $size['height'] ) ) {
+				if ( ! empty( $size['slug'] ) && ( isset( $registered[ $size['slug'] ] ) || in_array( $size['slug'], [ 'thumbnail', 'medium', 'medium_large', 'large', 'full' ], true ) ) ) {
+					$this->conflicting_size_slugs[ $size['slug'] ] = true;
+					continue;
+				}
+				if ( ! empty( $size['slug'] ) && ! isset( $seen[ $size['slug'] ] ) && ( ! empty( $size['width'] ) || ! empty( $size['height'] ) ) ) {
 					// Use strict boolean for compatibility. true = center-center crop in WP.
 					$crop = isset( $size['crop'] ) && $size['crop'] ? true : false;
 					add_image_size( $size['slug'], (int) $size['width'], (int) $size['height'], $crop );
+					$seen[ $size['slug'] ] = true;
 				}
 			}
 		}
@@ -3111,6 +3152,7 @@ class Marrison_Addon_Image_Sizes {
 		?>
 		<div class="wrap marrison-admin-page marrison-admin-page-image-sizes">
 			<h1><?php echo esc_html__( 'Gestore Dimensioni Immagini', 'marrison-addon' ); ?></h1>
+			<?php settings_errors( 'marrison_messages' ); ?>
 			<p><?php echo esc_html__( 'Registra dimensioni immagine personalizzate per il tuo tema.', 'marrison-addon' ); ?></p>
 
 			<!-- Disable Sizes Section -->
@@ -3263,7 +3305,8 @@ class Marrison_Addon_Image_Sizes {
 							</p>
 							<p style="flex: 1;">
 								<label for="size_height" style="font-weight: 600; display: block; margin-bottom: 5px;"><?php echo esc_html__( 'Altezza', 'marrison-addon' ); ?></label>
-								<input type="number" name="size_height" id="size_height" class="widefat" value="<?php echo esc_attr( $form_values['height'] ); ?>" required min="1">
+								<input type="number" name="size_height" id="size_height" class="widefat" value="<?php echo esc_attr( $form_values['height'] ); ?>" required min="0">
+								<span class="description"><?php echo esc_html__( '0 mantiene le proporzioni della larghezza.', 'marrison-addon' ); ?></span>
 							</p>
 						</div>
 						<p>
@@ -3428,7 +3471,7 @@ class Marrison_Addon_Image_Sizes {
 		$action = $_POST['marrison_action'];
 
 		if ( 'add_size' === $action ) {
-			$name = sanitize_text_field( $_POST['size_name'] );
+			$name = sanitize_text_field( wp_unslash( $_POST['size_name'] ) );
 			$webp_quality = isset( $_POST['size_webp_quality'] ) ? absint( $_POST['size_webp_quality'] ) : 85;
 			$webp_quality = max( 0, min( 100, $webp_quality ) ); // Clamp between 0 and 100
 			$avif_quality = isset( $_POST['size_avif_quality'] ) ? absint( $_POST['size_avif_quality'] ) : 75;
@@ -3449,7 +3492,7 @@ class Marrison_Addon_Image_Sizes {
 			];
 
 			// Simple validation
-			if ( ! empty( $new_size['slug'] ) && ! empty( $new_size['width'] ) ) {
+			if ( $this->validate_custom_size( $new_size, $sizes ) ) {
 				$sizes[] = $new_size;
 				update_option( 'marrison_addon_image_sizes', $sizes );
 				$this->webp_enabled_sizes = null;
@@ -3469,7 +3512,7 @@ class Marrison_Addon_Image_Sizes {
 			$index = isset( $_POST['size_index'] ) ? absint( $_POST['size_index'] ) : -1;
 
 			if ( isset( $sizes[ $index ] ) ) {
-				$name = sanitize_text_field( $_POST['size_name'] );
+				$name = sanitize_text_field( wp_unslash( $_POST['size_name'] ) );
 				$webp_quality = isset( $_POST['size_webp_quality'] ) ? absint( $_POST['size_webp_quality'] ) : 85;
 				$webp_quality = max( 0, min( 100, $webp_quality ) );
 				$avif_quality = isset( $_POST['size_avif_quality'] ) ? absint( $_POST['size_avif_quality'] ) : 75;
@@ -3489,7 +3532,7 @@ class Marrison_Addon_Image_Sizes {
 					'show_in_media' => isset( $_POST['size_show_in_media'] ) ? true : false,
 				];
 
-				if ( ! empty( $updated_size['slug'] ) && ! empty( $updated_size['name'] ) && ! empty( $updated_size['width'] ) && ! empty( $updated_size['height'] ) ) {
+				if ( $this->validate_custom_size( $updated_size, $sizes, $index ) ) {
 					$sizes[ $index ] = $updated_size;
 					update_option( 'marrison_addon_image_sizes', array_values( $sizes ) );
 					$this->webp_enabled_sizes = null;
@@ -3547,5 +3590,31 @@ class Marrison_Addon_Image_Sizes {
 			update_option( 'marrison_addon_disabled_sizes', $clean_disabled );
 			add_settings_error( 'marrison_messages', 'marrison_sizes_updated', __( 'Disabled sizes updated.', 'marrison-addon' ), 'updated' );
 		}
+	}
+
+	private function validate_custom_size( $size, $sizes, $editing_index = null ) {
+		if ( empty( $size['slug'] ) || empty( $size['name'] ) || ( empty( $size['width'] ) && empty( $size['height'] ) ) ) {
+			add_settings_error( 'marrison_messages', 'marrison_size_invalid', __( 'Inserisci un nome e almeno una dimensione maggiore di zero.', 'marrison-addon' ), 'error' );
+			return false;
+		}
+		$slug = $size['slug'];
+		$collision = isset( $this->conflicting_size_slugs[ $slug ] ) || in_array( $slug, [ 'thumbnail', 'medium', 'medium_large', 'large', 'full' ], true );
+		foreach ( (array) $sizes as $index => $existing ) {
+			if ( $index !== $editing_index && isset( $existing['slug'] ) && $slug === $existing['slug'] ) {
+				$collision = true;
+			}
+		}
+		$registered = wp_get_registered_image_subsizes();
+		if ( isset( $registered[ $slug ] ) ) {
+			$previous = null !== $editing_index && isset( $sizes[ $editing_index ] ) ? $sizes[ $editing_index ] : null;
+			if ( ! $previous || (int) $registered[ $slug ]['width'] !== (int) $previous['width'] || (int) $registered[ $slug ]['height'] !== (int) $previous['height'] || ( ! empty( $registered[ $slug ]['crop'] ) ) !== ( ! empty( $previous['crop'] ) ) ) {
+				$collision = true;
+			}
+		}
+		if ( $collision ) {
+			add_settings_error( 'marrison_messages', 'marrison_size_duplicate', sprintf( __( 'Lo slug "%s" è già usato da una dimensione immagine. Scegli un altro nome.', 'marrison-addon' ), $slug ), 'error' );
+			return false;
+		}
+		return true;
 	}
 }

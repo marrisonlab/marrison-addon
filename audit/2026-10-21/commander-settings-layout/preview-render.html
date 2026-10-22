@@ -1,0 +1,53 @@
+
+Warning: Undefined array key "REQUEST_METHOD" in C:\Users\Angelo\Documents\GitHub\marrison-addon\audit\2026-10-21\commander-settings-layout\preview\public\admin\cookie-scanner.php on line 10
+<!doctype html>
+<html lang="it">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scanner cookie Browserless — Marrison Commander</title>
+    <style>
+        .mc-cookie-scanner { max-width: 1060px; }
+        .mc-cookie-scanner .mc-card { font-size: 13px; line-height: 1.6; }
+        .mc-cookie-scanner .mc-field small { display: block; margin-top: 6px; color: #667085; line-height: 1.5; overflow-wrap: anywhere; }
+        .mc-cookie-scanner #monthly-units { max-width: 220px; }
+        .mc-cookie-scanner .mc-field .mc-check { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; line-height: 1.5; cursor: pointer; }
+        .mc-cookie-scanner .mc-check input[type="checkbox"] { flex: 0 0 16px; width: 16px; height: 16px; margin: 0; padding: 0; }
+        .mc-cookie-scanner p { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body>
+<link rel="stylesheet" href="../assets/css/admin.css?v=1792561044">
+<div class="mc-topbar">
+    <div class="brand">Marrison Commander</div>
+        <div class="mc-nav">
+                    <a href="maintenance.php" class="">Maintenance</a>
+                    <a href="index.php?view=sites" class="">Siti</a>
+                    <a href="licenses.php" class="">Licenze</a>
+                    <a href="analytics.php" class="">Analytics</a>
+                    <a href="woocommerce.php" class="">WooCommerce</a>
+                    <a href="import.php" class="">Importa</a>
+                    <a href="settings.php" class="active">Impostazioni</a>
+                <a href="logout.php" class="mc-logout">Logout</a>
+    </div>
+</div>
+<main class="mc-wrap mc-cookie-scanner">
+    <div class="mc-header"><div><h1>Scanner cookie Browserless</h1><p>Servizio pubblico per Cookie Manager, senza licenze o registrazioni dei siti.</p></div></div>
+        <div class="mc-card">
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="local-preview">            <div class="mc-field"><label for="browserless-token">Chiave Browserless</label>
+                <input id="browserless-token" type="password" name="browserless_token" value="" autocomplete="new-password" aria-describedby="browserless-token-help" placeholder="Chiave configurata: lascia vuoto per conservarla">
+                <small id="browserless-token-help">Salvata cifrata su Commander. Mai distribuita ai plugin. Puoi usare anche BROWSERLESS_TOKEN nell’ambiente del server.</small>
+            </div>
+            <div class="mc-field"><label for="monthly-units">Limite mensile di unità riservate</label><input id="monthly-units" type="number" min="2" max="1000" name="monthly_units" aria-describedby="monthly-units-help" value="900">
+                <small id="monthly-units-help">Due unità riservate per pagina, anche in caso di errore. Limite locale prudenziale: altri utilizzi dell’account Browserless consumano la stessa quota del fornitore.</small></div>
+            <div class="mc-field"><label class="mc-check" for="cookie-scanner-enabled"><input id="cookie-scanner-enabled" type="checkbox" name="enabled" value="1" checked><span>Abilita il servizio di scansione</span></label></div>
+            <p>Endpoint fisso: production-sfo.browserless.io. Nessun proxy o risoluzione CAPTCHA a pagamento. Una pagina per richiesta, massimo 45 secondi e una richiesta attiva su Commander. Limiti: 100 pagine al giorno per dominio e 200 per IP.</p>
+            <p>Il browser visita pagine pubbliche, verifica prima e dopo il consenso e tenta l’avvio dei video YouTube già incorporati. Le risoluzioni DNS dei domini usano Google Public DNS. I valori dei cookie vengono esclusi dai risultati.</p>
+            <button type="submit" class="mc-btn mc-btn-primary">Salva configurazione scanner</button>
+        </form>
+        <p><a href="settings.php">Torna alle impostazioni</a></p>
+    </div>
+</main>
+</body>
+</html>

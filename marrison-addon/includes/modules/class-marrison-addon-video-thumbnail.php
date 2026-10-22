@@ -241,6 +241,9 @@ class Marrison_Addon_Video_Thumbnail {
 		if ( empty( $image_url ) ) {
 			wp_send_json_error( 'Missing image URL.' );
 		}
+		if ( ! $this->is_allowed_youtube_thumbnail( $image_url, $video_id ) ) {
+			wp_send_json_error( 'Invalid thumbnail URL for the selected YouTube video.' );
+		}
 
 		$this->load_media_dependencies();
 
@@ -289,6 +292,22 @@ class Marrison_Addon_Video_Thumbnail {
 				'edit_url'      => admin_url( 'post.php?post=' . $attachment_id . '&action=edit' ),
 				'media_url'     => admin_url( 'upload.php?item=' . $attachment_id ),
 			)
+		);
+	}
+
+	private function is_allowed_youtube_thumbnail( $image_url, $video_id ) {
+		if ( ! preg_match( '/^[a-zA-Z0-9_-]{11}$/D', $video_id ) ) {
+			return false;
+		}
+
+		// Match only the candidates offered by ajax_get_thumbnails(), including the video ID.
+		return in_array(
+			$image_url,
+			array(
+				'https://img.youtube.com/vi/' . $video_id . '/maxresdefault.jpg',
+				'https://img.youtube.com/vi/' . $video_id . '/sddefault.jpg',
+			),
+			true
 		);
 	}
 

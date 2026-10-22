@@ -6,13 +6,12 @@
 
     var MarrisonCookie = {
         init: function() {
+            this.showBanner = [false, '', '0', 0].indexOf(marrisonCookie.showBanner) === -1;
             $('#marrison-cookie-modal').appendTo('body');
 
             this.bindEvents();
             this.bindResponsiveClosedTrigger();
-            this.applyExistingPreferences();
-            this.checkExistingConsent();
-            this.activateAllowedBlockedContent();
+            this.refreshState();
             this.openPreferencesFromHash();
         },
 
@@ -29,19 +28,34 @@
 
             $(document).on('click', '#marrison-customize', function(e) {
                 e.preventDefault();
-                MarrisonCookie.loadCookieList();
-                $('#marrison-cookie-modal').show();
+                MarrisonCookie.openPreferences(this);
             });
 
             $(document).on('click', '#marrison-close-modal', function(e) {
                 e.preventDefault();
-                $('#marrison-cookie-modal').hide();
+                MarrisonCookie.closePreferences();
             });
 
             $(document).on('click', '#marrison-cookie-modal', function(e) {
                 if (e.target === this) {
-                    $(this).hide();
+                    MarrisonCookie.closePreferences();
                 }
+            });
+
+            $(document).on('keydown', function(e) {
+                if (!MarrisonCookie.modalOpen) { return; }
+                if (e.key === 'Escape') { e.preventDefault(); MarrisonCookie.closePreferences(); return; }
+                if (e.key !== 'Tab') { return; }
+                var $items = MarrisonCookie.modalFocusables();
+                var first = $items[0], last = $items[$items.length - 1];
+                if (!$items.length) { e.preventDefault(); $('#marrison-cookie-dialog').trigger('focus'); }
+                else if (e.shiftKey && (document.activeElement === first || document.activeElement === $('#marrison-cookie-dialog')[0])) { e.preventDefault(); last.focus(); }
+                else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            });
+
+            $(document).on('focusin', function(e) {
+                var modal = $('#marrison-cookie-modal')[0];
+                if (MarrisonCookie.modalOpen && modal && !modal.contains(e.target)) { $('#marrison-close-modal').trigger('focus'); }
             });
 
             $(document).on('click', '#marrison-save-preferences', function(e) {
@@ -65,7 +79,7 @@
                 }
 
                 e.preventDefault();
-                MarrisonCookie.openPreferences();
+                MarrisonCookie.openPreferences(this);
             });
         },
 
@@ -122,22 +136,40 @@
         },
 
         checkExistingConsent: function() {
-            // hasConsent copre anche i cookie HttpOnly creati dalle versioni precedenti.
-            var consent = MarrisonCookie.getCookie('marrison_cookie_consent') || (marrisonCookie.hasConsent ? 'stored' : null);
+            var consent = this.state && this.state.valid;
             var $banner = $('#marrison-cookie-banner');
+            if (consent) { $banner.hide(); this.showFloatingWidget(); }
+            else if ($banner.length && this.showBanner) { $banner.show(); this.hideFloatingWidget(); }
+            else { $banner.hide(); this.hideFloatingWidget(); }
+        },
 
-            if (consent) {
-                $banner.hide();
-                MarrisonCookie.showFloatingWidget();
-            } else if ($banner.length && marrisonCookie.showBanner !== false) {
-                $banner.show();
-                MarrisonCookie.hideFloatingWidget();
-            } else if ($banner.length) {
-                $banner.hide();
-                MarrisonCookie.hideFloatingWidget();
-            } else {
-                MarrisonCookie.showFloatingWidget();
+        refreshState: function(done, fail) {
+            function failed() {
+                MarrisonCookie.checkExistingConsent();
+                if (typeof fail === 'function') { fail(); }
             }
+            MarrisonCookie.ajax({ url: marrisonCookie.ajaxUrl, type: 'POST', data: { action: 'marrison_cookie_consent_state' },
+                success: function(response) {
+                    if (response && response.success && response.data && response.data.state) {
+                        $('#marrison-consent-status, #marrison-modal-status').empty();
+                        MarrisonCookie.acceptState(response.data.state);
+                        MarrisonCookie.applyExistingPreferences();
+                        MarrisonCookie.checkExistingConsent();
+                        MarrisonCookie.activateAllowedBlockedContent();
+                        if (typeof done === 'function') { done(); }
+                    } else { failed(); }
+                }, error: failed
+            });
+        },
+
+        acceptState: function(state) {
+            this.state = state;
+            if (window.MarrisonConsentRuntime) { window.MarrisonConsentRuntime.setState(state); }
+        },
+
+        consentError: function(message) {
+            $('#marrison-consent-status, #marrison-prefs-message, #marrison-modal-status').text(message || marrisonCookie.saveErrorText || 'Impossibile verificare o salvare le preferenze. Riprova.').show();
+            this.checkExistingConsent();
         },
 
         showFloatingWidget: function() {
@@ -166,7 +198,13 @@
             $banner.show();
         },
 
-        openPreferences: function() {
+        modalFocusables: function() {
+            return $('#marrison-cookie-modal').find('a[href], button, input, select, textarea, [tabindex]').filter(':visible').filter(function() {
+                return !this.disabled && this.tabIndex >= 0;
+            });
+        },
+
+        openPreferences: function(opener) {
             var $modal = $('#marrison-cookie-modal');
 
             if (!$modal.length) {
@@ -175,7 +213,35 @@
             }
 
             this.loadCookieList();
-            $modal.show();
+            if (this.modalOpen) { return; }
+            this.modalOpener = opener || document.activeElement;
+            this.modalOpen = true;
+            this.backgroundState = [];
+            $modal.attr('aria-hidden', 'false').css('display', 'flex');
+            $('#marrison-close-modal').trigger('focus');
+            // Inert prevents pointer, keyboard and screen-reader access behind the dialog.
+            Array.prototype.forEach.call(document.body.children, function(element) {
+                if (element === $modal[0] || /^(SCRIPT|STYLE|LINK)$/.test(element.tagName)) { return; }
+                MarrisonCookie.backgroundState.push({ element: element, inert: element.hasAttribute('inert') });
+                element.setAttribute('inert', '');
+            });
+            this.bodyOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+        },
+
+        closePreferences: function() {
+            if (!this.modalOpen) { return; }
+            this.modalOpen = false;
+            $('#marrison-cookie-modal').hide().attr('aria-hidden', 'true');
+            (this.backgroundState || []).forEach(function(item) {
+                if (!item.inert) { item.element.removeAttribute('inert'); }
+            });
+            document.body.style.overflow = this.bodyOverflow || '';
+            var $opener = $(this.modalOpener);
+            if ($opener.length && document.documentElement.contains($opener[0]) && $opener.is(':visible')) { $opener.trigger('focus'); }
+            else if ($('#marrison-widget-button').is(':visible')) { $('#marrison-widget-button').trigger('focus'); }
+            this.backgroundState = [];
+            this.modalOpener = null;
         },
 
         openPreferencesFromHash: function() {
@@ -206,7 +272,7 @@
         },
 
         refreshClosedTriggerVisibility: function() {
-            var consent = MarrisonCookie.getCookie('marrison_cookie_consent') || (marrisonCookie.hasConsent ? 'stored' : null);
+            var consent = this.state && this.state.valid;
             var $banner = $('#marrison-cookie-banner');
 
             if (consent && (!$banner.length || !$banner.is(':visible'))) {
@@ -306,79 +372,46 @@
         },
 
         applyExistingPreferences: function() {
-            var consent = MarrisonCookie.getCookie('marrison_cookie_consent');
-            var categoriesCookie = MarrisonCookie.getCookie('marrison_cookie_categories');
-            var categories = [];
-
-            if (categoriesCookie) {
-                categories = decodeURIComponent(categoriesCookie).split('|');
-            } else if (consent === 'accept_all') {
-                categories = ['necessary', 'functional', 'analytics', 'marketing'];
-            } else if (consent === 'reject_all') {
-                categories = ['necessary'];
-            }
-
-            if (!categories.length) {
-                return;
-            }
-
+            var categories = MarrisonCookie.getAllowedCategories();
             $('.marrison-category-checkbox, .marrison-pref-checkbox').each(function() {
                 var $checkbox = $(this);
-                var category = $checkbox.data('category');
-
-                if (!$checkbox.prop('disabled')) {
-                    $checkbox.prop('checked', categories.indexOf(category) !== -1);
-                }
+                if (!$checkbox.prop('disabled')) { $checkbox.prop('checked', categories.indexOf($checkbox.data('category')) !== -1); }
             });
         },
 
         saveConsent: function(consentType, categories) {
             var previousCategories = MarrisonCookie.getAllowedCategories();
-            MarrisonCookie.ajax({
-                url: marrisonCookie.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'marrison_save_consent',
-                    consent_type: consentType,
-                    categories: categories
-                },
+            var $buttons = $('#marrison-accept-all, #marrison-reject-all, #marrison-save-preferences, #marrison-update-prefs');
+            $buttons.prop('disabled', true);
+            $('#marrison-consent-status, #marrison-modal-status').empty();
+            // A background check may have failed. Retry it when the visitor
+            // chooses, so an empty revision cannot make every acceptance fail.
+            if (!this.state || !this.state.revision) {
+                this.refreshState(function() { MarrisonCookie.saveConsent(consentType, categories); }, function() {
+                    $buttons.prop('disabled', false);
+                    MarrisonCookie.consentError();
+                });
+                return;
+            }
+            MarrisonCookie.ajax({ url: marrisonCookie.ajaxUrl, type: 'POST',
+                data: { action: 'marrison_save_consent', consent_type: consentType, categories: categories, revision: this.state && this.state.revision || '' },
                 success: function(response) {
-                    if (response.success) {
-                        MarrisonCookie.applyConsentCookies(consentType, categories);
-                        var nextCategories = MarrisonCookie.getAllowedCategories();
-                        if (window.MarrisonConsentRuntime) { window.MarrisonConsentRuntime.enforce(); }
-                        if (previousCategories.some(function(category) { return category !== 'necessary' && nextCategories.indexOf(category) === -1; })) {
-                            location.reload();
-                            return;
-                        }
-                        MarrisonCookie.activateAllowedBlockedContent();
-                        $('#marrison-cookie-banner').hide();
-                        $('#marrison-cookie-modal').hide();
-                        MarrisonCookie.showFloatingWidget();
-                    } else if (response.data && response.data.message) {
-                        window.console && console.error('Errore salvataggio consenso:', response.data.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    window.console && console.error('Errore AJAX:', error);
-                }
+                    $buttons.prop('disabled', false);
+                    if (!response || !response.success || !response.data || !response.data.state || !response.data.state.valid) { MarrisonCookie.consentError(response && response.data && response.data.message); return; }
+                    MarrisonCookie.acceptState(response.data.state);
+                    MarrisonCookie.applyExistingPreferences();
+                    var nextCategories = MarrisonCookie.getAllowedCategories();
+                    if (previousCategories.some(function(category) { return category !== 'necessary' && nextCategories.indexOf(category) === -1; })) { location.reload(); return; }
+                    MarrisonCookie.activateAllowedBlockedContent();
+                    $('#marrison-cookie-banner').hide();
+                    $('#marrison-prefs-message').text(response.data.message).show();
+                    MarrisonCookie.showFloatingWidget();
+                    MarrisonCookie.closePreferences();
+                }, error: function() { $buttons.prop('disabled', false); MarrisonCookie.consentError(); }
             });
         },
 
-        applyConsentCookies: function(consentType, categories) {
-            var duration = parseInt(marrisonCookie.consentDuration || 30, 10);
-            var expires = new Date();
 
-            if (consentType === 'accept_all') {
-                categories = ['necessary', 'functional', 'analytics', 'marketing'];
-            } else if (consentType === 'reject_all') {
-                categories = ['necessary'];
-            }
-
-            expires.setTime(expires.getTime() + (duration * 24 * 60 * 60 * 1000));
-            document.cookie = 'marrison_cookie_consent=' + encodeURIComponent(consentType) + '; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
-            document.cookie = 'marrison_cookie_categories=' + encodeURIComponent((categories || []).join('|')) + '; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
-        },
 
         activateAllowedBlockedContent: function() {
             var allowedCategories = MarrisonCookie.getAllowedCategories();
@@ -448,60 +481,13 @@
         getAllowedCategories: function() {
             if (marrisonCookie.scanPhase === 'after') { return ['necessary', 'functional', 'analytics', 'marketing']; }
             if (marrisonCookie.scanPhase === 'before') { return ['necessary']; }
-            var consent = MarrisonCookie.getCookie('marrison_cookie_consent');
-            var categoriesCookie = MarrisonCookie.getCookie('marrison_cookie_categories');
-            var categories = ['necessary'];
-
-            if (consent === 'accept_all') {
-                return ['necessary', 'functional', 'analytics', 'marketing'];
-            }
-
-            if (consent === 'custom' && categoriesCookie) {
-                try { categories = decodeURIComponent(categoriesCookie).split('|').filter(function(category) { return ['necessary', 'functional', 'analytics', 'marketing'].indexOf(category) !== -1; }); }
-                catch (error) { categories = ['necessary']; }
-            }
-            return ['necessary'].concat(categories.filter(function(category) { return category !== 'necessary'; }));
+            var state = this.state;
+            if (!state || !state.valid || state.expires * 1000 <= Date.now()) { return ['necessary']; }
+            return ['necessary'].concat(state.categories.filter(function(category) { return ['functional', 'analytics', 'marketing'].indexOf(category) !== -1; }));
         },
 
         updatePreferences: function(categories) {
-            MarrisonCookie.ajax({
-                url: marrisonCookie.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'marrison_update_preferences',
-                    categories: categories
-                },
-                success: function(response) {
-                    if (response.success) {
-                        $('#marrison-prefs-message')
-                            .removeClass('error')
-                            .addClass('success')
-                            .text(response.data.message)
-                            .show();
-
-                        setTimeout(function() {
-                            $('#marrison-prefs-message').fadeOut();
-                        }, 3000);
-
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    } else {
-                        $('#marrison-prefs-message')
-                            .removeClass('success')
-                            .addClass('error')
-                            .text(response.data.message)
-                            .show();
-                    }
-                },
-                error: function() {
-                    $('#marrison-prefs-message')
-                        .removeClass('success')
-                        .addClass('error')
-                        .text(marrisonCookie.updateErrorText || 'Error while updating')
-                        .show();
-                }
-            });
+            this.saveConsent('custom', categories);
         },
 
         getCookie: function(name) {

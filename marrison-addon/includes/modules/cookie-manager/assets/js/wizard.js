@@ -10,8 +10,8 @@
         scannedCookies: [],
         
         init: function() {
-            this.currentStep = marrisonWizard.currentStep;
-            this.totalSteps = marrisonWizard.totalSteps;
+            this.totalSteps = Math.max(1, parseInt(marrisonWizard.totalSteps, 10) || 5);
+            this.currentStep = Math.max(1, Math.min(this.totalSteps, parseInt(marrisonWizard.currentStep, 10) || 1));
             this.bindEvents();
             
             // Apri wizard se necessario
@@ -43,6 +43,12 @@
                 MarrisonWizard.prevStep();
             });
             
+            $(document).on('click', '#wizard_skip_privacy', function(e) {
+                e.preventDefault();
+                if (MarrisonWizard.currentStep !== 5) { return; }
+                MarrisonWizard.currentStep = 6;
+                MarrisonWizard.showStep(6); MarrisonWizard.updateProgress(); MarrisonWizard.saveCurrentStep();
+            });
             $(document).on('click', '#wizard_next', function(e) {
                 e.preventDefault();
                 MarrisonWizard.nextStep();
@@ -97,6 +103,7 @@
             } else {
                 $('#wizard_prev').show();
             }
+            $('#wizard_skip_privacy').toggle(step === 5);
             $('#wizard_next').text(step === this.totalSteps ? marrisonWizard.completeText : marrisonWizard.nextText);
             
         },
@@ -187,6 +194,13 @@
                     break;
             }
             
+            if (step === 5) {
+                data.privacy_profile = {};
+                $('.marrison-wizard-step[data-step="5"] [data-privacy-field]').each(function() {
+                    var field = $(this);
+                    data.privacy_profile[field.attr('data-privacy-field')] = field.is(':checkbox') ? (field.prop('checked') ? '1' : '0') : field.val();
+                });
+            }
             // Invia dati al server
             $.ajax({
                 url: marrisonWizard.ajaxUrl,

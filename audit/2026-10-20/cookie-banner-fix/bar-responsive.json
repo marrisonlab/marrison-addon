@@ -1,0 +1,497 @@
+[
+  {
+    "banner": {
+      "bottom": 900,
+      "height": 98.640625,
+      "right": 2499,
+      "width": 2499,
+      "x": 0,
+      "y": 801.359375
+    },
+    "bannerClientWidth": 2499,
+    "bannerScrollWidth": 2499,
+    "buttons": [
+      {
+        "bottom": 870.171875,
+        "height": 38,
+        "right": 1539.5,
+        "text": "Accetta tutti",
+        "width": 118,
+        "x": 1421.5,
+        "y": 832.171875
+      },
+      {
+        "bottom": 870.171875,
+        "height": 38,
+        "right": 1667.5,
+        "text": "Rifiuta tutti",
+        "width": 118,
+        "x": 1549.5,
+        "y": 832.171875
+      },
+      {
+        "bottom": 870.171875,
+        "height": 38,
+        "right": 1795.5,
+        "text": "Personalizza",
+        "width": 118,
+        "x": 1677.5,
+        "y": 832.171875
+      }
+    ],
+    "description": {
+      "bottom": 835.203125,
+      "clientHeight": 19,
+      "height": 18.84375,
+      "right": 1397.5,
+      "scrollHeight": 19,
+      "width": 624.8125,
+      "x": 772.6875,
+      "y": 816.359375
+    },
+    "layout": "marrison-cookie-banner marrison-banner-layout-bar marrison-banner-bottom",
+    "pageWidth": 2499,
+    "statusDisplay": "none",
+    "viewport": 2514
+  },
+  {
+    "banner": {
+      "bottom": 900,
+      "height": 98.640625,
+      "right": 1425,
+      "width": 1425,
+      "x": 0,
+      "y": 801.359375
+    },
+    "bannerClientWidth": 1425,
+    "bannerScrollWidth": 1425,
+    "buttons": [
+      {
+        "bottom": 870.171875,
+        "height": 38,
+        "right": 1002.5,
+        "text": "Accetta tutti",
+        "width": 118,
+        "x": 884.5,
+        "y": 832.171875
+      },
+      {
+        "bottom": 870.171875,
+        "height": 38,
+        "right": 1130.5,
+        "text": "Rifiuta tutti",
+        "width": 118,
+        "x": 1012.5,
+        "y": 832.171875
+      },
+      {
+        "bottom": 870.171875,
+        "height": 38,
+        "right": 1258.5,
+        "text": "Personalizza",
+        "width": 118,
+        "x": 1140.5,
+        "y": 832.171875
+      }
+    ],
+    "description": {
+      "bottom": 835.203125,
+      "clientHeight": 19,
+      "height": 18.84375,
+      "right": 860.5,
+      "scrollHeight": 19,
+      "width": 624.8125,
+      "x": 235.6875,
+      "y": 816.359375
+    },
+    "layout": "marrison-cookie-banner marrison-banner-layout-bar marrison-banner-bottom",
+    "pageWidth": 1425,
+    "statusDisplay": "none",
+    "viewport": 1440
+  },
+  {
+    "banner": {
+      "bottom": 900,
+      "height": 98.640625,
+      "right": 1265,
+      "width": 1265,
+      "x": 0,
+      "y": 801.359375
+    },
+    "bannerClientWidth": 1265,
+    "bannerScrollWidth": 1265,
+    "buttons": [
+      {
+        "bottom": 870.171875,
+        "height": 38,
+        "right": 922.5,
+        "text": "Accetta tutti",
+        "width": 118,
+        "x": 804.5,
+        "y": 832.171875
+      },
+      {
+        "bottom": 870.171875,
+        "height": 38,
+        "right": 1050.5,
+        "text": "Rifiuta tutti",
+        "width": 118,
+        "x": 932.5,
+        "y": 832.171875
+      },
+      {
+        "bottom": 870.171875,
+        "height": 38,
+        "right": 1178.5,
+        "text": "Personalizza",
+        "width": 118,
+        "x": 1060.5,
+        "y": 832.171875
+      }
+    ],
+    "description": {
+      "bottom": 835.203125,
+      "clientHeight": 19,
+      "height": 18.84375,
+      "right": 780.5,
+      "scrollHeight": 19,
+      "width": 624.8125,
+      "x": 155.6875,
+      "y": 816.359375
+    },
+    "layout": "marrison-cookie-banner marrison-banner-layout-bar marrison-banner-bottom",
+    "pageWidth": 1265,
+    "statusDisplay": "none",
+    "viewport": 1280
+  },
+  {
+    "banner": {
+      "bottom": 900,
+      "height": 117.484375,
+      "right": 1010,
+      "width": 1010,
+      "x": 0,
+      "y": 782.515625
+    },
+    "bannerClientWidth": 1010,
+    "bannerScrollWidth": 1010,
+    "buttons": [
+      {
+        "bottom": 860.75,
+        "height": 38,
+        "right": 686,
+        "text": "Accetta tutti",
+        "width": 118,
+        "x": 568,
+        "y": 822.75
+      },
+      {
+        "bottom": 860.75,
+        "height": 38,
+        "right": 814,
+        "text": "Rifiuta tutti",
+        "width": 118,
+        "x": 696,
+        "y": 822.75
+      },
+      {
+        "bottom": 860.75,
+        "height": 38,
+        "right": 942,
+        "text": "Personalizza",
+        "width": 118,
+        "x": 824,
+        "y": 822.75
+      }
+    ],
+    "description": {
+      "bottom": 835.203125,
+      "clientHeight": 38,
+      "height": 37.6875,
+      "right": 544,
+      "scrollHeight": 38,
+      "width": 406.8125,
+      "x": 137.1875,
+      "y": 797.515625
+    },
+    "layout": "marrison-cookie-banner marrison-banner-layout-bar marrison-banner-bottom",
+    "pageWidth": 1010,
+    "statusDisplay": "none",
+    "viewport": 1025
+  },
+  {
+    "banner": {
+      "bottom": 900,
+      "height": 134.078125,
+      "right": 1009,
+      "width": 1009,
+      "x": 0,
+      "y": 765.921875
+    },
+    "bannerClientWidth": 1009,
+    "bannerScrollWidth": 1009,
+    "buttons": [
+      {
+        "bottom": 851.359375,
+        "height": 35.796875,
+        "right": 721.890625,
+        "text": "Accetta tutti",
+        "width": 104.25,
+        "x": 617.640625,
+        "y": 815.5625
+      },
+      {
+        "bottom": 851.359375,
+        "height": 35.796875,
+        "right": 829.53125,
+        "text": "Rifiuta tutti",
+        "width": 99.640625,
+        "x": 729.890625,
+        "y": 815.5625
+      },
+      {
+        "bottom": 851.359375,
+        "height": 35.796875,
+        "right": 941,
+        "text": "Personalizza",
+        "width": 103.46875,
+        "x": 837.53125,
+        "y": 815.5625
+      }
+    ],
+    "description": {
+      "bottom": 838.203125,
+      "clientHeight": 35,
+      "height": 34.53125,
+      "right": 605.640625,
+      "scrollHeight": 35,
+      "width": 581.640625,
+      "x": 24,
+      "y": 803.671875
+    },
+    "layout": "marrison-cookie-banner marrison-banner-layout-bar marrison-banner-bottom",
+    "pageWidth": 1009,
+    "statusDisplay": "none",
+    "viewport": 1024
+  },
+  {
+    "banner": {
+      "bottom": 900,
+      "height": 143.703125,
+      "right": 754,
+      "width": 754,
+      "x": 0,
+      "y": 756.296875
+    },
+    "bannerClientWidth": 754,
+    "bannerScrollWidth": 754,
+    "buttons": [
+      {
+        "bottom": 848.4375,
+        "height": 39.59375,
+        "right": 448.75,
+        "text": "Accetta tutti",
+        "width": 115.96875,
+        "x": 332.78125,
+        "y": 808.84375
+      },
+      {
+        "bottom": 848.4375,
+        "height": 39.59375,
+        "right": 566.40625,
+        "text": "Rifiuta tutti",
+        "width": 109.65625,
+        "x": 456.75,
+        "y": 808.84375
+      },
+      {
+        "bottom": 848.4375,
+        "height": 39.59375,
+        "right": 690,
+        "text": "Personalizza",
+        "width": 115.59375,
+        "x": 574.40625,
+        "y": 808.84375
+      }
+    ],
+    "description": {
+      "bottom": 841.84375,
+      "clientHeight": 52,
+      "height": 51.796875,
+      "right": 320.78125,
+      "scrollHeight": 52,
+      "width": 300.78125,
+      "x": 20,
+      "y": 790.046875
+    },
+    "layout": "marrison-cookie-banner marrison-banner-layout-bar marrison-banner-bottom",
+    "pageWidth": 754,
+    "statusDisplay": "none",
+    "viewport": 769
+  },
+  {
+    "banner": {
+      "bottom": 900,
+      "height": 126.875,
+      "right": 753,
+      "width": 753,
+      "x": 0,
+      "y": 773.125
+    },
+    "bannerClientWidth": 753,
+    "bannerScrollWidth": 753,
+    "buttons": [
+      {
+        "bottom": 891.40625,
+        "height": 44,
+        "right": 239.859375,
+        "text": "Accetta tutti",
+        "width": 221.265625,
+        "x": 18.59375,
+        "y": 847.40625
+      },
+      {
+        "bottom": 891.40625,
+        "height": 44,
+        "right": 465.125,
+        "text": "Rifiuta tutti",
+        "width": 221.265625,
+        "x": 243.859375,
+        "y": 847.40625
+      },
+      {
+        "bottom": 891.40625,
+        "height": 44,
+        "right": 690.390625,
+        "text": "Personalizza",
+        "width": 221.265625,
+        "x": 469.125,
+        "y": 847.40625
+      }
+    ],
+    "description": {
+      "bottom": 800.34375,
+      "clientHeight": 18,
+      "height": 17.625,
+      "right": 690.40625,
+      "scrollHeight": 18,
+      "width": 671.8125,
+      "x": 18.59375,
+      "y": 782.71875
+    },
+    "layout": "marrison-cookie-banner marrison-banner-layout-bar marrison-banner-bottom",
+    "pageWidth": 753,
+    "statusDisplay": "none",
+    "viewport": 768
+  },
+  {
+    "banner": {
+      "bottom": 900,
+      "height": 155.1875,
+      "right": 375,
+      "width": 375,
+      "x": 0,
+      "y": 744.8125
+    },
+    "bannerClientWidth": 375,
+    "bannerScrollWidth": 375,
+    "buttons": [
+      {
+        "bottom": 892.7928466796875,
+        "height": 44,
+        "right": 111.96875,
+        "text": "Accetta tutti",
+        "width": 99.046875,
+        "x": 12.921875,
+        "y": 848.7928466796875
+      },
+      {
+        "bottom": 893.328125,
+        "height": 44,
+        "right": 215.015625,
+        "text": "Rifiuta tutti",
+        "width": 99.046875,
+        "x": 115.96875,
+        "y": 849.328125
+      },
+      {
+        "bottom": 893.328125,
+        "height": 44,
+        "right": 318.078125,
+        "text": "Personalizza",
+        "width": 99.0625,
+        "x": 219.015625,
+        "y": 849.328125
+      }
+    ],
+    "description": {
+      "bottom": 805.359375,
+      "clientHeight": 53,
+      "height": 52.875,
+      "right": 318.078125,
+      "scrollHeight": 53,
+      "width": 305.15625,
+      "x": 12.921875,
+      "y": 752.484375
+    },
+    "layout": "marrison-cookie-banner marrison-banner-layout-bar marrison-banner-bottom",
+    "pageWidth": 375,
+    "statusDisplay": "none",
+    "viewport": 390
+  },
+  {
+    "banner": {
+      "bottom": 900,
+      "height": 174.53125,
+      "right": 305,
+      "width": 305,
+      "x": 0,
+      "y": 725.46875
+    },
+    "bannerClientWidth": 305,
+    "bannerScrollWidth": 305,
+    "buttons": [
+      {
+        "bottom": 893.827392578125,
+        "height": 49.34375,
+        "right": 88.390625,
+        "text": "Accetta tutti",
+        "width": 78.1875,
+        "x": 10.203125,
+        "y": 844.483642578125
+      },
+      {
+        "bottom": 894.25,
+        "height": 49.34375,
+        "right": 169.59375,
+        "text": "Rifiuta tutti",
+        "width": 78.203125,
+        "x": 91.390625,
+        "y": 844.90625
+      },
+      {
+        "bottom": 894.25,
+        "height": 49.34375,
+        "right": 250.78125,
+        "text": "Personalizza",
+        "width": 78.1875,
+        "x": 172.59375,
+        "y": 844.90625
+      }
+    ],
+    "description": {
+      "bottom": 785.09375,
+      "clientHeight": 53,
+      "height": 52.875,
+      "right": 250.796875,
+      "scrollHeight": 53,
+      "width": 240.59375,
+      "x": 10.203125,
+      "y": 732.21875
+    },
+    "layout": "marrison-cookie-banner marrison-banner-layout-bar marrison-banner-bottom",
+    "pageWidth": 305,
+    "statusDisplay": "none",
+    "viewport": 320
+  }
+]

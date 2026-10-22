@@ -30,7 +30,7 @@ foreach (array('<img src="/facebook.com/tr?id=1" srcset="/facebook.com/tr?id=2 2
     if (strpos($blocked, 'data-marrison-cookie-blocked') === false || preg_match('/\s(?:src|srcset)\s*=/', $blocked)) { throw new RuntimeException('Tracking pixel, srcset or explicit category was not blocked'); }
 }
 $_COOKIE=['marrison_cookie_consent'=>'accept_all'];
-if ($consent->filter_output($input)!==$input) { throw new RuntimeException('Allowed script changed'); }
+if (strpos($consent->filter_output($input), 'data-marrison-cookie-blocked') === false) { throw new RuntimeException('Consent leaked into cacheable HTML'); }
 $_COOKIE=['marrison_cookie_consent'=>'custom','marrison_cookie_categories'=>'necessary|analytics'];
-if ($consent->filter_output($input)!==$input || strpos($consent->filter_output('<iframe src=/youtube.com></iframe>'),'data-marrison-blocked-src')===false) { throw new RuntimeException('Selective consent failed'); }
+if (strpos($consent->filter_output($input), 'data-marrison-cookie-blocked') === false || strpos($consent->filter_output('<iframe src=/youtube.com></iframe>'),'data-marrison-blocked-src')===false) { throw new RuntimeException('Selective consent leaked into cacheable HTML'); }
 echo "PASS cookie quoted/unquoted src and module type, entities, nonce and selective consent\n";

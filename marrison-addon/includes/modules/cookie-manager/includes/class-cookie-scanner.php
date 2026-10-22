@@ -50,8 +50,14 @@ class Marrison_Cookie_Scanner {
     /**
      * Schedula cron job
      */
+    public static function auto_scan_enabled() {
+        // Older installations stored true by default: it is not evidence of an opt-in.
+        return get_option('marrison_cookie_auto_scan', false) && get_option('marrison_cookie_auto_scan_confirmed', false);
+    }
+
     public function schedule_cron() {
-        if (!get_option('marrison_cookie_auto_scan', true)) {
+        if (class_exists('Marrison_Addon') && method_exists('Marrison_Addon', 'is_module_enabled') && !Marrison_Addon::is_module_enabled('cookie_manager')) { return; }
+        if (!self::auto_scan_enabled()) {
             $timestamp = wp_next_scheduled('marrison_cookie_daily_scan');
             while ($timestamp) {
                 wp_unschedule_event($timestamp, 'marrison_cookie_daily_scan');
@@ -69,7 +75,8 @@ class Marrison_Cookie_Scanner {
      * Esegue scansione automatica se necessario
      */
     public function maybe_auto_scan() {
-        if (!get_option('marrison_cookie_auto_scan', true)) {
+        if (class_exists('Marrison_Addon') && method_exists('Marrison_Addon', 'is_module_enabled') && !Marrison_Addon::is_module_enabled('cookie_manager')) { return; }
+        if (!self::auto_scan_enabled()) {
             return;
         }
         
@@ -244,14 +251,7 @@ class Marrison_Cookie_Scanner {
         global $wpdb;
         $table_name = $wpdb->prefix . 'marrison_cookies';
         
-        // Mantieni gli ultimi 30 giorni di osservazioni.
-        $deleted = $wpdb->query("DELETE FROM $table_name WHERE scan_date < DATE_SUB(NOW(), INTERVAL 30 DAY)");
-
-        if (false === $deleted) {
-            $this->set_last_scan_error('Pulizia scansioni fallita: ' . $this->get_db_error_message());
-            return false;
-        }
-
+        // L'anzianità non annulla osservazioni o classificazioni amministrative.
         $rows = $wpdb->get_results("SELECT * FROM $table_name ORDER BY scan_date DESC, id DESC");
         if (!is_array($rows)) {
             $this->set_last_scan_error('Pulizia cookie fallita: ' . $this->get_db_error_message());
@@ -345,6 +345,12 @@ class Marrison_Cookie_Scanner {
                     $kept->$field = isset($record->$field) ? $record->$field : null;
                 }
             }
+        }
+        foreach ($unique as $record) {
+            // scan_date is stored in the site's local timezone by current_time().
+            $timezone = function_exists('wp_timezone') ? wp_timezone() : new DateTimeZone('UTC');
+            $observed = !empty($record->scan_date) ? DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $record->scan_date, $timezone) : false;
+            $record->observation_stale = !$observed || $observed->getTimestamp() < time() - 30 * 86400;
         }
         return array_values($unique);
     }
@@ -521,7 +527,7 @@ class Marrison_Cookie_Scanner {
      * Categorizza un cookie in base al nome
      */
     private function categorize_cookie($cookie_name) {
-        if (in_array($cookie_name, array('marrison_cookie_consent', 'marrison_cookie_categories', 'PHPSESSID', 'woocommerce_cart_hash', 'woocommerce_items_in_cart'), true) || strpos($cookie_name, 'wp_woocommerce_session_') === 0) {
+        if (in_array($cookie_name, array('marrison_cookie_consent', 'marrison_cookie_categories', 'marrison_cookie_state', 'PHPSESSID', 'woocommerce_cart_hash', 'woocommerce_items_in_cart'), true) || strpos($cookie_name, 'wp_woocommerce_session_') === 0) {
             return 'necessary';
         }
         $wp_cookies = $this->get_wordpress_cookies();
@@ -563,7 +569,7 @@ class Marrison_Cookie_Scanner {
      * Ottieni descrizione per un cookie
      */
     private function get_cookie_description($cookie_name, $category) {
-        if (in_array($cookie_name, array('marrison_cookie_consent', 'marrison_cookie_categories'), true)) {
+        if (in_array($cookie_name, array('marrison_cookie_consent', 'marrison_cookie_categories', 'marrison_cookie_state'), true)) {
             return 'Memorizza la scelta e le categorie del consenso cookie';
         }
         $wp_cookies = $this->get_wordpress_cookies();
@@ -702,10 +708,8 @@ class Marrison_Cookie_Scanner {
      * Prepara lo storage fallback basato su file JSON.
      */
     private function prepare_json_scan() {
-        $rows = array_map(function($row) { return (object) (array) $row; }, $this->read_json_cookies());
-        usort($rows, array($this, 'sort_cookies_by_scan_date_desc'));
-        $this->remember_scan_categories($rows);
-        return $this->write_json_cookies(array());
+        $rows = $this->normalize_scan_records($this->read_json_cookies());
+        return $this->write_json_cookies(array_map(function($row) { return (array) $row; }, $rows));
     }
 
     /**
@@ -944,7 +948,7 @@ class Marrison_Cookie_Scanner {
             $observed[$this->cookie_record_key($record['cookie_name'], $record['cookie_domain'], $record['cookie_path'])] = true;
             $classification = $this->classify_cookie($record['cookie_name']);
             $source = 'crawl';
-            foreach ($record['observations'] as $observation) { if ($observation['method'] === 'browser') { $source = 'browser'; break; } }
+            foreach ($record['observations'] as $observation) { if (in_array($observation['method'], array('browser', 'remote_browser'), true)) { $source = 'browser'; break; } }
             if (!$this->save_cookie($record['cookie_name'], $source, $classification['category'], $classification['description'], $record['cookie_domain'], $record['cookie_path'], $record['cookie_expiration'], $record['cookie_expiration_status'])) {
                 return false;
             }
@@ -1073,8 +1077,7 @@ class Marrison_Cookie_Scanner {
         }
 
         $table_name = $wpdb->prefix . 'marrison_cookies';
-        $where = "WHERE scan_date > DATE_SUB(NOW(), INTERVAL 30 DAY)";
-        $cookies = $wpdb->get_results("SELECT * FROM $table_name $where ORDER BY scan_date DESC, id DESC");
+        $cookies = $wpdb->get_results("SELECT * FROM $table_name ORDER BY scan_date DESC, id DESC");
 
         if (!is_array($cookies)) {
             $this->set_last_scan_error('Lettura cookie fallita: ' . $this->get_db_error_message());

@@ -1,0 +1,13 @@
+{
+  "version": "1.3.70",
+  "files": 98,
+  "bytes": 336953,
+  "sha256": "4a3216ad1fd11809a75592e6261b66223c225c59bea140c502c3f81a6bfa75b9",
+  "all_members_match_source": true,
+  "archive_integrity_verified": true,
+  "metadata_and_readme_checks": "PASS",
+  "wordpress_readme_bytes": 9110,
+  "wordpress_target": "7.1.3",
+  "php_target": "8.5.11",
+  "author": "Angelo Marra"
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Impostazioni di Browser Cache",
+    "headings": [
+      "Browser Cache",
+      "Stato",
+      "Impostazioni"
+    ],
+    "error": false
+  },
+  {
+    "name": "Impostazioni di Calendar Sync",
+    "headings": [
+      "Calendar Sync",
+      "Shortcode e impostazioni",
+      "Impostazioni calendario"
+    ],
+    "error": false
+  },
+  {
+    "name": "Impostazioni di Cookie Manager",
+    "headings": [
+      "Marrison Cookie Manager",
+      "Banner        \n        \n            Aspetto        \n        \n            Comportamento        \n        \n            Scanner Cookie        \n        \n            Shortcode        \n        Testi policy\n        Ricevute consenso",
+      "Impostazioni Banner"
+    ],
+    "error": false
+  },
+  {
+    "name": "Impostazioni di Cursore Animato",
+    "headings": [
+      "Impostazioni Cursore Animato",
+      "Stile e Animazione",
+      "Colori"
+    ],
+    "error": false
+  },
+  {
+    "name": "Impostazioni di Dimensioni Immagini",
+    "headings": [
+      "Gestore Dimensioni Immagini",
+      "Gestisci Dimensioni Generate",
+      "WebP e AVIF per Dimensioni WordPress"
+    ],
+    "error": false
+  },
+  {
+    "name": "Impostazioni di Local Google Fonts",
+    "headings": [
+      "Local Google Fonts",
+      "Stato modulo",
+      "Azioni"
+    ],
+    "error": false
+  },
+  {
+    "name": "Impostazioni di PHP Snippets",
+    "headings": [
+      "PHP Snippets",
+      "Snippet registrati",
+      "Nuovo snippet"
+    ],
+    "error": false
+  },
+  {
+    "name": "Impostazioni di Preloader",
+    "headings": [
+      "Impostazioni Preloader",
+      "Aspetto",
+      "Spinner & Animazione"
+    ],
+    "error": false
+  },
+  {
+    "name": "Impostazioni di Sconto Prodotto",
+    "headings": [
+      "Sconto Prodotto",
+      "Ricalcolo manuale",
+      "Ricalcolo automatico"
+    ],
+    "error": false
+  },
+  {
+    "name": "Impostazioni di Video Thumbnail",
+    "headings": [
+      "Marrison Video Thumbnail",
+      "YouTube",
+      "Video locali"
+    ],
+    "error": false
+  }
+]

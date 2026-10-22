@@ -79,6 +79,8 @@ class Marrison_Addon_Cookie_Manager_Module {
 	}
 
 	private function load_dependencies() {
+		require_once __DIR__ . '/cookie-manager/includes/class-policy-content.php';
+		require_once __DIR__ . '/cookie-manager/includes/class-consent-store.php';
 		$dependency_map = array(
 			'Marrison_Cookie_Scanner'        => MARRISON_COOKIE_PLUGIN_DIR . 'includes/class-cookie-scanner.php',
 			'Marrison_Cookie_Banner'         => MARRISON_COOKIE_PLUGIN_DIR . 'includes/class-cookie-banner.php',
@@ -100,6 +102,8 @@ class Marrison_Addon_Cookie_Manager_Module {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'wp_ajax_marrison_repair_cookie_table', array( $this, 'ajax_repair_cookie_table' ) );
 		add_action( 'marrison_addon/module_status_changed', array( $this, 'handle_module_status_change' ), 10, 2 );
+		add_action( 'admin_notices', array( $this, 'render_rescan_notice' ) );
+		add_action( 'marrison_addon/cookie_scan_finished', array( $this, 'handle_completed_scan' ) );
 	}
 
 	private function ensure_installation() {
@@ -109,8 +113,12 @@ class Marrison_Addon_Cookie_Manager_Module {
 		if ( MARRISON_COOKIE_VERSION === $installed_version ) {
 			return;
 		}
+		if ( ! $is_first_install && version_compare( (string) $installed_version, MARRISON_COOKIE_VERSION, '<' ) ) {
+			update_option( 'marrison_cookie_rescan_required_version', MARRISON_COOKIE_VERSION, false );
+		}
 
 		$this->create_default_options();
+		update_option( 'marrison_cookie_consent_duration', Marrison_Addon_Cookie_Consent_Store::duration() );
 
 		$table_result = $this->create_tables();
 
@@ -123,7 +131,27 @@ class Marrison_Addon_Cookie_Manager_Module {
 		}
 	}
 
+	public function render_rescan_notice() {
+		if ( ! current_user_can( 'manage_options' ) || ! Marrison_Addon::is_module_enabled( 'cookie_manager' ) || ! get_option( 'marrison_cookie_rescan_required_version' ) ) {
+			return;
+		}
+		echo '<div class="notice notice-info" data-marrison-cookie-rescan-notice><p><strong>Marrison Cookie Manager:</strong> ';
+		echo esc_html( marrison_cookie_site_text( 'Plugin aggiornato: è necessario eseguire una nuova scansione dei cookie.', 'Plugin updated: a new cookie scan is required.' ) ) . ' ';
+		echo '<a href="' . esc_url( admin_url( 'admin.php?page=marrison-cookie&tab=scanner' ) ) . '">' . esc_html( marrison_cookie_site_text( 'Apri scanner', 'Open scanner' ) ) . '</a></p></div>';
+	}
+
+	/** Clear only after a persisted scan started with the version that requested it. */
+	public function handle_completed_scan( $job ) {
+		if ( ! Marrison_Addon::is_module_enabled( 'cookie_manager' ) || ! is_array( $job ) ) { return; }
+		$required_version = get_option( 'marrison_cookie_rescan_required_version' );
+		if ( ! $required_version || ( $job['plugin_version'] ?? '' ) !== $required_version || ! in_array( $job['status'] ?? '', array( 'completed', 'partial' ), true ) ) { return; }
+		$pages = isset( $job['pages'] ) && is_array( $job['pages'] ) ? count( $job['pages'] ) : 0;
+		if ( ! $pages || empty( $job['http_done'] ) || ! empty( $job['browser_failed'] ) || (int) ( $job['browser_cursor'] ?? 0 ) < $pages * 2 ) { return; }
+		delete_option( 'marrison_cookie_rescan_required_version' );
+	}
+
 	private function init_components() {
+		Marrison_Addon_Cookie_Consent_Store::get_instance();
 		Marrison_Cookie_Scanner::get_instance();
 		Marrison_Cookie_Banner::get_instance();
 		Marrison_Cookie_Admin_Settings::get_instance();
@@ -240,6 +268,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 		if ( 'cookie_manager' !== $module_id || $enabled ) {
 			return;
 		}
+		if ( method_exists( 'Marrison_Addon', 'module_effects_were_cleaned' ) && Marrison_Addon::module_effects_were_cleaned( $module_id ) ) { return; }
 
 		$timestamp = wp_next_scheduled( 'marrison_cookie_daily_scan' );
 
@@ -248,6 +277,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 			$timestamp = wp_next_scheduled( 'marrison_cookie_daily_scan' );
 		}
 		wp_clear_scheduled_hook( 'marrison_addon_cookie_engine_tick' );
+		wp_clear_scheduled_hook( 'marrison_cookie_consent_cleanup' );
 	}
 
 	private function create_default_options() {
@@ -266,12 +296,12 @@ class Marrison_Addon_Cookie_Manager_Module {
 			'banner_text_color'        => '#333333',
 			'button_background_color'  => '#0073aa',
 			'button_text_color'        => '#ffffff',
-			'consent_duration'         => 30,
+			'consent_duration'         => 184,
 			'show_banner'              => true,
 			'closed_trigger_desktop'   => 'floating',
 			'closed_trigger_tablet'    => 'floating',
 			'closed_trigger_mobile'    => 'floating',
-			'auto_scan'                => true,
+			'auto_scan'                => false,
 			'scan_interval'            => 7,
 		);
 

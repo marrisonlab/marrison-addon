@@ -27,6 +27,10 @@ class Ticker_Widget extends \Elementor\Widget_Base {
 		return 'ticker';
 	}
 
+	public function get_style_depends() {
+		return [ 'marrison-addon-ticker' ];
+	}
+
 	/**
 	 * Get widget title.
 	 *
@@ -677,25 +681,12 @@ class Ticker_Widget extends \Elementor\Widget_Base {
 		$animation_name = 'ticker-infinite-' . $direction;
 		
 		?>
-		<div class="ticker-wrapper" style="overflow: hidden; white-space: nowrap;">
-			<div class="ticker-move <?php echo esc_attr( $hover_class ); ?>" style="display: inline-block; white-space: nowrap; animation: <?php echo esc_attr( $animation_name ); ?> <?php echo esc_attr( $speed ); ?>s linear infinite;">
-				<div class="ticker-loop-inner" style="display: inline-block;"><?php echo $items_html; ?></div>
-				<div class="ticker-loop-inner" style="display: inline-block;"><?php echo $items_html; ?></div>
+		<div class="ticker-wrapper">
+			<div class="ticker-move <?php echo esc_attr( $hover_class ); ?>" style="animation-name: <?php echo esc_attr( $animation_name ); ?>; animation-duration: <?php echo esc_attr( $speed ); ?>s;">
+				<div class="ticker-loop-inner"><?php echo $items_html; ?></div>
+				<div class="ticker-loop-inner"><?php echo $items_html; ?></div>
 			</div>
 		</div>
-		<style>
-			@keyframes ticker-infinite-left {
-				0% { transform: translate3d(0, 0, 0); }
-				100% { transform: translate3d(-50%, 0, 0); }
-			}
-			@keyframes ticker-infinite-right {
-				0% { transform: translate3d(-50%, 0, 0); }
-				100% { transform: translate3d(0, 0, 0); }
-			}
-			.ticker-pause-hover:hover {
-				animation-play-state: paused !important;
-			}
-		</style>
 		<?php
 	}
 }

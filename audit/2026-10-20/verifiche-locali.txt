@@ -1,0 +1,81 @@
+Verifiche locali Marrison Addon 1.3.67 - 2026-10-20
+Runtime: PHP 8.5.5 CLI (Windows), Node v24.19.0.
+WordPress API native: C:/Users/Angelo/Local Sites/tesy/app/public.
+
+Risultato: 39 file suite distinti, 45 esecuzioni iniziali PASS (34 PHP, 11 Node VM).
+Rieseguiti dopo le ultime guardie OFF: cookie-auto-scan, cookie-engine e module-lifecycle, tutti PASS (3 esecuzioni aggiuntive).
+Lint: 71 file PHP/JS modificati o nuovi, nessun errore; ripetuto su scanner, scan engine e bootstrap dopo le ultime modifiche.
+git diff --check: PASS. I messaggi LF/CRLF sono avvisi della configurazione Git, senza errori di whitespace.
+Nessun codice o test modificato da questa verifica.
+
+LIMITI
+- Le suite Node eseguite usano fixture/VM; non sono prove browser.
+- Le suite PHP usano stub o API native WordPress senza database, salvo file temporanei predisposti dalle fixture.
+- Inline CSS: 51 controlli dei contratti/guardie, fixture del core ufficiale non caricata.
+- Video Thumbnail: binari locali simulati, nessuna estrazione reale FFmpeg; verificato anche exec disabilitato.
+- Dynamic Background DB/Elementor integration non eseguita: richiede database isolato esplicito.
+- I messaggi Image Sizes 'Generazione formato moderno fallita' sono guasti deliberati della fixture, con esito finale PASS.
+- Nessuna prova live/deployment inclusa in questo log.
+
+SUITE PHP (27 esecuzioni standalone)
+{"suite":"browser-cache-php-test.php","exit":0,"output":"Browser Cache settings/rules/diagnostics/admin contracts: PASS"}
+{"suite":"calendar-sync-php-test.php","exit":0,"output":"Calendar Sync: local DST, explicit offsets, seconds/milliseconds and invalid dates PASS."}
+{"suite":"cookie-auto-scan-php-test.php","exit":0,"output":"PASS automatic scan: deferred visitor execution, no duplicate schedules, due/default/daily/bounded intervals, disable cleanup, re-enable and manual independence"}
+{"suite":"cookie-consent-php-test.php","exit":0,"output":"PASS cookie quoted/unquoted src and module type, entities, nonce and selective consent"}
+{"suite":"cookie-consent-store-php-test.php","exit":0,"output":"PASS consent store: signed/expired/tampered states, stable revisions, random visitor IDs, withdrawals, refusal migration, snapshot/journal integrity, auth-key rotation, authorization/origin/path guards, retention and protected files without IP"}
+{"suite":"cookie-engine-php-test.php","exit":0,"output":"PASS expiration: Expires/Max-Age/precedence/session/unknown, timestamps, malformed headers, path/domain, existing records/categories, DB failure and JSON file round-trip\r\nPASS observed-only scan: 432 synthetic rows removed, admin filtering, DB/JSON deduplication, per-domain/path identity, manual categories, null expiration, repeated/empty scans and failure diagnostics\r\nPASS representative sampling: 207 candidate URLs (100 articles + 100 CPT entries + template/provider/archive variants), 9 HTTP samples, 18 browser passes, 198 equivalent URLs avoided, explicit extra URL, export reasons and legacy-job guard\r\nPASS progressive cookie engine: recursive crawl, scope/redirect guards, no admin cookies, signed before/after browser reports, real JSON locks, privacy, normalized inventory, page limits, cancellation and authorization"}
+{"suite":"cookie-expiration-php-test.php","exit":0,"output":"PASS expiration: Expires/Max-Age/precedence/session/unknown, timestamps, malformed headers, path/domain, existing records/categories, DB failure and JSON file round-trip"}
+{"suite":"cookie-observed-scan-php-test.php","exit":0,"output":"PASS expiration: Expires/Max-Age/precedence/session/unknown, timestamps, malformed headers, path/domain, existing records/categories, DB failure and JSON file round-trip\r\nPASS observed-only scan: 432 synthetic rows removed, admin filtering, DB/JSON deduplication, per-domain/path identity, manual categories, null expiration, repeated/empty scans and failure diagnostics"}
+{"suite":"cookie-policy-php-test.php","exit":0,"output":"PASS cookie policy: legacy/generated, fresh/empty scan, escaping, no cookie values, no duplication, context isolation, disabled banner and Italian/English"}
+{"suite":"cookie-shortcodes-php-test.php","exit":0,"output":"PASS policy shortcodes: native WordPress parsing/hooks, full Privacy/Cookie content, live scan, legacy table, configured URLs, no page creation, wizard persistence and authorization"}
+{"suite":"dynamic-background-editor-php-test.php","exit":0,"output":"Dynamic background editor assets: 8 assertions PASS"}
+{"suite":"dynamic-svg-php-test.php","exit":0,"output":"Dynamic SVG PHP contract: PASS"}
+{"suite":"horizontal-scroll-php-test.php","exit":0,"output":"Horizontal scroll PHP contract: PASS"}
+{"suite":"image-sizes-frontend-regression-test.php","exit":0,"output":"Image Sizes frontend/LCP/cache/partial errors: PASS"}
+{"suite":"image-sizes-modern-upload-test.php","exit":0,"output":"[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=1012 format=avif size=partial reason=Conversione immagine fallita.\r\n[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=1021 format=webp size=full reason=Impossibile leggere l'immagine.\r\n[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=1021 format=avif size=full reason=Impossibile leggere l'immagine.\r\n[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=1021 format=webp size=broken reason=Impossibile leggere l'immagine.\r\n[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=1021 format=avif size=broken reason=Impossibile leggere l'immagine.\r\nImage Sizes automatic/full/selected-size/SVG skip regeneration: PASS"}
+{"suite":"image-sizes-settings-test.php","exit":0,"output":"Image Sizes settings/slug collisions/proportions/public resolver bounds: PASS"}
+{"suite":"inline-css-php-test.php","exit":0,"output":"Inline CSS guards/core contract: PASS (51 checks; official core: not loaded)"}
+{"suite":"liquid-background-php-test.php","exit":0,"output":"Liquid background PHP contract: PASS"}
+{"suite":"local-google-fonts-parser-test.php","exit":0,"output":"Local Google Fonts parser tests passed."}
+{"suite":"module-definitions-i18n-test.php","exit":0,"output":"Module definitions i18n contract: PASS"}
+{"suite":"module-lifecycle-php-test.php","exit":0,"output":"PASS module lifecycle: 24 OFF, single/bulk/direct writes, CSS invalidation, cron with args, server cleanup/errors, snippet capabilities and plugin deactivation."}
+{"suite":"php-snippets-php-test.php","exit":0,"output":"PHP Snippets: PASS (100 checks; CRUD/capabilities/nonces/scopes/early hooks/shortcode/JetEngine contract/native fatal processes/retry/recovery)."}
+{"suite":"product-discount-queue-test.php","exit":0,"output":"Product Discount queue/WP-Cron: PASS"}
+{"suite":"read-more-php-test.php","exit":0,"output":"Read More PHP contract: PASS"}
+{"suite":"ticker-php-test.php","exit":0,"output":"Ticker: shared conditional CSS, multiple instances, direction/pause and escaped output PASS."}
+{"suite":"updater-layout-test.php","exit":0,"output":"PASS updater layouts, collision, missing entry, failed move and unrelated plugin"}
+{"suite":"video-thumbnail-php-test.php","exit":0,"output":"Video Thumbnail: 35 checks passed (local binary fixtures, no real frame extraction)."}
+
+SUITE NODE VM (11 esecuzioni)
+{"suite":"anchor-offset-js-test.js","exit":0,"output":"Anchor Offset: normal scroll, target, inherited target, download and modifiers PASS."}
+{"suite":"browser-cache-copy-js-test.js","exit":0,"output":"Browser Cache clipboard success/failure: PASS"}
+{"suite":"cookie-runtime-js-test.js","exit":0,"output":"PASS cookie runtime: pending preserves existing values while blocking writes/resources, valid consent, refusal/revocation/expiry, necessary cookies and before/after scan phases"}
+{"suite":"cursor-js-test.js","exit":0,"output":"Cursor: no idle, hidden, disabled-zone or settled RAF; movement restarts all three animations PASS."}
+{"suite":"header-animations-js-test.js","exit":0,"output":"PASS Header pre-init custom breakpoints, responsive inheritance, explicit none and widescreen"}
+{"suite":"horizontal-scroll-js-test.js","exit":0,"output":"Horizontal scroll JS snap wheel contract: PASS"}
+{"suite":"image-sizes-admin-js-test.js","exit":0,"output":"Image Sizes admin selected/full/stop/SVG reporting: PASS"}
+{"suite":"image-sizes-background-js-test.js","exit":0,"output":"Image Sizes background hero/session cache: PASS"}
+{"suite":"liquid-background-js-test.js","exit":0,"output":"Liquid background JS fallback/mobile contract: PASS"}
+{"suite":"preloader-js-test.js","exit":0,"output":"PASS preloader links, progressive activation without JS and immediate bfcache recovery"}
+{"suite":"read-more-js-test.js","exit":0,"output":"Read More JS contract: PASS"}
+
+VARIANTI AGGIUNTIVE (7 esecuzioni PASS)
+php tests/php-snippets-menu-php-test.php <wordpress-root> normal: PASS
+php tests/php-snippets-menu-php-test.php <wordpress-root> no-unfiltered: PASS
+php tests/php-snippets-menu-php-test.php <wordpress-root> no-manage: PASS
+php tests/php-snippets-menu-php-test.php <wordpress-root> disabled: PASS
+php tests/product-discount-queue-test.php --as: PASS (Action Scheduler)
+php -d disable_functions=exec tests/video-thumbnail-php-test.php: PASS (24 checks)
+php tests/cookie-expiration-php-test.php <wordpress-root>/wp-includes/class-wp-http-cookie.php: PASS (native WP_Http_Cookie)
+
+RIESAME DOPO ULTIME GUARDIE OFF
+PASS automatic scan: deferred visitor execution, no duplicate schedules, due/default/daily/bounded intervals, disable cleanup, re-enable and manual independence
+PASS expiration: Expires/Max-Age/precedence/session/unknown, timestamps, malformed headers, path/domain, existing records/categories, DB failure and JSON file round-trip
+PASS observed-only scan: 432 synthetic rows removed, admin filtering, DB/JSON deduplication, per-domain/path identity, manual categories, null expiration, repeated/empty scans and failure diagnostics
+PASS representative sampling: 207 candidate URLs (100 articles + 100 CPT entries + template/provider/archive variants), 9 HTTP samples, 18 browser passes, 198 equivalent URLs avoided, explicit extra URL, export reasons and legacy-job guard
+PASS progressive cookie engine: recursive crawl, scope/redirect guards, no admin cookies, signed before/after browser reports, real JSON locks, privacy, normalized inventory, page limits, cancellation and authorization
+PASS module lifecycle: 24 OFF, single/bulk/direct writes, CSS invalidation, cron with args, server cleanup/errors, snippet capabilities and plugin deactivation.
+No syntax errors detected in marrison-addon/includes/modules/cookie-manager/includes/class-cookie-scanner.php
+No syntax errors detected in marrison-addon/includes/modules/cookie-manager/includes/class-scan-engine.php
+No syntax errors detected in marrison-addon/marrison-addon.php
+

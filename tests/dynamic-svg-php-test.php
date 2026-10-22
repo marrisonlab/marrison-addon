@@ -7,6 +7,7 @@ error_reporting( E_ALL );
 ini_set( 'display_errors', '1' );
 
 define( 'ABSPATH', __DIR__ . '/' );
+function register_deactivation_hook() {}
 
 $GLOBALS['marrison_test_modules']       = [];
 $GLOBALS['marrison_test_hooks']         = [];
@@ -182,5 +183,26 @@ check( false === stripos( $danger, 'javascript:' ), 'JavaScript URL survived san
 check( false === stripos( $danger, 'https://evil.test' ), 'External URL reference survived sanitization.' );
 
 check( count( $GLOBALS['marrison_test_cache'] ) >= 2, 'Original and Current Color SVG variants were not cached separately.' );
+
+// Detailed drawings remain supported below the generous DOM budget.
+$detailed_path = $GLOBALS['marrison_test_upload_basedir'] . '/icons/detailed.svg';
+file_put_contents( $detailed_path, '<svg><g>' . str_repeat( '<path d="M0 0h1" fill="#111"/>', 2000 ) . '<text><tspan>Label</tspan></text></g></svg>' );
+$GLOBALS['marrison_test_attachments'][106] = $detailed_path;
+check( false !== strpos( marrison_addon_inline_svg( 106 ), '<tspan>Label</tspan>' ), 'Detailed SVG or text/tspan was rejected.' );
+
+$complex_path = $GLOBALS['marrison_test_upload_basedir'] . '/icons/complex.svg';
+file_put_contents( $complex_path, '<svg>' . str_repeat( '<g/>', 20001 ) . '</svg>' );
+$GLOBALS['marrison_test_attachments'][107] = $complex_path;
+check( filesize( $complex_path ) < 262144, 'Complexity fixture must remain under the byte budget.' );
+check( '' === marrison_addon_inline_svg( 107 ), 'DOM node budget was not enforced.' );
+check( '' === marrison_addon_inline_svg( 107 ), 'Rejected SVG should stay safely cached.' );
+
+$deep_path = $GLOBALS['marrison_test_upload_basedir'] . '/icons/deep.svg';
+file_put_contents( $deep_path, '<svg>' . str_repeat( '<g>', 129 ) . '<path d="M0 0"/>' . str_repeat( '</g>', 129 ) . '</svg>' );
+$GLOBALS['marrison_test_attachments'][108] = $deep_path;
+check( '' === marrison_addon_inline_svg( 108 ), 'DOM depth budget was not enforced before recursive sanitization.' );
+
+$GLOBALS['marrison_test_filters']['marrison_addon/dynamic_svg/max_nodes'][] = static function () { return 2; };
+check( '' === marrison_addon_inline_svg( 101 ), 'Changing DOM limits must invalidate a previously accepted cached variant.' );
 
 echo "Dynamic SVG PHP contract: PASS\n";

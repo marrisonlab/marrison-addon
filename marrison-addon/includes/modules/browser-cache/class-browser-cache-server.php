@@ -370,13 +370,6 @@ class Marrison_Addon_Browser_Cache_Server {
 			);
 		}
 
-		if ( ! is_writable( $path ) ) {
-			return new WP_Error(
-				'htaccess_not_writable',
-				__( '.htaccess non e scrivibile. Rimuovi manualmente solo il blocco Marrison Browser Cache.', 'marrison-addon' )
-			);
-		}
-
 		$existing = file_get_contents( $path );
 
 		if ( false === $existing ) {
@@ -396,6 +389,9 @@ class Marrison_Addon_Browser_Cache_Server {
 			return true;
 		}
 
+		if ( ! is_writable( $path ) ) {
+			return new WP_Error( 'htaccess_not_writable', __( '.htaccess non e scrivibile. Rimuovi manualmente solo il blocco Marrison Browser Cache.', 'marrison-addon' ) );
+		}
 		$updated = $this->remove_marker_block( (string) $existing );
 		if ( false !== strpos( $updated, self::BEGIN_MARKER ) || false !== strpos( $updated, self::END_MARKER ) ) {
 			return new WP_Error( 'htaccess_incomplete_block', __( 'Blocco Marrison incompleto: rimozione automatica interrotta. Controlla i marker in .htaccess.', 'marrison-addon' ) );

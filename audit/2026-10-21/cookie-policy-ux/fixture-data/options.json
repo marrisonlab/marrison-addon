@@ -1,0 +1,1 @@
+{"marrison_cookie_show_banner": true, "marrison_cookie_privacy_profile": {"controller_name": "Titolare di prova", "controller_address": "Via Esempio 1, Italia", "controller_email": "privacy@example.test", "contact_enabled": true, "logs_enabled": true, "logs_retention": "30 giorni", "recipients": "Fornitore hosting ed email", "transfers": "none"}}

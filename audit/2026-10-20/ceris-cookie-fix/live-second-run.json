@@ -1,0 +1,251 @@
+{
+  "summary": "Scansione completata · 10 pagine campione · 20/20 verifiche · 3 cookie osservati · 1 documentati",
+  "inventory": "marrison_cookie_state\tNecessari\tdemo.ceris-srl.it\nPath: /\t22/04/2027, 22:34\tcrawl\nProve rilevate\n\t20/10/2026, 20:34\t\nNecessari\nFunzionali\nAnalitici\nMarketing\nElimina\n\nmarrison_cookie_categories\tNecessari\tdemo.ceris-srl.it\nPath: /\t22/04/2027, 22:34\tbrowser\nProve rilevate\n\t20/10/2026, 20:34\t\nNecessari\nFunzionali\nAnalitici\nMarketing\nElimina\n\nmarrison_cookie_consent\tNecessari\tdemo.ceris-srl.it\nPath: /\t22/04/2027, 22:34\tbrowser\nProve rilevate\n\t20/10/2026, 20:34\t\nNecessari\nFunzionali\nAnalitici\nMarketing\nElimina",
+  "details": {
+    "runtime": {
+      "protocol": 2,
+      "revision": "20261020.5",
+      "plugin_version": "1.3.71",
+      "scanner_file": "/var/www/vhosts/demo.ceris-srl.it/httpdocs/wp-content/plugins/marrison-addon/includes/modules/cookie-manager/includes/class-cookie-scanner.php",
+      "scanner_hash": "0c39e1481379e610da29fdbab857c277e4a919bfd0961a56ae2469dd39defcd7",
+      "engine_hash": "702e88d415fd15c74997caca745ae90167c0c2ce751d35f0093a732f9240b5cf",
+      "compatible": true
+    },
+    "response_pages": 20,
+    "issues": [],
+    "issues_total": 0,
+    "services": [
+      {
+        "host": "maps.google.com",
+        "kinds": [
+          "iframe"
+        ],
+        "pages": [
+          "https://demo.ceris-srl.it/contatti/"
+        ],
+        "cookies_verified": false,
+        "profiles": {
+          "google-maps": {
+            "id": "google-maps",
+            "name": "Google Maps",
+            "category": "marketing",
+            "source_url": "https://policies.google.com/technologies/cookies",
+            "cookies": [
+              {
+                "name": "NID",
+                "domain": ".google.com",
+                "duration": "6 mesi",
+                "purpose": "Preferenze e personalizzazione dei servizi Google; dipende dalle scelte dell’utente.",
+                "evidence": "provider_documentation",
+                "observed": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "host": "fonts.googleapis.com",
+        "kinds": [
+          "script"
+        ],
+        "pages": [
+          "https://demo.ceris-srl.it/",
+          "https://demo.ceris-srl.it/news/",
+          "https://demo.ceris-srl.it/ssip-pianifica-ricerca-sulla-gestione-dei-reflui-conciari/",
+          "https://demo.ceris-srl.it/category/comunicato-stampa/",
+          "https://demo.ceris-srl.it/chi-siamo/",
+          "https://demo.ceris-srl.it/alimenti/",
+          "https://demo.ceris-srl.it/contatti/",
+          "https://demo.ceris-srl.it/cookie/",
+          "https://demo.ceris-srl.it/2021/08/31/",
+          "https://demo.ceris-srl.it/author/webmaster/"
+        ],
+        "cookies_verified": false
+      },
+      {
+        "host": "fonts.gstatic.com",
+        "kinds": [
+          "script"
+        ],
+        "pages": [
+          "https://demo.ceris-srl.it/",
+          "https://demo.ceris-srl.it/news/",
+          "https://demo.ceris-srl.it/ssip-pianifica-ricerca-sulla-gestione-dei-reflui-conciari/",
+          "https://demo.ceris-srl.it/category/comunicato-stampa/",
+          "https://demo.ceris-srl.it/chi-siamo/",
+          "https://demo.ceris-srl.it/alimenti/",
+          "https://demo.ceris-srl.it/contatti/",
+          "https://demo.ceris-srl.it/cookie/",
+          "https://demo.ceris-srl.it/2021/08/31/",
+          "https://demo.ceris-srl.it/author/webmaster/"
+        ],
+        "cookies_verified": false
+      }
+    ],
+    "sampling": {
+      "strategy": "templates",
+      "candidates": 28,
+      "equivalents": 18,
+      "selected": 10,
+      "unselected": 0,
+      "groups": [
+        {
+          "kind": "home",
+          "label": "Home",
+          "url": "https://demo.ceris-srl.it/",
+          "represented_urls": 1,
+          "examples": [
+            "https://demo.ceris-srl.it/"
+          ],
+          "status": "visited",
+          "final_url": "https://demo.ceris-srl.it/"
+        },
+        {
+          "label": "Indice articoli",
+          "kind": "archive",
+          "url": "https://demo.ceris-srl.it/news/",
+          "represented_urls": 1,
+          "examples": [
+            "https://demo.ceris-srl.it/news/"
+          ],
+          "status": "visited",
+          "final_url": "https://demo.ceris-srl.it/news/"
+        },
+        {
+          "kind": "single",
+          "label": "Singolo post",
+          "post_type": "post",
+          "template": "index.php",
+          "features": [],
+          "features_total": 0,
+          "url": "https://demo.ceris-srl.it/ssip-pianifica-ricerca-sulla-gestione-dei-reflui-conciari/",
+          "represented_urls": 7,
+          "examples": [
+            "https://demo.ceris-srl.it/ssip-pianifica-ricerca-sulla-gestione-dei-reflui-conciari/",
+            "https://demo.ceris-srl.it/programma-operativo-nazionale-pon-ricerca-e-innovazione-2014-2020-asse-2-progetti-tematici-ii-2-cluster/",
+            "https://demo.ceris-srl.it/nanoactive-film-srl-nuova-sede-legale-ed-operativa/"
+          ],
+          "status": "visited",
+          "final_url": "https://demo.ceris-srl.it/ssip-pianifica-ricerca-sulla-gestione-dei-reflui-conciari/"
+        },
+        {
+          "kind": "taxonomy",
+          "label": "Archivio Categorie",
+          "template": "index.php",
+          "features": [],
+          "features_total": 0,
+          "url": "https://demo.ceris-srl.it/category/comunicato-stampa/",
+          "represented_urls": 3,
+          "examples": [
+            "https://demo.ceris-srl.it/category/comunicato-stampa/",
+            "https://demo.ceris-srl.it/category/news/",
+            "https://demo.ceris-srl.it/category/programma/"
+          ],
+          "status": "visited",
+          "final_url": "https://demo.ceris-srl.it/category/comunicato-stampa/"
+        },
+        {
+          "kind": "single",
+          "label": "Singolo page",
+          "post_type": "page",
+          "template": "index.php",
+          "features": [],
+          "features_total": 0,
+          "url": "https://demo.ceris-srl.it/chi-siamo/",
+          "represented_urls": 4,
+          "examples": [
+            "https://demo.ceris-srl.it/chi-siamo/",
+            "https://demo.ceris-srl.it/attivita-scientifica/",
+            "https://demo.ceris-srl.it/innovazione/"
+          ],
+          "status": "visited",
+          "final_url": "https://demo.ceris-srl.it/chi-siamo/"
+        },
+        {
+          "kind": "single",
+          "label": "Singolo page",
+          "post_type": "page",
+          "template": "index.php",
+          "features": [
+            "shortcode:elementor-tag",
+            "widget:jet-accordion"
+          ],
+          "features_total": 2,
+          "url": "https://demo.ceris-srl.it/alimenti/",
+          "represented_urls": 4,
+          "examples": [
+            "https://demo.ceris-srl.it/alimenti/",
+            "https://demo.ceris-srl.it/ambiente/",
+            "https://demo.ceris-srl.it/industria-conciaria/"
+          ],
+          "status": "visited",
+          "final_url": "https://demo.ceris-srl.it/alimenti/"
+        },
+        {
+          "kind": "single",
+          "label": "Singolo page",
+          "post_type": "page",
+          "template": "index.php",
+          "features": [
+            "component:form_id:419",
+            "form",
+            "service:maps.google.com",
+            "service:share.google",
+            "widget:google_maps",
+            "widget:jet-form-builder-form"
+          ],
+          "features_total": 6,
+          "url": "https://demo.ceris-srl.it/contatti/",
+          "represented_urls": 1,
+          "examples": [
+            "https://demo.ceris-srl.it/contatti/"
+          ],
+          "status": "visited",
+          "final_url": "https://demo.ceris-srl.it/contatti/"
+        },
+        {
+          "kind": "single",
+          "label": "Singolo page",
+          "post_type": "page",
+          "template": "index.php",
+          "features": [
+            "shortcode:marrison_cookie_policy_content"
+          ],
+          "features_total": 1,
+          "url": "https://demo.ceris-srl.it/cookie/",
+          "represented_urls": 1,
+          "examples": [
+            "https://demo.ceris-srl.it/cookie/"
+          ],
+          "status": "visited",
+          "final_url": "https://demo.ceris-srl.it/cookie/"
+        },
+        {
+          "kind": "archive",
+          "label": "Archivio per data",
+          "url": "https://demo.ceris-srl.it/2021/08/31/",
+          "represented_urls": 5,
+          "examples": [
+            "https://demo.ceris-srl.it/2021/08/31/",
+            "https://demo.ceris-srl.it/2017/01/13/",
+            "https://demo.ceris-srl.it/2016/11/22/"
+          ],
+          "status": "visited",
+          "final_url": "https://demo.ceris-srl.it/2021/08/31/"
+        },
+        {
+          "kind": "route",
+          "label": "Percorso author",
+          "uncertain": true,
+          "url": "https://demo.ceris-srl.it/author/webmaster/",
+          "represented_urls": 1,
+          "examples": [
+            "https://demo.ceris-srl.it/author/webmaster/"
+          ],
+          "status": "visited",
+          "final_url": "https://demo.ceris-srl.it/author/webmaster/"
+        }
+      ]
+    }
+  }
+}

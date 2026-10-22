@@ -18,6 +18,7 @@ function add_action( $name, $callback ) {
 function add_filter( $name, $callback ) {
 	$GLOBALS['marrison_test_hooks'][ $name ][] = $callback;
 }
+function register_deactivation_hook( $file, $callback ) { add_action( 'deactivate_' . basename( $file ), $callback ); }
 
 function esc_html__( $text ) {
 	$GLOBALS['marrison_test_translate_calls']++;
@@ -72,3 +73,8 @@ check( ! Marrison_Addon::is_module_enabled( 'dynamic_background_image_size' ), '
 check( ! class_exists( 'Marrison_Addon_Dynamic_Background_Image_Size', false ), 'Disabled Dynamic Background Image Size module was loaded.' );
 
 echo "Module definitions i18n contract: PASS\n";
+
+$listing_definition = Marrison_Addon::get_module_definitions( false )['listing_columns'];
+check( 'elementor' === $listing_definition['boot'] && $listing_definition['requires_elementor'] && $listing_definition['requires_jet_engine'], 'Listing Columns dependency/bootstrap contract failed.' );
+check( ! Marrison_Addon::is_module_enabled( 'listing_columns' ) && ! class_exists( 'Marrison_Addon_Listing_Columns', false ), 'Disabled Listing Columns must not load.' );
+echo "Listing Columns registry: disabled by default, no loaded module, Elementor/JetEngine dependencies PASS\n";

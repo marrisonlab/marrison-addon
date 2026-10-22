@@ -30,6 +30,9 @@ class Marrison_Addon_Local_Google_Fonts {
 	private $scan_local_fonts = array();
 	private $scan_google_fonts = array();
 	private $elementor_fonts_cache = null;
+	private $scan_provenance = 'source';
+	private $scan_stylesheet_provenance = array();
+	private $scan_frontend_css_paths = array();
 
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
@@ -358,6 +361,7 @@ class Marrison_Addon_Local_Google_Fonts {
 				<div class="marrison-card-header">
 					<h2 class="marrison-card-title"><?php esc_html_e( 'Font individuati', 'marrison-addon' ); ?></h2>
 				</div>
+				<p class="marrison-card-desc"><?php esc_html_e( 'Il download include i Google Fonts osservati nel frontend o configurati nei contenuti pubblicati. Le famiglie trovate soltanto nei sorgenti restano candidate da verificare.', 'marrison-addon' ); ?></p>
 				<?php $this->render_fonts_table( $scan, $active ); ?>
 			</div>
 
@@ -507,6 +511,7 @@ class Marrison_Addon_Local_Google_Fonts {
 				<tr>
 					<th><?php esc_html_e( 'Famiglia', 'marrison-addon' ); ?></th>
 					<th><?php esc_html_e( 'Tipo', 'marrison-addon' ); ?></th>
+					<th><?php esc_html_e( 'Utilizzo', 'marrison-addon' ); ?></th>
 					<th><?php esc_html_e( 'Peso', 'marrison-addon' ); ?></th>
 					<th><?php esc_html_e( 'Stile', 'marrison-addon' ); ?></th>
 					<th><?php esc_html_e( 'Stato locale', 'marrison-addon' ); ?></th>
@@ -526,6 +531,7 @@ class Marrison_Addon_Local_Google_Fonts {
 						<?php
 						$classification = isset( $font['classification'] ) ? $font['classification'] : 'unknown';
 						$is_google      = 'google' === $classification;
+						$has_usage      = $this->has_font_usage_evidence( $variant );
 						$is_local       = $is_google && $this->active_manifest_has_variant( $active, $font['family'], $variant['style'], $variant['weight'] );
 						$sources  = ! empty( $variant['sources'] ) && is_array( $variant['sources'] ) ? $variant['sources'] : array();
 						?>
@@ -535,12 +541,13 @@ class Marrison_Addon_Local_Google_Fonts {
 								<td rowspan="<?php echo esc_attr( $rowspan ); ?>"><?php echo esc_html( $this->format_font_classification( $classification ) ); ?></td>
 								<?php $first_row = false; ?>
 							<?php endif; ?>
+							<td><?php echo esc_html( ! empty( $variant['provenance']['frontend'] ) ? __( 'Frontend osservato', 'marrison-addon' ) : ( ! empty( $variant['provenance']['document'] ) ? __( 'Contenuto configurato', 'marrison-addon' ) : __( 'Solo sorgenti: da verificare', 'marrison-addon' ) ) ); ?></td>
 							<td><?php echo esc_html( $variant['weight'] ); ?></td>
 							<td><?php echo esc_html( $variant['style'] ); ?></td>
 							<td>
 								<?php if ( $is_local ) : ?>
 									<span class="marrison-lgf-status success"><?php esc_html_e( 'Locale', 'marrison-addon' ); ?></span>
-								<?php elseif ( ! $is_google ) : ?>
+								<?php elseif ( ! $is_google || ! $has_usage ) : ?>
 									<span class="marrison-lgf-status muted"><?php esc_html_e( 'Ignorato dal download', 'marrison-addon' ); ?></span>
 								<?php else : ?>
 									<span class="marrison-lgf-status warning"><?php esc_html_e( 'Da scaricare', 'marrison-addon' ); ?></span>
@@ -667,6 +674,9 @@ class Marrison_Addon_Local_Google_Fonts {
 		$this->scan_ignored_fonts = array();
 		$this->scan_local_fonts   = array();
 		$this->scan_google_fonts  = array();
+		$this->scan_provenance = 'source';
+		$this->scan_stylesheet_provenance = array();
+		$this->scan_frontend_css_paths = array();
 
 		$fonts             = array();
 		$remote_stylesheets = array();
@@ -683,6 +693,7 @@ class Marrison_Addon_Local_Google_Fonts {
 		);
 
 		$this->scan_frontend_google_stylesheets( $fonts, $remote_stylesheets, $stats, $warnings );
+		$this->scan_provenance = 'document';
 		$this->scan_elementor_data( $fonts, $stats, $warnings, $elementor_document_ids );
 		$this->scan_elementor_global_settings( $fonts, $warnings );
 		$this->scan_post_content( $fonts, $remote_stylesheets, $stats, $warnings );
@@ -698,6 +709,7 @@ class Marrison_Addon_Local_Google_Fonts {
 			'scanned_at'         => current_time( 'mysql' ),
 			'fonts'              => $fonts,
 			'remote_stylesheets' => array_values( $remote_stylesheets ),
+			'stylesheet_provenance' => $this->scan_stylesheet_provenance,
 			'local_fonts'        => $this->prepare_local_fonts_for_manifest(),
 			'ignored_fonts'      => $this->prepare_ignored_fonts_for_manifest(),
 			'warnings'           => array_values( array_unique( $warnings ) ),
@@ -726,17 +738,83 @@ class Marrison_Addon_Local_Google_Fonts {
 			$warnings[] = __( 'Homepage non disponibile come HTML completo: rilevamento dei Google Fonts dinamici non completato.', 'marrison-addon' );
 			return;
 		}
+		$previous_provenance = $this->scan_provenance;
+		$this->scan_provenance = 'frontend';
 		$this->extract_fonts_from_html( $body, __( 'Homepage pubblica', 'marrison-addon' ), $fonts, $remote_stylesheets );
+		$this->scan_frontend_stylesheet_files( $body, $fonts, $remote_stylesheets, $stats, $warnings );
+		$this->scan_provenance = $previous_provenance;
 		$stats['frontend_pages']++;
 	}
 
+	/** Prioritize local stylesheets actually linked by the public page before scanning source candidates. */
+	private function scan_frontend_stylesheet_files( $html, &$fonts, &$remote_stylesheets, &$stats, &$warnings ) {
+		if ( ! preg_match_all( '/<link\b[^>]*>/i', $html, $tags ) ) {
+			return;
+		}
+		$files = 0;
+		$bytes = 0;
+		foreach ( $tags[0] as $tag ) {
+			if ( ! preg_match( '/\brel\s*=\s*([\'"])[^\'"]*\bstylesheet\b[^\'"]*\1/i', $tag ) || ! preg_match( '/\bhref\s*=\s*([\'"])(.*?)\1/i', $tag, $href ) ) {
+				continue;
+			}
+			$path = $this->get_frontend_stylesheet_path( html_entity_decode( $href[2], ENT_QUOTES, 'UTF-8' ) );
+			if ( '' === $path || isset( $this->scan_frontend_css_paths[ $path ] ) ) {
+				continue;
+			}
+			$size = filesize( $path );
+			if ( $size <= 0 || $size > self::MAX_CSS_FILE_BYTES ) {
+				continue;
+			}
+			if ( $files >= 60 || $bytes + $size > self::MAX_TOTAL_CSS_BYTES ) {
+				$warnings[] = __( 'Limite dei CSS collegati alla homepage raggiunto: gli altri file restano candidati nei sorgenti.', 'marrison-addon' );
+				break;
+			}
+			$css = file_get_contents( $path );
+			if ( false === $css ) {
+				continue;
+			}
+			$this->scan_frontend_css_paths[ $path ] = true;
+			$files++;
+			$bytes += $size;
+			$stats['css_files'] = isset( $stats['css_files'] ) ? $stats['css_files'] + 1 : 1;
+			$stats['css_bytes'] = isset( $stats['css_bytes'] ) ? $stats['css_bytes'] + $size : $size;
+			$this->extract_fonts_from_css( $css, __( 'CSS frontend osservato', 'marrison-addon' ) . ': ' . basename( $path ), $fonts, $remote_stylesheets );
+		}
+	}
+
+	private function get_frontend_stylesheet_path( $url ) {
+		$url = preg_replace( '/[?#].*$/', '', $this->normalize_asset_url( $url ) );
+		if ( ! is_string( $url ) || ! preg_match( '/\.css$/i', $url ) ) {
+			return '';
+		}
+		$uploads = wp_upload_dir();
+		$bases = ! empty( $uploads['basedir'] ) && ! empty( $uploads['baseurl'] ) ? array( $uploads['baseurl'] => $uploads['basedir'] ) : array();
+		if ( defined( 'WP_CONTENT_DIR' ) && function_exists( 'content_url' ) ) {
+			$bases[ content_url() ] = WP_CONTENT_DIR;
+		}
+		foreach ( $bases as $base_url => $base_dir ) {
+			$prefix = trailingslashit( $base_url );
+			if ( 0 !== strpos( $url, $prefix ) ) {
+				continue;
+			}
+			$base = realpath( $base_dir );
+			$path = realpath( trailingslashit( $base_dir ) . rawurldecode( substr( $url, strlen( $prefix ) ) ) );
+			if ( $base && $path && 0 === strpos( wp_normalize_path( $path ), trailingslashit( wp_normalize_path( $base ) ) ) && is_file( $path ) && is_readable( $path ) ) {
+				return $path;
+			}
+		}
+		return '';
+	}
+
 	private function scan_previous_google_stylesheets( &$fonts, &$remote_stylesheets ) {
+		$previous_provenance = $this->scan_provenance;
+		$this->scan_provenance = 'document';
 		$manifest = $this->load_manifest();
 		$urls = isset( $manifest['active']['source_css_urls'] ) ? (array) $manifest['active']['source_css_urls'] : array();
 		foreach ( $urls as $url ) {
 			foreach ( $this->parse_google_stylesheet_families( $url ) as $family => $variants ) {
 				// Keep the proved source only while this family is still found in current usage.
-				if ( ! isset( $fonts[ $this->family_key( $family ) ] ) ) {
+				if ( ! isset( $fonts[ $this->family_key( $family ) ] ) || ! $this->has_font_usage_evidence( $fonts[ $this->family_key( $family ) ] ) ) {
 					continue;
 				}
 				$source = __( 'Google Fonts locali gia confermati', 'marrison-addon' );
@@ -745,8 +823,10 @@ class Marrison_Addon_Local_Google_Fonts {
 					$this->add_font_variant( $fonts, $family, $variant['weight'], $variant['style'], $source );
 				}
 				$remote_stylesheets[ $url ] = $url;
+				$this->scan_stylesheet_provenance[ $url ]['document'] = true;
 			}
 		}
+		$this->scan_provenance = $previous_provenance;
 	}
 
 	private function scan_elementor_data( &$fonts, &$stats, &$warnings, &$elementor_document_ids ) {
@@ -985,9 +1065,10 @@ class Marrison_Addon_Local_Google_Fonts {
 	}
 
 	private function scan_css_files( &$fonts, &$remote_stylesheets, &$stats, &$warnings, $elementor_document_ids ) {
+		$previous_provenance = $this->scan_provenance;
 		$scan_state = array(
-			'files' => 0,
-			'bytes' => 0,
+			'files' => count( $this->scan_frontend_css_paths ),
+			'bytes' => isset( $stats['css_bytes'] ) ? $stats['css_bytes'] : 0,
 			'limit_reached' => false,
 		);
 		$source_scan_state = array(
@@ -1001,6 +1082,7 @@ class Marrison_Addon_Local_Google_Fonts {
 			$elementor_css_dir = trailingslashit( $uploads['basedir'] ) . 'elementor/css';
 			$this->scan_elementor_css_files( $elementor_css_dir, $elementor_document_ids, $fonts, $remote_stylesheets, $stats, $warnings, $scan_state );
 		}
+		$this->scan_provenance = 'source';
 
 		$theme_dirs = array_unique(
 			array_filter(
@@ -1036,6 +1118,7 @@ class Marrison_Addon_Local_Google_Fonts {
 				self::MAX_SOURCE_FILES
 			);
 		}
+		$this->scan_provenance = $previous_provenance;
 	}
 
 	private function scan_css_dir( $dir, $label, &$fonts, &$remote_stylesheets, &$stats, &$warnings, &$scan_state ) {
@@ -1069,6 +1152,9 @@ class Marrison_Addon_Local_Google_Fonts {
 
 			$path = $file->getPathname();
 			$size = $file->getSize();
+			if ( isset( $this->scan_frontend_css_paths[ realpath( $path ) ] ) ) {
+				continue;
+			}
 
 			if ( $size <= 0 || $size > self::MAX_CSS_FILE_BYTES || ! is_readable( $path ) ) {
 				continue;
@@ -1291,12 +1377,14 @@ class Marrison_Addon_Local_Google_Fonts {
 				continue;
 			}
 			$remote_stylesheets[ $url ] = $url;
+			$this->scan_stylesheet_provenance[ $url ][ $this->scan_provenance ] = true;
 			foreach ( $families as $family => $variants ) {
 				$source_label = sprintf(
 					/* translators: %s: Google Font family. */
 					__( 'Google Fonts URL: %s', 'marrison-addon' ),
 					$family
 				);
+				$source_label = $source . ' - ' . $source_label;
 
 				$this->mark_google_font_family(
 					$family,
@@ -1562,6 +1650,26 @@ class Marrison_Addon_Local_Google_Fonts {
 			$this->append_limited_unique( $fonts[ $family_key ]['sources'], $source );
 			$this->append_limited_unique( $fonts[ $family_key ]['variants'][ $variant_key ]['sources'], $source );
 		}
+		$fonts[ $family_key ]['provenance'][ $this->scan_provenance ] = true;
+		$fonts[ $family_key ]['variants'][ $variant_key ]['provenance'][ $this->scan_provenance ] = true;
+	}
+
+	private function has_font_usage_evidence( $font ) {
+		return ! empty( $font['provenance']['frontend'] ) || ! empty( $font['provenance']['document'] );
+	}
+
+	private function get_downloadable_google_fonts( $scan ) {
+		$fonts = array();
+		foreach ( isset( $scan['fonts'] ) ? (array) $scan['fonts'] : array() as $key => $font ) {
+			if ( empty( $font['classification'] ) || 'google' !== $font['classification'] ) {
+				continue;
+			}
+			$font['variants'] = array_filter( isset( $font['variants'] ) ? (array) $font['variants'] : array(), array( $this, 'has_font_usage_evidence' ) );
+			if ( ! empty( $font['variants'] ) ) {
+				$fonts[ $key ] = $font;
+			}
+		}
+		return $fonts;
 	}
 
 	private function append_limited_unique( &$items, $value, $limit = 8 ) {
@@ -1579,6 +1687,11 @@ class Marrison_Addon_Local_Google_Fonts {
 		uasort(
 			$fonts,
 			function ( $a, $b ) {
+				$rank_a = ! empty( $a['provenance']['frontend'] ) ? 0 : ( ! empty( $a['provenance']['document'] ) ? 1 : 2 );
+				$rank_b = ! empty( $b['provenance']['frontend'] ) ? 0 : ( ! empty( $b['provenance']['document'] ) ? 1 : 2 );
+				if ( $rank_a !== $rank_b ) {
+					return $rank_a <=> $rank_b;
+				}
 				return strcasecmp( $a['family'], $b['family'] );
 			}
 		);
@@ -1715,17 +1828,12 @@ class Marrison_Addon_Local_Google_Fonts {
 			return new WP_Error( 'marrison_lgf_no_fonts', __( 'Nessun font da scaricare.', 'marrison-addon' ) );
 		}
 
-		$google_fonts = array_filter(
-			$scan['fonts'],
-			function ( $font ) {
-				return ! empty( $font['classification'] ) && 'google' === $font['classification'];
-			}
-		);
+		$google_fonts = $this->get_downloadable_google_fonts( $scan );
 
 		if ( empty( $google_fonts ) ) {
 			return new WP_Error(
 				'marrison_lgf_no_confirmed_google_fonts',
-				__( 'Nessun Google Font confermato da scaricare. Le famiglie locali/custom o non verificate sono state ignorate.', 'marrison-addon' ),
+				__( 'Nessun Google Font con utilizzo frontend o contenuto configurato da scaricare. Esegui una nuova scansione; i candidati trovati solo nei sorgenti restano esclusi.', 'marrison-addon' ),
 				array( 'logs' => $this->build_ignored_download_logs( $scan ) )
 			);
 		}
@@ -2286,6 +2394,9 @@ class Marrison_Addon_Local_Google_Fonts {
 
 	private function get_google_css_url_for_font( $scan, $family, $variants ) {
 		foreach ( isset( $scan['remote_stylesheets'] ) ? (array) $scan['remote_stylesheets'] : array() as $url ) {
+			if ( isset( $scan['stylesheet_provenance'] ) && empty( $scan['stylesheet_provenance'][ $url ]['frontend'] ) && empty( $scan['stylesheet_provenance'][ $url ]['document'] ) ) {
+				continue;
+			}
 			if ( ! $this->is_google_fonts_stylesheet_url( $url ) || preg_match( '/[?&]text=/i', html_entity_decode( $url, ENT_QUOTES, 'UTF-8' ) ) ) {
 				continue;
 			}
@@ -2779,6 +2890,7 @@ class Marrison_Addon_Local_Google_Fonts {
 			'scanned_at' => '',
 			'fonts' => array(),
 			'remote_stylesheets' => array(),
+			'stylesheet_provenance' => array(),
 			'warnings' => array(),
 			'stats' => array(),
 		);
@@ -3186,6 +3298,7 @@ class Marrison_Addon_Local_Google_Fonts {
 			__( 'Scansione: %d famiglie candidate individuate.', 'marrison-addon' ),
 			$count
 		);
+		$logs[] = sprintf( __( 'Google Fonts con utilizzo frontend o contenuto configurato: %d famiglie ammesse al download.', 'marrison-addon' ), count( $this->get_downloadable_google_fonts( $scan ) ) );
 		$logs[] = sprintf(
 			/* translators: 1: Google Fonts count, 2: local font count, 3: unknown font count. */
 			__( 'Classificazione: %1$d Google Fonts confermati, %2$d locali/custom, %3$d sconosciuti ignorati dal download.', 'marrison-addon' ),
@@ -3215,6 +3328,7 @@ class Marrison_Addon_Local_Google_Fonts {
 		$logs = array();
 		$local = 0;
 		$unknown = 0;
+		$source_only = 0;
 
 		if ( ! empty( $scan['fonts'] ) && is_array( $scan['fonts'] ) ) {
 			foreach ( $scan['fonts'] as $font ) {
@@ -3223,6 +3337,8 @@ class Marrison_Addon_Local_Google_Fonts {
 					$local++;
 				} elseif ( 'google' !== $classification ) {
 					$unknown++;
+				} elseif ( ! $this->has_font_usage_evidence( $font ) ) {
+					$source_only++;
 				}
 			}
 		}
@@ -3241,6 +3357,9 @@ class Marrison_Addon_Local_Google_Fonts {
 				__( 'Downloader: %d famiglie non verificate ignorate.', 'marrison-addon' ),
 				$unknown
 			);
+		}
+		if ( $source_only > 0 ) {
+			$logs[] = sprintf( __( 'Downloader: %d famiglie Google trovate solo nei sorgenti escluse in attesa di verifica frontend.', 'marrison-addon' ), $source_only );
 		}
 
 		return $logs;

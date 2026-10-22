@@ -1,0 +1,168 @@
+{
+  "data": {
+    "protocol": 1,
+    "engine": "commander_browserless",
+    "url": "https://urbevigilanza.it/",
+    "consent_verified": true,
+    "cookies": [
+      {
+        "cookie_name": "marrison_cookie_state",
+        "cookie_domain": "urbevigilanza.it",
+        "cookie_path": "/",
+        "expires": 1808457525.769278,
+        "secure": true,
+        "http_only": true,
+        "same_site": "lax",
+        "phase": "after",
+        "partitioned": false,
+        "observed_at": 1792559932329
+      },
+      {
+        "cookie_name": "marrison_cookie_consent",
+        "cookie_domain": "urbevigilanza.it",
+        "cookie_path": "/",
+        "expires": 1808457525.769524,
+        "secure": true,
+        "http_only": false,
+        "same_site": "lax",
+        "phase": "after",
+        "partitioned": false,
+        "observed_at": 1792559932329
+      },
+      {
+        "cookie_name": "marrison_cookie_categories",
+        "cookie_domain": "urbevigilanza.it",
+        "cookie_path": "/",
+        "expires": 1808457525.769562,
+        "secure": true,
+        "http_only": false,
+        "same_site": "lax",
+        "phase": "after",
+        "partitioned": false,
+        "observed_at": 1792559932329
+      },
+      {
+        "cookie_name": "_ga",
+        "cookie_domain": "urbevigilanza.it",
+        "cookie_path": "/",
+        "expires": 1827119927.131247,
+        "secure": false,
+        "http_only": false,
+        "same_site": "unknown",
+        "phase": "after",
+        "partitioned": false,
+        "observed_at": 1792559932329
+      },
+      {
+        "cookie_name": "_ga_Q7BK7RWHL2",
+        "cookie_domain": "urbevigilanza.it",
+        "cookie_path": "/",
+        "expires": 1827119927.130336,
+        "secure": false,
+        "http_only": false,
+        "same_site": "unknown",
+        "phase": "after",
+        "partitioned": false,
+        "observed_at": 1792559932329
+      }
+    ],
+    "storage": [
+      {
+        "key": "elementor",
+        "type": "localStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "before"
+      },
+      {
+        "key": "marrison_locale",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "before"
+      },
+      {
+        "key": "wpEmojiSettingsSupports",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "before"
+      },
+      {
+        "key": "elementor",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "before"
+      },
+      {
+        "key": "marrison_session_context",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "before"
+      },
+      {
+        "key": "marrison_session_id",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "before"
+      },
+      {
+        "key": "marrison_session_secret",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "before"
+      },
+      {
+        "key": "elementor",
+        "type": "localStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "after"
+      },
+      {
+        "key": "marrison_locale",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "after"
+      },
+      {
+        "key": "wpEmojiSettingsSupports",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "after"
+      },
+      {
+        "key": "elementor",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "after"
+      },
+      {
+        "key": "marrison_session_context",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "after"
+      },
+      {
+        "key": "marrison_session_id",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "after"
+      },
+      {
+        "key": "marrison_session_secret",
+        "type": "sessionStorage",
+        "origin": "https://urbevigilanza.it",
+        "phase": "after"
+      }
+    ],
+    "resources": [
+      {
+        "url": "https://www.googletagmanager.com/gtag/js",
+        "kind": "script"
+      },
+      {
+        "url": "https://www.google-analytics.com/g/collect",
+        "kind": "request"
+      }
+    ],
+    "issues": []
+  },
+  "type": "application/json"
+}

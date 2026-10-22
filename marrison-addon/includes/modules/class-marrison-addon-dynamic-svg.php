@@ -226,8 +226,13 @@ class Marrison_Addon_Dynamic_SVG {
 		}
 
 		$mode      = $current_color ? 'current-color' : 'original';
+		$limits    = [
+			// Generous for detailed illustrations; bound the recursive sanitizer as well.
+			'nodes' => max( 1, (int) apply_filters( 'marrison_addon/dynamic_svg/max_nodes', 20000 ) ),
+			'depth' => max( 1, (int) apply_filters( 'marrison_addon/dynamic_svg/max_depth', 128 ) ),
+		];
 		$file_time = filemtime( $file_path );
-		$cache_key = 'svg_' . md5( $mode . '|' . self::normalize_path( $file_path ) . '|' . $file_size . '|' . (int) $file_time );
+		$cache_key = 'svg_' . md5( '2|' . $mode . '|' . self::normalize_path( $file_path ) . '|' . $file_size . '|' . (int) $file_time . '|' . implode( '|', $limits ) );
 		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
 
 		if ( is_array( $cached ) && array_key_exists( 'svg', $cached ) ) {
@@ -235,14 +240,14 @@ class Marrison_Addon_Dynamic_SVG {
 		}
 
 		$raw_svg = file_get_contents( $file_path );
-		$svg     = is_string( $raw_svg ) ? self::sanitize_svg( $raw_svg, $current_color ) : '';
+		$svg     = is_string( $raw_svg ) ? self::sanitize_svg( $raw_svg, $current_color, $limits ) : '';
 
 		wp_cache_set( $cache_key, [ 'svg' => $svg ], self::CACHE_GROUP );
 
 		return $svg;
 	}
 
-	private static function sanitize_svg( $raw_svg, $current_color ) {
+	private static function sanitize_svg( $raw_svg, $current_color, $limits ) {
 		if ( ! is_string( $raw_svg ) || '' === trim( $raw_svg ) || ! class_exists( 'DOMDocument' ) ) {
 			return '';
 		}
@@ -279,6 +284,9 @@ class Marrison_Addon_Dynamic_SVG {
 		}
 
 		$root = $document->documentElement;
+		if ( ! self::is_within_complexity_limits( $root, $limits ) ) {
+			return '';
+		}
 
 		self::sanitize_node( $root, $current_color );
 
@@ -289,6 +297,24 @@ class Marrison_Addon_Dynamic_SVG {
 		$svg = $document->saveXML( $root );
 
 		return is_string( $svg ) ? trim( $svg ) : '';
+	}
+
+	private static function is_within_complexity_limits( DOMNode $root, array $limits ) {
+		$nodes = 0;
+		$stack = [ [ $root, 1 ] ];
+
+		while ( $stack ) {
+			list( $node, $depth ) = array_pop( $stack );
+			$nodes += 1 + ( $node->hasAttributes() ? $node->attributes->length : 0 );
+			if ( $nodes > $limits['nodes'] || $depth > $limits['depth'] ) {
+				return false;
+			}
+			for ( $child = $node->lastChild; $child; $child = $child->previousSibling ) {
+				$stack[] = [ $child, $depth + 1 ];
+			}
+		}
+
+		return true;
 	}
 
 	private static function sanitize_node( DOMNode $node, $current_color ) {

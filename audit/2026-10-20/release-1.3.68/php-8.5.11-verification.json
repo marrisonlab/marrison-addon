@@ -1,0 +1,518 @@
+{
+  "php": "8.5.11",
+  "wordpress_native_api_fixture": "7.1.2",
+  "suites": [
+    {
+      "suite": "browser-cache-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Browser Cache settings/rules/diagnostics/admin contracts: PASS\n"
+    },
+    {
+      "suite": "calendar-sync-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Calendar Sync: local DST, explicit offsets, seconds/milliseconds and invalid dates PASS.\n"
+    },
+    {
+      "suite": "cookie-auto-scan-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "PASS automatic scan: deferred visitor execution, no duplicate schedules, due/default/daily/bounded intervals, disable cleanup, re-enable and manual independence\n"
+    },
+    {
+      "suite": "cookie-consent-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "PASS cookie quoted/unquoted src and module type, entities, nonce and selective consent\n"
+    },
+    {
+      "suite": "cookie-consent-store-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "PASS consent store: signed/expired/tampered states, stable revisions, random visitor IDs, withdrawals, refusal migration, snapshot/journal integrity, auth-key rotation, authorization/origin/path guards, retention and protected files without IP\n"
+    },
+    {
+      "suite": "cookie-engine-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "PASS expiration: Expires/Max-Age/precedence/session/unknown, timestamps, malformed headers, path/domain, existing records/categories, DB failure and JSON file round-trip\nPASS observed-only scan: 432 synthetic rows removed, admin filtering, DB/JSON deduplication, per-domain/path identity, manual categories, null expiration, repeated/empty scans and failure diagnostics\nPASS representative sampling: 207 candidate URLs (100 articles + 100 CPT entries + template/provider/archive variants), 9 HTTP samples, 18 browser passes, 198 equivalent URLs avoided, explicit extra URL, export reasons and legacy-job guard\nPASS progressive cookie engine: recursive crawl, scope/redirect guards, no admin cookies, signed before/after browser reports, real JSON locks, privacy, normalized inventory, page limits, cancellation and authorization\n"
+    },
+    {
+      "suite": "cookie-expiration-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "PASS expiration: Expires/Max-Age/precedence/session/unknown, timestamps, malformed headers, path/domain, existing records/categories, DB failure and JSON file round-trip\n"
+    },
+    {
+      "suite": "cookie-expiration-php-test.php",
+      "args": [
+        "C:/Users/Angelo/Local Sites/tesy/app/public/wp-includes/class-wp-http-cookie.php"
+      ],
+      "exit": 0,
+      "output": "PASS expiration: Expires/Max-Age/precedence/session/unknown, timestamps, malformed headers, path/domain, existing records/categories, DB failure and JSON file round-trip\n"
+    },
+    {
+      "suite": "cookie-observed-scan-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "PASS expiration: Expires/Max-Age/precedence/session/unknown, timestamps, malformed headers, path/domain, existing records/categories, DB failure and JSON file round-trip\nPASS observed-only scan: 432 synthetic rows removed, admin filtering, DB/JSON deduplication, per-domain/path identity, manual categories, null expiration, repeated/empty scans and failure diagnostics\n"
+    },
+    {
+      "suite": "cookie-policy-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "PASS cookie policy: legacy/generated, fresh/empty scan, escaping, no cookie values, no duplication, context isolation, disabled banner and Italian/English\n"
+    },
+    {
+      "suite": "cookie-shortcodes-php-test.php",
+      "args": [
+        "C:/Users/Angelo/Local Sites/tesy/app/public"
+      ],
+      "exit": 0,
+      "output": "PASS policy shortcodes: native WordPress parsing/hooks, full Privacy/Cookie content, live scan, legacy table, configured URLs, no page creation, wizard persistence and authorization\n"
+    },
+    {
+      "suite": "cookie-update-notice-php-test.php",
+      "args": [
+        "C:/Users/Angelo/Local Sites/tesy/app/public"
+      ],
+      "exit": 0,
+      "output": "PASS cookie update notice: upgrade/fresh install, persistence, active/capability guards, IT/EN, scanner link, old/incomplete/failed scans and completed/partial acknowledgment.\n"
+    },
+    {
+      "suite": "dynamic-background-editor-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Dynamic background editor assets: 8 assertions PASS\n"
+    },
+    {
+      "suite": "dynamic-svg-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Dynamic SVG PHP contract: PASS\n"
+    },
+    {
+      "suite": "horizontal-scroll-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Horizontal scroll PHP contract: PASS\n"
+    },
+    {
+      "suite": "image-sizes-frontend-regression-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Image Sizes frontend/LCP/cache/partial errors: PASS\n"
+    },
+    {
+      "suite": "image-sizes-modern-upload-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Image Sizes automatic/full/selected-size/SVG skip regeneration: PASS\n[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=1012 format=avif size=partial reason=Conversione immagine fallita.\n[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=1021 format=webp size=full reason=Impossibile leggere l'immagine.\n[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=1021 format=avif size=full reason=Impossibile leggere l'immagine.\n[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=1021 format=webp size=broken reason=Impossibile leggere l'immagine.\n[Marrison Addon Image Sizes] Generazione formato moderno fallita: attachment_id=1021 format=avif size=broken reason=Impossibile leggere l'immagine.\n"
+    },
+    {
+      "suite": "image-sizes-settings-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Image Sizes settings/slug collisions/proportions/public resolver bounds: PASS\n"
+    },
+    {
+      "suite": "inline-css-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Inline CSS guards/core contract: PASS (51 checks; official core: not loaded)\n"
+    },
+    {
+      "suite": "liquid-background-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Liquid background PHP contract: PASS\n"
+    },
+    {
+      "suite": "local-google-fonts-parser-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Local Google Fonts parser tests passed.\n"
+    },
+    {
+      "suite": "module-definitions-i18n-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Module definitions i18n contract: PASS\n"
+    },
+    {
+      "suite": "module-lifecycle-php-test.php",
+      "args": [
+        "C:/Users/Angelo/Local Sites/tesy/app/public"
+      ],
+      "exit": 0,
+      "output": "PASS module lifecycle: 24 OFF, single/bulk/direct writes, CSS invalidation, cron with args, server cleanup/errors, snippet capabilities and plugin deactivation.\n"
+    },
+    {
+      "suite": "php-snippets-menu-php-test.php",
+      "args": [
+        "C:/Users/Angelo/Local Sites/tesy/app/public",
+        "normal"
+      ],
+      "exit": 0,
+      "output": "PHP Snippets native menu/access: PASS (normal; am-addon_page_marrison_addon_php_snippets).\n"
+    },
+    {
+      "suite": "php-snippets-menu-php-test.php",
+      "args": [
+        "C:/Users/Angelo/Local Sites/tesy/app/public",
+        "no-unfiltered"
+      ],
+      "exit": 0,
+      "output": "PHP Snippets native menu/access: PASS (no-unfiltered; am-addon_page_marrison_addon_php_snippets).\n"
+    },
+    {
+      "suite": "php-snippets-menu-php-test.php",
+      "args": [
+        "C:/Users/Angelo/Local Sites/tesy/app/public",
+        "no-manage"
+      ],
+      "exit": 0,
+      "output": "PHP Snippets native menu/access: PASS (no-manage; am-addon_page_marrison_addon_php_snippets).\n"
+    },
+    {
+      "suite": "php-snippets-menu-php-test.php",
+      "args": [
+        "C:/Users/Angelo/Local Sites/tesy/app/public",
+        "disabled"
+      ],
+      "exit": 0,
+      "output": "PHP Snippets native menu/access: PASS (disabled; am-addon_page_marrison_addon_php_snippets).\n"
+    },
+    {
+      "suite": "php-snippets-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "PHP Snippets: PASS (100 checks; CRUD/capabilities/nonces/scopes/early hooks/shortcode/JetEngine contract/native fatal processes/retry/recovery).\n"
+    },
+    {
+      "suite": "product-discount-queue-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Product Discount queue/WP-Cron: PASS\n"
+    },
+    {
+      "suite": "product-discount-queue-test.php",
+      "args": [
+        "--as"
+      ],
+      "exit": 0,
+      "output": "Product Discount queue/Action Scheduler: PASS\n"
+    },
+    {
+      "suite": "read-more-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Read More PHP contract: PASS\n"
+    },
+    {
+      "suite": "ticker-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Ticker: shared conditional CSS, multiple instances, direction/pause and escaped output PASS.\n"
+    },
+    {
+      "suite": "updater-layout-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "PASS updater layouts, collision, missing entry, failed move and unrelated plugin\n"
+    },
+    {
+      "suite": "video-thumbnail-php-test.php",
+      "args": [],
+      "exit": 0,
+      "output": "Video Thumbnail: 35 checks passed (local binary fixtures, no real frame extraction).\n"
+    },
+    {
+      "suite": "video-thumbnail-php-test.php",
+      "args": [
+        "disable_functions=exec",
+        "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\tests\\video-thumbnail-php-test.php"
+      ],
+      "exit": 0,
+      "output": "Video Thumbnail: 24 checks passed (exec disabled).\n"
+    }
+  ],
+  "lint": [
+    {
+      "file": "marrison-addon\\includes\\admin\\class-marrison-addon-admin.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\admin\\class-marrison-addon-admin.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\class-marrison-addon-context.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\class-marrison-addon-context.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\class-marrison-addon-updater.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\class-marrison-addon-updater.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\browser-cache\\class-browser-cache-admin.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\browser-cache\\class-browser-cache-admin.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\browser-cache\\class-browser-cache-diagnostics.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\browser-cache\\class-browser-cache-diagnostics.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\browser-cache\\class-browser-cache-server.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\browser-cache\\class-browser-cache-server.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-anchor-offset.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-anchor-offset.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-browser-cache.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-browser-cache.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-calendar-sync.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-calendar-sync.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-cookie-manager.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-cookie-manager.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-cursor.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-cursor.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-dynamic-background-image-size.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-dynamic-background-image-size.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-dynamic-svg.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-dynamic-svg.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-fast-logout.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-fast-logout.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-header-animations.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-header-animations.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-horizontal-scroll.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-horizontal-scroll.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-image-sizes.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-image-sizes.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-inline-css.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-inline-css.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-liquid-background.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-liquid-background.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-listing-title.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-listing-title.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-local-google-fonts.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-local-google-fonts.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-php-snippets.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-php-snippets.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-preloader.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-preloader.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-product-discount.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-product-discount.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-read-more.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-read-more.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-recently-viewed-products.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-recently-viewed-products.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-steps.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-steps.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-ticker.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-ticker.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-video-thumbnail.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-video-thumbnail.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\class-marrison-addon-wrapped-link.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\class-marrison-addon-wrapped-link.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-admin-settings.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-admin-settings.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-consent-store.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-consent-store.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-banner.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-banner.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-consent.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-consent.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-scanner.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-scanner.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-policy-content.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-policy-content.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-scan-engine.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-scan-engine.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-scan-sampler.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-scan-sampler.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-setup-wizard.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-setup-wizard.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\templates\\admin-settings.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\admin-settings.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-banner.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-banner.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-policy.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-policy.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-preferences.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-preferences.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\templates\\floating-widget.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\floating-widget.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\templates\\policy-shortcodes.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\policy-shortcodes.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\cookie-manager\\templates\\setup-wizard.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\setup-wizard.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\php-snippets\\class-php-snippets-admin.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\php-snippets\\class-php-snippets-admin.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\php-snippets\\class-php-snippets-runtime.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\php-snippets\\class-php-snippets-runtime.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\php-snippets\\class-php-snippets-store.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\php-snippets\\class-php-snippets-store.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\product-discount\\widgets\\product-discount-widget.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\product-discount\\widgets\\product-discount-widget.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\recently-viewed-products\\macros\\recently-viewed-products.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\recently-viewed-products\\macros\\recently-viewed-products.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\steps\\includes\\class-marrison-steps-plugin.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\steps\\includes\\class-marrison-steps-plugin.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\steps\\includes\\widgets\\class-marrison-steps-widget.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\steps\\includes\\widgets\\class-marrison-steps-widget.php\n"
+    },
+    {
+      "file": "marrison-addon\\includes\\modules\\ticker\\widgets\\ticker-widget.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\ticker\\widgets\\ticker-widget.php\n"
+    },
+    {
+      "file": "marrison-addon\\marrison-addon.php",
+      "exit": 0,
+      "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\marrison-addon.php\n"
+    }
+  ]
+}

@@ -1,0 +1,334 @@
+{
+  "date": "2026-10-19",
+  "plugin_version": "1.3.66",
+  "site": "https://lightskyblue-ape-529924.hostingersite.com/",
+  "initial_modules": [
+    {
+      "enabled": true,
+      "key": "anchor_offset",
+      "reload": "false"
+    },
+    {
+      "enabled": true,
+      "key": "header_animations",
+      "reload": "false"
+    },
+    {
+      "enabled": true,
+      "key": "browser_cache",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "calendar_sync",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "cookie_manager",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "inline_css",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "cursor",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "image_sizes",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "dynamic_background_image_size",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "dynamic_svg",
+      "reload": "false"
+    },
+    {
+      "enabled": true,
+      "key": "fast_logout",
+      "reload": "false"
+    },
+    {
+      "enabled": true,
+      "key": "read_more",
+      "reload": "false"
+    },
+    {
+      "enabled": true,
+      "key": "liquid_background",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "local_google_fonts",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "php_snippets",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "preloader",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "product_discount",
+      "reload": "false"
+    },
+    {
+      "enabled": true,
+      "key": "horizontal_scroll",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "steps",
+      "reload": "false"
+    },
+    {
+      "enabled": true,
+      "key": "ticker",
+      "reload": "false"
+    },
+    {
+      "enabled": true,
+      "key": "listing_title",
+      "reload": "false"
+    },
+    {
+      "enabled": true,
+      "key": "video_thumbnail",
+      "reload": "true"
+    },
+    {
+      "enabled": true,
+      "key": "recently_viewed_products",
+      "reload": "false"
+    },
+    {
+      "enabled": true,
+      "key": "wrapped_link",
+      "reload": "false"
+    }
+  ],
+  "all_on_assets": {
+    "markers": {
+      "banner": true,
+      "cursor": true,
+      "preloader": true,
+      "readMore": 0,
+      "scroll": 0
+    },
+    "scripts": [
+      {
+        "id": "marrison-cookie-runtime-config",
+        "inline": 1692,
+        "src": ""
+      },
+      {
+        "id": "marrison-cookie-runtime-js",
+        "inline": 0,
+        "src": "https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/includes/modules/cookie-manager/assets/js/consent-runtime.js?ver=20261019.2"
+      },
+      {
+        "id": "marrison-addon-read-more-js",
+        "inline": 0,
+        "src": "https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/assets/js/marrison-read-more.js?ver=1.3.66.1792426897"
+      },
+      {
+        "id": "marrison-anchor-offset-js",
+        "inline": 0,
+        "src": "https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/assets/js/marrison-anchor-offset.js?ver=1.3.66.1792426897"
+      },
+      {
+        "id": "marrison-cursor-js-extra",
+        "inline": 192,
+        "src": ""
+      },
+      {
+        "id": "marrison-cursor-js",
+        "inline": 0,
+        "src": "https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/assets/js/marrison-cursor.js?ver=1.3.66.1792426897"
+      },
+      {
+        "id": "marrison-preloader-js-extra",
+        "inline": 126,
+        "src": ""
+      },
+      {
+        "id": "marrison-preloader-js",
+        "inline": 0,
+        "src": "https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/assets/js/marrison-preloader.js?ver=1.3.66.1792426897"
+      },
+      {
+        "id": "marrison-cookie-frontend-js-extra",
+        "inline": 572,
+        "src": ""
+      },
+      {
+        "id": "marrison-cookie-frontend-js",
+        "inline": 0,
+        "src": "https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/includes/modules/cookie-manager/assets/js/frontend.js?ver=1.3.66.1792426897"
+      }
+    ],
+    "styles": [
+      {
+        "href": "",
+        "id": "marrison-addon-read-more-inline-css",
+        "inline": 929
+      },
+      {
+        "href": "",
+        "id": "marrison-cursor-inline-css",
+        "inline": 2969
+      },
+      {
+        "href": "https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/assets/css/marrison-preloader.css?ver=1.3.66.1792426897",
+        "id": "marrison-preloader-css",
+        "inline": 0
+      },
+      {
+        "href": "https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/includes/modules/cookie-manager/assets/css/frontend.css?ver=1.3.66.1792426897",
+        "id": "marrison-cookie-frontend-css",
+        "inline": 0
+      },
+      {
+        "href": "https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/includes/modules/steps/assets/css/marrison-steps.css?ver=1.3.66",
+        "id": "marrison-steps-css",
+        "inline": 0
+      },
+      {
+        "href": "",
+        "id": "marrison-anchor-offset-style",
+        "inline": 115
+      }
+    ]
+  },
+  "read_more_off": {
+    "scripts": [],
+    "styles": []
+  },
+  "all_off_assets": {
+    "markers": {
+      "banner": false,
+      "cursor": false,
+      "preloader": false
+    },
+    "scripts": [],
+    "styles": [],
+    "widgets": [
+      "heading.default"
+    ]
+  },
+  "restored_modules": [
+    {
+      "enabled": true,
+      "key": "anchor_offset"
+    },
+    {
+      "enabled": true,
+      "key": "header_animations"
+    },
+    {
+      "enabled": true,
+      "key": "browser_cache"
+    },
+    {
+      "enabled": true,
+      "key": "calendar_sync"
+    },
+    {
+      "enabled": true,
+      "key": "cookie_manager"
+    },
+    {
+      "enabled": true,
+      "key": "inline_css"
+    },
+    {
+      "enabled": true,
+      "key": "cursor"
+    },
+    {
+      "enabled": true,
+      "key": "image_sizes"
+    },
+    {
+      "enabled": true,
+      "key": "dynamic_background_image_size"
+    },
+    {
+      "enabled": true,
+      "key": "dynamic_svg"
+    },
+    {
+      "enabled": true,
+      "key": "fast_logout"
+    },
+    {
+      "enabled": true,
+      "key": "read_more"
+    },
+    {
+      "enabled": true,
+      "key": "liquid_background"
+    },
+    {
+      "enabled": true,
+      "key": "local_google_fonts"
+    },
+    {
+      "enabled": true,
+      "key": "php_snippets"
+    },
+    {
+      "enabled": true,
+      "key": "preloader"
+    },
+    {
+      "enabled": true,
+      "key": "product_discount"
+    },
+    {
+      "enabled": true,
+      "key": "horizontal_scroll"
+    },
+    {
+      "enabled": true,
+      "key": "steps"
+    },
+    {
+      "enabled": true,
+      "key": "ticker"
+    },
+    {
+      "enabled": true,
+      "key": "listing_title"
+    },
+    {
+      "enabled": true,
+      "key": "video_thumbnail"
+    },
+    {
+      "enabled": true,
+      "key": "recently_viewed_products"
+    },
+    {
+      "enabled": true,
+      "key": "wrapped_link"
+    }
+  ]
+}

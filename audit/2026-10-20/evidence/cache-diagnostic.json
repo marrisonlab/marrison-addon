@@ -1,0 +1,19 @@
+{
+  "rows": [
+    "CSS: frontend.css HTTP 200 Versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/jet-engine/assets/css/frontend.css?ver=3.9.0\n\tpublic, max-age=604800\tTue, 27 Oct 2026 13:40:26 GMT\t-\t-\t-\tOK OK",
+    "CSS: woocommerce-layout.css HTTP 200 Versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/css/woocommerce-layout.css?ver=11.2.1\n\tpublic, max-age=604800\tMon, 26 Oct 2026 16:31:31 GMT\t76135\t-\t-\tOK OK",
+    "CSS: woocommerce-smallscreen.css HTTP 200 Versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/css/woocommerce-smallscreen.css?ver=11.2.1\n\tpublic, max-age=604800\tMon, 26 Oct 2026 16:13:25 GMT\t77221\t-\t-\tOK OK",
+    "JS: consent-runtime.js HTTP 200 Versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/includes/modules/cookie-manager/assets/js/consent-runtime.js?ver=20261019.2\n\tpublic, max-age=604800\tTue, 27 Oct 2026 13:40:26 GMT\t-\t\"2a01-6ad76de5-1a61485c68492015;br\"\tTue, 20 Oct 2026 13:34:29 GMT\tOK OK",
+    "JS: jquery.min.js HTTP 200 Versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-includes/js/jquery/jquery.min.js?ver=3.7.1\n\tpublic, max-age=604800\tTue, 27 Oct 2026 13:40:26 GMT\t-\t\"15601-6991a593-b28f0a087548dd4c;br\"\tSun, 15 Feb 2026 10:53:07 GMT\tOK OK",
+    "JS: jquery-migrate.min.js HTTP 200 Versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1\n\tpublic, max-age=604800\tTue, 27 Oct 2026 13:40:26 GMT\t-\t\"3509-6991a593-3e21715307db6d7d;br\"\tSun, 15 Feb 2026 10:53:07 GMT\tOK OK",
+    "IMAGES: loader.svg HTTP 200 Non versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/images/icons/loader.svg\n\tpublic, max-age=604800\tTue, 27 Oct 2026 13:40:26 GMT\t-\tW/\"9e-6ad63ba1-64a34b9f881d7e07;;;\"\tMon, 19 Oct 2026 15:47:45 GMT\tOK OK",
+    "IMAGES: visa.svg HTTP 200 Non versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/images/icons/credit-cards/visa.svg\n\tpublic, max-age=604800\tTue, 27 Oct 2026 13:40:26 GMT\t-\t\"54f-6ad63ba1-86e56ef11e2a2341;br\"\tMon, 19 Oct 2026 15:47:45 GMT\tOK OK",
+    "IMAGES: mastercard.svg HTTP 200 Non versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/images/icons/credit-cards/mastercard.svg\n\tpublic, max-age=604800\tTue, 27 Oct 2026 13:40:26 GMT\t-\t\"121a-6ad63ba1-41a711b5bb2393a4;br\"\tMon, 19 Oct 2026 15:47:45 GMT\tOK OK",
+    "FONTS: WooCommerce.woff2 HTTP 200 Non versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/fonts/WooCommerce.woff2\n\tpublic, max-age=604800\tTue, 27 Oct 2026 13:40:26 GMT\t-\t\"1958-6ad63ba1-a12dfd16d5e00616;;;\"\tMon, 19 Oct 2026 15:47:45 GMT\tOK OK",
+    "FONTS: WooCommerce.woff HTTP 200 Non versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/fonts/WooCommerce.woff\n\t-\t-\t-\tW/\"1f94-6ad63ba1-dc43ed68c8390422;;;\"\tMon, 19 Oct 2026 15:47:45 GMT\tERRORE Header Cache-Control assente.",
+    "FONTS: WooCommerce.ttf HTTP 200 Non versionato\nhttps://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/fonts/WooCommerce.ttf\n\tpublic, max-age=604800\tMon, 26 Oct 2026 16:31:31 GMT\t76135\t\"399c-6ad63ba1-cb32c531afbd9e38;br\"\tMon, 19 Oct 2026 15:47:45 GMT\tOK OK"
+  ],
+  "status": [
+    "Uno o piu asset non hanno header cache sufficienti."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "on": {
+    "enabled": 24,
+    "extraNoticeAssets": [],
+    "notice": [
+      "Marrison Cookie Manager: Plugin aggiornato: è necessario eseguire una nuova scansione dei cookie. Apri scanner"
+    ]
+  },
+  "off": {
+    "cookieModuleAssets": [],
+    "enabled": 23,
+    "notice": []
+  }
+}

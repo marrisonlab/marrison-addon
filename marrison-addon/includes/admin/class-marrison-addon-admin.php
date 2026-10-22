@@ -86,6 +86,9 @@ class Marrison_Addon_Admin {
 
 		// Handle array updates if key is provided
 		$key = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : null;
+		if ( 'marrison_addon_modules' === $option_name && null === $key && ! is_array( $value ) ) {
+			wp_send_json_error( [ 'message' => __( 'Impostazioni dei moduli non valide.', 'marrison-addon' ) ] );
+		}
 		if ( 'marrison_addon_modules' === $option_name && ! current_user_can( 'unfiltered_html' ) ) {
 			$old_modules = get_option( 'marrison_addon_modules', [] );
 			if ( 'php_snippets' === $key || ( null === $key && ( ! empty( $value['php_snippets'] ) !== ! empty( $old_modules['php_snippets'] ) ) ) ) {
@@ -106,59 +109,22 @@ class Marrison_Addon_Admin {
 				$current_value[ $key ] = 0; // Or unset if preferred, but 0 is safer for checkboxes
 			}
 			
-			if ( 'marrison_addon_modules' === $option_name && 'browser_cache' === $key && empty( $current_value[ $key ] ) ) {
-				$cleanup_result = $this->cleanup_browser_cache_server_rules();
-				if ( is_wp_error( $cleanup_result ) ) {
-					wp_send_json_error( [ 'message' => $cleanup_result->get_error_message() ] );
-				}
-			}
-			update_option( $option_name, $current_value );
-			if ( class_exists( 'Marrison_Addon' ) ) {
-				Marrison_Addon::clear_runtime_caches();
-			}
-
-			if ( 'marrison_addon_modules' === $option_name ) {
-				// Also runs on OFF -> ON, before the new module has been loaded.
-				if ( 'dynamic_background_image_size' === $key ) {
-					delete_option( 'marrison_addon_dynamic_background_css_version' );
-					if ( isset( \Elementor\Plugin::$instance->files_manager ) ) {
-						\Elementor\Plugin::$instance->files_manager->clear_cache();
-					}
-				}
-				do_action( 'marrison_addon/module_status_changed', $key, ! empty( $current_value[ $key ] ) );
-			}
+			$expected = $current_value;
 		} else {
-			update_option( $option_name, $value );
+			$expected = $value;
+		}
+		if ( 'marrison_addon_modules' === $option_name ) {
+			$expected = marrison_addon_protect_php_snippets_toggle( $expected );
+		}
+		update_option( $option_name, $expected );
+		if ( 'marrison_addon_modules' === $option_name && is_wp_error( Marrison_Addon::get_module_update_error() ) ) {
+			wp_send_json_error( [ 'message' => Marrison_Addon::get_module_update_error()->get_error_message() ] );
+		}
+		if ( get_option( $option_name ) !== $expected ) {
+			wp_send_json_error( [ 'message' => __( 'Impostazioni non salvate. Verifica il database e riprova.', 'marrison-addon' ) ] );
 		}
 
 		wp_send_json_success( [ 'message' => 'Settings saved' ] );
-	}
-
-	private function cleanup_browser_cache_server_rules() {
-		$server_file = dirname( __DIR__ ) . '/modules/browser-cache/class-browser-cache-server.php';
-
-		if ( ! file_exists( $server_file ) ) {
-			return new WP_Error( 'browser_cache_module_missing', __( 'Modulo Browser Cache non trovato: rimozione delle regole non verificata.', 'marrison-addon' ) );
-		}
-
-		require_once $server_file;
-
-		if ( ! class_exists( 'Marrison_Addon_Browser_Cache_Server' ) ) {
-			return new WP_Error( 'browser_cache_module_unavailable', __( 'Browser Cache non disponibile: rimozione delle regole non verificata.', 'marrison-addon' ) );
-		}
-
-		$server = new Marrison_Addon_Browser_Cache_Server();
-		$result = $server->remove_htaccess_rules();
-
-		if ( is_wp_error( $result ) ) {
-			$server->update_state(
-				[
-					'status'  => 'error',
-					'message' => $result->get_error_message(),
-				]
-			);
-		}
-		return $result;
 	}
 
 	public function add_admin_menu() {
@@ -235,6 +201,7 @@ class Marrison_Addon_Admin {
 					$badge = '';
 
 					$missing_requirements = [];
+					$required_plugins = Marrison_Addon::module_required_plugins( $module );
 					if ( 'php_snippets' === $id && ! current_user_can( 'unfiltered_html' ) ) {
 						$missing_requirements[] = 'unfiltered_html';
 					}
@@ -252,43 +219,63 @@ class Marrison_Addon_Admin {
 					}
 
 					if ( ! empty( $missing_requirements ) ) {
+						$checked = '';
 						$is_disabled = true;
 						$disabled_attr = 'disabled';
-						$card_style = 'style="opacity: 0.6; filter: grayscale(100%); pointer-events: none;"';
-						$badge = '<span class="marrison-badge-error">' . sprintf(
-							/* translators: %s: Missing plugin names. */
-							esc_html__( 'Richiede %s', 'marrison-addon' ),
+						$card_style = '';
+						$badge = 'php_snippets' === $id ? '<span class="marrison-badge-error">' . sprintf(
+							/* translators: %s: required capability. */
+							esc_html__( 'Disabilitato: richiede il permesso %s.', 'marrison-addon' ),
 							esc_html( implode( ' + ', $missing_requirements ) )
-						) . '</span>';
+						) . '</span>' : '';
 					}
 				?>
-				<div class="marrison-module-card" <?php echo $card_style; ?>>
+				<div class="marrison-module-card" data-module="<?php echo esc_attr( $id ); ?>" <?php echo $card_style; ?>>
 					<div class="marrison-card-header">
 						<div class="marrison-card-heading">
 							<span class="dashicons <?php echo esc_attr( $icon ); ?> marrison-card-icon" aria-hidden="true"></span>
-							<h3 class="marrison-card-title"><?php echo esc_html( $module['title'] ); ?></h3>
+							<h3 class="marrison-card-title"><?php echo esc_html( $module['title'] ); ?><?php if ( ! empty( $module['beta'] ) ) : ?> <span class="marrison-module-beta"><?php echo esc_html__( 'Beta', 'marrison-addon' ); ?></span><?php endif; ?></h3>
 						</div>
+						<div class="marrison-module-actions">
+						<?php if ( ! empty( $module['settings_page'] ) ) : ?>
+							<?php if ( ! $is_disabled && $checked ) : ?>
+							<a class="marrison-module-settings" href="<?php echo esc_url( admin_url( 'admin.php?page=' . sanitize_key( $module['settings_page'] ) ) ); ?>" title="<?php echo esc_attr__( 'Impostazioni', 'marrison-addon' ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Impostazioni di %s', 'marrison-addon' ), $module['title'] ) ); ?>">
+								<span class="dashicons dashicons-admin-generic" aria-hidden="true"></span>
+							</a>
+							<?php else : ?>
+							<span class="marrison-module-settings is-disabled" aria-disabled="true" title="<?php echo esc_attr__( 'Attiva il modulo per aprire le impostazioni', 'marrison-addon' ); ?>"><span class="dashicons dashicons-admin-generic" aria-hidden="true"></span></span>
+							<?php endif; ?>
+						<?php endif; ?>
 						<label class="marrison-switch">
 							<input type="checkbox" 
 								   class="marrison-ajax-toggle" 
 								   data-option="marrison_addon_modules" 
 								   data-key="<?php echo esc_attr( $id ); ?>" 
 								   data-reload="<?php echo esc_attr( $reload ); ?>"
+								   aria-label="<?php echo esc_attr( sprintf( __( 'Abilita %s', 'marrison-addon' ), $module['title'] ) ); ?>"
+								   <?php if ( $required_plugins ) : ?>aria-describedby="marrison-module-requirements-<?php echo esc_attr( $id ); ?>"<?php endif; ?>
 								   <?php echo $checked; ?>
 								   <?php echo $disabled_attr; ?>>
 							<span class="marrison-slider"></span>
 						</label>
+						</div>
 					</div>
 					<p class="marrison-card-desc"><?php echo esc_html( $module['desc'] ); ?></p>
+					<?php if ( $required_plugins ) : ?>
+						<p class="marrison-module-requirements" id="marrison-module-requirements-<?php echo esc_attr( $id ); ?>">
+							<?php foreach ( $required_plugins as $required_plugin ) :
+								$dependency_active = [ 'Elementor' => $is_elementor_active, 'WooCommerce' => $is_woocommerce_active, 'JetEngine' => $is_jet_engine_active ][ $required_plugin ];
+								$dependency_status = $dependency_active ? __( 'Attivo', 'marrison-addon' ) : __( 'Assente o non attivo', 'marrison-addon' );
+							?>
+								<span class="marrison-module-dependency <?php echo $dependency_active ? 'is-active' : 'is-missing'; ?>" title="<?php echo esc_attr( $dependency_status ); ?>">
+									<span class="marrison-dependency-flag" aria-hidden="true"><?php echo $dependency_active ? '&#10003;' : '&#10005;'; ?></span>
+									<?php echo esc_html( $required_plugin ); ?><span class="screen-reader-text">: <?php echo esc_html( $dependency_status ); ?></span>
+								</span>
+							<?php endforeach; ?>
+						</p>
+					<?php endif; ?>
 					<?php if ( ! empty( $badge ) ) : ?>
 						<div style="margin-top: 10px;"><?php echo $badge; ?></div>
-					<?php endif; ?>
-					<?php if ( empty( $is_disabled ) && ! empty( $checked ) && ! empty( $module['settings_page'] ) ) : ?>
-						<p style="margin: 14px 0 0;">
-							<a class="button button-secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=' . sanitize_key( $module['settings_page'] ) ) ); ?>">
-								<?php echo esc_html__( 'Impostazioni', 'marrison-addon' ); ?>
-							</a>
-						</p>
 					<?php endif; ?>
 				</div>
 				<?php endforeach; ?>

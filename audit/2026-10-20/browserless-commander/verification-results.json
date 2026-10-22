@@ -1,0 +1,25 @@
+{
+  "package_integrity_and_source_parity": "PASS",
+  "real_token_absent_from_both_packages": true,
+  "local_commander_matches_package": true,
+  "real_browserless_ceris_test": {
+    "consent_verified": true,
+    "observed_cookies": 3,
+    "observed_third_party_cookies": 0,
+    "issues": 0,
+    "maps_resources_loaded": true
+  },
+  "wordpress_commander_end_to_end": {
+    "status": "PASS",
+    "http_samples": 10,
+    "browser_checks": 20,
+    "remote_requests": 10,
+    "issues": 0,
+    "consent_confirmed_every_page": true,
+    "observed_cookies": 3,
+    "observed_third_party_cookies": 0,
+    "cookie_values_stored": false,
+    "local_deployed_source_parity": true,
+    "elapsed_seconds": 208
+  }
+}

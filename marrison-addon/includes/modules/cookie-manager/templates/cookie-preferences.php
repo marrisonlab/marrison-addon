@@ -23,6 +23,7 @@ $current_consent = isset($_COOKIE['marrison_cookie_consent']) ? sanitize_text_fi
                         <input type="checkbox" 
                                class="marrison-pref-checkbox" 
                                data-category="<?php echo esc_attr($key); ?>"
+                               aria-label="<?php echo esc_attr($category['name']); ?>"
                                <?php checked($checked_by_default, true); ?>
                                <?php disabled($category['required'], true); ?>>
                         <span class="marrison-slider"></span>

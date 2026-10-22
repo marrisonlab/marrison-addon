@@ -12,6 +12,9 @@
     var progress = 0;
     var progressTimer = null;
     var fallbackTimer = null;
+    var hideTimer = null;
+    var navigationTimer = null;
+    var exitSequence = 0;
     var duration = 500;
     var maxWait = 8000;
 
@@ -53,9 +56,15 @@
     }
 
     function showPreloaderForExit() {
+        var sequence = ++exitSequence;
+        window.clearTimeout(hideTimer);
+        preloader.hidden = false;
         preloader.classList.add('marrison-enter');
 
         window.requestAnimationFrame(function() {
+            if (sequence !== exitSequence) {
+                return;
+            }
             preloader.classList.remove('marrison-loaded');
             void preloader.offsetWidth;
             preloader.classList.remove('marrison-enter');
@@ -85,7 +94,7 @@
         }
 
         updateProgress(100);
-        window.setTimeout(function() {
+        hideTimer = window.setTimeout(function() {
             preloader.classList.add('marrison-loaded');
         }, 250);
     }
@@ -137,7 +146,7 @@
             updateProgress(0);
         }
 
-        window.setTimeout(function() {
+        navigationTimer = window.setTimeout(function() {
             window.location.href = link.href;
         }, getExitDelay());
     });
@@ -146,12 +155,31 @@
         showPreloaderForExit();
     });
 
+    window.addEventListener('pageshow', function(event) {
+        if (!event.persisted) {
+            return;
+        }
+        exitSequence++;
+        window.clearTimeout(navigationTimer);
+        window.clearTimeout(hideTimer);
+        window.clearTimeout(fallbackTimer);
+        window.clearInterval(progressTimer);
+        progressTimer = null;
+        preloader.classList.remove('marrison-enter');
+        preloader.classList.add('marrison-loaded');
+        preloader.hidden = true;
+        updateProgress(100);
+    });
+
     if (document.readyState === 'complete') {
+        preloader.classList.add('marrison-loaded');
         hidePreloader();
     } else {
         window.addEventListener('load', hidePreloader, { once: true });
+        startProgressSimulation();
+        fallbackTimer = window.setTimeout(hidePreloader, Math.max(3000, maxWait));
     }
 
-    startProgressSimulation();
-    fallbackTimer = window.setTimeout(hidePreloader, Math.max(3000, maxWait));
+    // Markup stays hidden if this file cannot run (network, CSP or disabled JS).
+    preloader.hidden = false;
 })();

@@ -78,6 +78,9 @@ class Marrison_Addon_Browser_Cache_Admin {
 			$this->sync_server_configuration( true );
 			return;
 		}
+		if ( method_exists( 'Marrison_Addon', 'module_effects_were_cleaned' ) && Marrison_Addon::module_effects_were_cleaned( $module_id ) ) {
+			return;
+		}
 
 		$result = $this->server->remove_htaccess_rules();
 

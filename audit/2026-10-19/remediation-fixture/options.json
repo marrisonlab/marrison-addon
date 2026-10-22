@@ -1,0 +1,10 @@
+{
+  "marrison_cookie_consent_duration": 184,
+  "marrison_cookie_analytics_sources": "/tracking/",
+  "marrison_cookie_marketing_sources": "/ads/",
+  "marrison_cookie_show_banner": true,
+  "marrison_cookie_button_background_color": "#345678",
+  "marrison_cookie_button_text_color": "#fefefe",
+  "marrison_cookie_privacy_policy_content": "<h1>Privacy Policy</h1><p>Contenuto di prova.</p>",
+  "marrison_cookie_cookie_policy_content": "<h1>Cookie Policy</h1><p>Servizi di prova.</p>"
+}

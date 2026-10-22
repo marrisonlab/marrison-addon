@@ -13,6 +13,9 @@
         },
 
         bindEvents: function() {
+            $(document).on('click', '#marrison-receipts-load', function() { MarrisonCookieAdmin.receiptsOffset = 0; MarrisonCookieAdmin.loadReceipts(false); });
+            $(document).on('click', '#marrison-receipts-next', function() { MarrisonCookieAdmin.loadReceipts(false); });
+            $(document).on('click', '#marrison-receipts-export', function() { MarrisonCookieAdmin.receiptsOffset = 0; MarrisonCookieAdmin.loadReceipts(true); });
             $(document).on('click', '.marrison-copy-shortcode', function() {
                 MarrisonCookieAdmin.copyShortcode(this);
             });
@@ -49,6 +52,65 @@
                 e.preventDefault();
                 MarrisonCookieAdmin.updateCookieCategory($(this).data('cookie-id'), $(this).val());
             });
+        },
+
+        loadReceipts: async function(exportAll) {
+            var rows = [], snapshots = {}, snapshotIntegrity = {}, offset = this.receiptsOffset || 0;
+            var date = $('#marrison-receipt-date').val();
+            var $buttons = $('#marrison-receipts-load, #marrison-receipts-next, #marrison-receipts-export, #marrison-receipt-date');
+            $buttons.prop('disabled', true);
+            $('#marrison-receipts-status').text('Lettura ricevute…');
+            try {
+                do {
+                    var response = await $.ajax({ url: marrisonCookieAdmin.ajaxUrl, type: 'POST', data: { action: 'marrison_cookie_consent_receipts', nonce: marrisonCookieAdmin.nonce, date: date, offset: offset } });
+                    if (!response.success) { throw new Error(response.data && response.data.message || 'Lettura delle ricevute non riuscita.'); }
+                    rows = rows.concat(response.data.receipts);
+                    Object.assign(snapshots, response.data.snapshots);
+                    Object.assign(snapshotIntegrity, response.data.snapshot_integrity);
+                    offset = response.data.next_offset;
+                    $('#marrison-receipts-status').text(rows.length + ' ricevute lette.');
+                } while (exportAll && offset !== null);
+                this.receiptsOffset = offset;
+                $('#marrison-receipts-next').prop('hidden', offset === null);
+                this.renderReceipts(rows, snapshots, snapshotIntegrity);
+                if (exportAll) {
+                    var url = URL.createObjectURL(new Blob([JSON.stringify({ date: date, receipts: rows, snapshots: snapshots, snapshot_integrity: snapshotIntegrity }, null, 2)], { type: 'application/json' }));
+                    var link = document.createElement('a'); link.href = url; link.download = 'cookie-consent-' + date + '.json'; link.click();
+                    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+                }
+            } catch (error) { $('#marrison-receipts-status').text(error.message || 'Errore di connessione.'); }
+            finally { $buttons.prop('disabled', false); }
+        },
+
+        renderReceipts: function(rows, snapshots, snapshotIntegrity) {
+            var $view = $('#marrison-receipts-result').empty();
+            if (!rows.length) { $('<p>').text('Nessuna ricevuta registrata in questa giornata.').appendTo($view); return; }
+            var types = { accept_all: 'Tutti accettati', reject_all: 'Solo necessari', custom: 'Scelta personalizzata' };
+            var categories = { necessary: 'Necessari', functional: 'Funzionali', analytics: 'Analitici', marketing: 'Marketing' };
+            var events = { choice: 'Scelta del visitatore', withdrawal: 'Consenso ridotto o revocato', legacy_refusal: 'Rifiuto precedente conservato' };
+            var $table = $('<table>').addClass('widefat striped');
+            var $head = $('<tr>');
+            ['Data e ora', 'Scelta e categorie', 'Validità', 'Verifica'].forEach(function(label) { $('<th>').attr('scope', 'col').text(label).appendTo($head); });
+            $('<thead>').append($head).appendTo($table);
+            var $body = $('<tbody>').appendTo($table);
+            rows.forEach(function(row) {
+                var $row = $('<tr>').appendTo($body);
+                $('<td>').text(MarrisonCookieAdmin.formatDate(row.created_at)).appendTo($row);
+                var $choice = $('<td>').appendTo($row);
+                $('<strong>').text(types[row.type] || 'Scelta non riconosciuta').appendTo($choice);
+                $('<p>').text((row.categories || []).map(function(key) { return categories[key] || key; }).join(', ')).appendTo($choice);
+                var $details = $('<details>').appendTo($choice);
+                $('<summary>').text('Dettagli della ricevuta').appendTo($details);
+                var snapshot = snapshots[row.policy_revision];
+                var facts = [events[row.event] || row.event, 'Ricevuta: ' + row.receipt_id, 'Visitatore (codice casuale): ' + row.visitor_id,
+                    'Revisione informativa: ' + (snapshot && snapshot.revision_label || 'non disponibile')];
+                if (snapshot && snapshot.privacy_profile && snapshot.privacy_profile.controller_name) { facts.push('Titolare: ' + snapshot.privacy_profile.controller_name); }
+                facts.forEach(function(text) { $('<p>').text(text).appendTo($details); });
+                $('<td>').text('Fino al ' + MarrisonCookieAdmin.formatDate(row.expires_at)).appendTo($row);
+                var intact = row.integrity_valid === true && snapshotIntegrity[row.policy_revision] === true;
+                $('<td>').text(intact ? 'Ricevuta e informativa integre' : 'Integrità non confermata: verifica necessaria').addClass(intact ? 'marrison-receipt-valid' : 'marrison-receipt-invalid').appendTo($row);
+            });
+            $table.appendTo($view);
         },
 
         copyShortcode: function(button) {
@@ -280,7 +342,7 @@
                         '<td>' + MarrisonCookieAdmin.escapeHtml(cookie.cookie_domain) + '<br><small>Path: ' + MarrisonCookieAdmin.escapeHtml(cookie.cookie_path || '/') + '</small></td>' +
                         '<td>' + MarrisonCookieAdmin.escapeHtml(cookie.cookie_expiration_status === 'session' ? 'Sessione' : (cookie.cookie_expiration ? MarrisonCookieAdmin.formatDate(cookie.cookie_expiration.replace(' ', 'T') + 'Z') : 'Non disponibile')) + '</td>' +
                         '<td>' + MarrisonCookieAdmin.renderEvidence(cookie) + '</td>' +
-                        '<td>' + MarrisonCookieAdmin.formatDate(cookie.scan_date) + '</td>' +
+                        '<td>' + MarrisonCookieAdmin.formatDate(cookie.scan_date) + (cookie.observation_stale ? '<br><small>Osservazione da aggiornare (oltre 30 giorni)</small>' : '') + '</td>' +
                         '<td><div class="marrison-cookie-actions">' +
                             '<select class="marrison-category-select" data-cookie-id="' + parseInt(cookie.id, 10) + '">' + selectedOptions + '</select>' +
                             '<button class="marrison-btn-delete" data-cookie-id="' + parseInt(cookie.id, 10) + '">Elimina</button>' +

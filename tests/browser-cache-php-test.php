@@ -82,6 +82,10 @@ try {
 	$options[$server::OPTION_SETTINGS] = $settings;
 	$rules = $server->build_htaccess_rules();
 	check( false !== strpos( $rules, '%{QUERY_STRING}' ) && false !== strpos( $rules, '-f %{REQUEST_FILENAME}' ) && false === strpos( $rules, 'ExpiresByType' ), 'Apache must distinguish queries and avoid caching dynamic MIME responses.' );
+	foreach ( array( 'woff', 'woff2', 'ttf' ) as $font_extension ) {
+		check( 'fonts' === $server->get_asset_type_from_url( home_url( '/font.' . $font_extension ) ), 'The WOFF family must be classified as fonts.' );
+		check( in_array( $font_extension, $server->get_asset_extensions(), true ) && strpos( $rules, $font_extension ) !== false, 'Font extensions must be included in Apache header rules.' );
+	}
 	file_put_contents( $root . '/.htaccess', "# Original WordPress rules\nRewriteEngine On\n" );
 	$_SERVER['SERVER_SOFTWARE'] = 'Apache';
 	check( $server->apply_htaccess_rules() === true && $server->get_state()['status'] === 'pending_verification', 'Writing rules must require real-header verification.' );
@@ -96,16 +100,7 @@ try {
 	check( $server->remove_htaccess_rules() === true && ! $server->htaccess_has_rules(), 'Disabling must remove only the managed block.' );
 	file_put_contents( $root . '/.htaccess', $server::BEGIN_MARKER . "\n# incomplete\n" );
 	check( is_wp_error( $server->apply_htaccess_rules() ) && is_wp_error( $server->remove_htaccess_rules() ), 'Incomplete blocks must fail without declaring success.' );
-	$options['marrison_addon_modules'] = [ 'browser_cache' => 1, 'image_sizes' => 1 ];
-	$_POST = [ 'option_name' => 'marrison_addon_modules', 'key' => 'browser_cache', 'value' => 'false' ];
-	$general_admin = ( new ReflectionClass( 'Marrison_Addon_Admin' ) )->newInstanceWithoutConstructor();
-	try { $general_admin->ajax_save_option(); } catch ( Json_Response $response ) {
-		check( ! $response->success && 1 === $options['marrison_addon_modules']['browser_cache'], 'Cleanup failure must not report successful disabling or change the toggle.' );
-	}
-	file_put_contents( $root . '/.htaccess', "# Original WordPress rules\n" );
-	try { $general_admin->ajax_save_option(); } catch ( Json_Response $response ) {
-		check( $response->success && 0 === $options['marrison_addon_modules']['browser_cache'] && 1 === $options['marrison_addon_modules']['image_sizes'], 'Successful cleanup must disable Browser Cache without changing other modules.' );
-	}
+	// Real option hooks and AJAX lifecycle are exercised by module-lifecycle-php-test.php.
 	$_POST = [];
 	$_SERVER['SERVER_SOFTWARE'] = 'nginx';
 	$nginx = $server->build_nginx_config();

@@ -16,6 +16,10 @@
     transition: opacity var(--marrison-preloader-transition-duration) ease, visibility var(--marrison-preloader-transition-duration) ease;
 }
 
+#marrison-preloader[hidden] {
+    display: none;
+}
+
 #marrison-preloader.marrison-loaded {
     opacity: 0;
     visibility: hidden;

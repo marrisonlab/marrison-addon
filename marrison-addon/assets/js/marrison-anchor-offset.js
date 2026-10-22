@@ -103,6 +103,15 @@
             return;
         }
 
+        var targetName = (link.getAttribute('target') || '').toLowerCase();
+        var baseTarget = document.querySelector('base[target]');
+        if (!link.hasAttribute('target') && baseTarget) {
+            targetName = (baseTarget.getAttribute('target') || '').toLowerCase();
+        }
+        if (link.hasAttribute('download') || (targetName && targetName !== '_self')) {
+            return;
+        }
+
         var url;
 
         try {

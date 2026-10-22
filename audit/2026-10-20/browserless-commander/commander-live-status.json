@@ -1,0 +1,17 @@
+{
+  "status": {
+    "http": 200,
+    "body": {
+      "success": true,
+      "protocol": 1,
+      "enabled": true
+    }
+  },
+  "invalid_proof": {
+    "http": 403,
+    "body": {
+      "success": false,
+      "error": "Il sito non conferma questa scansione attiva."
+    }
+  }
+}

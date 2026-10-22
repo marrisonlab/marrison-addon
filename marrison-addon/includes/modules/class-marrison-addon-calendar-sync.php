@@ -323,9 +323,18 @@ class Marrison_Addon_Calendar_Sync {
 			return $timestamp;
 		}
 
-		$timestamp = strtotime( (string) $value );
+		if ( ! is_scalar( $value ) || '' === trim( (string) $value ) ) {
+			return false;
+		}
 
-		return $timestamp ?: false;
+		try {
+			// PHP's default timezone can be UTC even when WordPress uses a local zone.
+			// An explicit offset in the value still takes precedence over this default.
+			$date = new DateTimeImmutable( (string) $value, $this->get_site_timezone() );
+			return $date->getTimestamp();
+		} catch ( Exception $exception ) {
+			return false;
+		}
 	}
 
 	private function format_utc( $timestamp ) {

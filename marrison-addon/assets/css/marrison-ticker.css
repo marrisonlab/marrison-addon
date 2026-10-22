@@ -1,0 +1,29 @@
+.elementor-widget-ticker .ticker-wrapper {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.elementor-widget-ticker .ticker-move,
+.elementor-widget-ticker .ticker-loop-inner {
+    display: inline-block;
+}
+
+.elementor-widget-ticker .ticker-move {
+    white-space: nowrap;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+.elementor-widget-ticker .ticker-pause-hover:hover {
+    animation-play-state: paused !important;
+}
+
+@keyframes ticker-infinite-left {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes ticker-infinite-right {
+    from { transform: translate3d(-50%, 0, 0); }
+    to { transform: translate3d(0, 0, 0); }
+}

@@ -8,7 +8,12 @@ define('MARRISON_COOKIE_PLUGIN_DIR', __DIR__ . '/../marrison-addon/includes/modu
 require ABSPATH . 'wp-includes/plugin.php';
 require ABSPATH . 'wp-includes/shortcodes.php';
 
-$options = array('marrison_wizard_current_step' => 5, 'marrison_cookie_show_banner' => false);
+$options = array('marrison_wizard_current_step' => 5, 'marrison_cookie_show_banner' => false,
+    'marrison_cookie_privacy_policy_content' => '<h1>Privacy Policy</h1><p>Test &lt;Site&gt;: informativa approvata.</p>',
+    'marrison_cookie_cookie_policy_content' => '<h1>Cookie Policy</h1><p>Testo cookie approvato per questo sito.</p>');
+$options['marrison_cookie_privacy_profile'] = array(
+    'controller_name' => 'Test & Site', 'controller_address' => 'Via Esempio 1, Italia', 'controller_email' => 'privacy@example.test',
+    'contact_enabled' => true, 'logs_enabled' => true, 'logs_retention' => '30 giorni', 'recipients' => 'Hosting ed email', 'transfers' => 'none');
 $english = false;
 $can_manage = true;
 $post_content = '';
@@ -65,10 +70,12 @@ function ajax($action, $data) {
 }
 class Marrison_Cookie_Scanner {
     public static $cookies = array();
+    public static function auto_scan_enabled() { return get_option('marrison_cookie_auto_scan', false) && get_option('marrison_cookie_auto_scan_confirmed', false); }
     public static function get_instance() { return new self(); }
     public function get_cookies() { return self::$cookies; }
     public function get_categories() { return array('necessary' => 'Necessari'); }
 }
+require __DIR__ . '/cookie-test-support.php';
 require MARRISON_COOKIE_PLUGIN_DIR . 'includes/class-cookie-banner.php';
 require MARRISON_COOKIE_PLUGIN_DIR . 'includes/class-setup-wizard.php';
 $banner = Marrison_Cookie_Banner::get_instance();
@@ -104,23 +111,25 @@ $shortcodes_tab = ob_get_clean();
 verify(strpos($shortcodes_tab, 'tab=shortcodes') !== false && substr_count($shortcodes_tab, 'class="marrison-shortcode-value"') === 3, 'Shortcode tab or copy fields missing');
 verify(strpos($shortcodes_tab, 'name="marrison_save_settings"') === false, 'Read-only shortcode tab exposes settings submission');
 unset($_GET['tab']);
+$_GET['tab'] = 'banner'; ob_start(); Marrison_Cookie_Admin_Settings::get_instance()->render_settings_page(); $banner_tab = ob_get_clean(); unset($_GET['tab']);
+verify(strpos($banner_tab, 'class="marrison-shortcode-value"') === false, 'Banner still duplicates shortcode controls');
 
 verify(shortcode_exists('marrison_privacy_policy') && shortcode_exists('marrison_cookie_policy_content') && shortcode_exists('marrison_cookie_policy'), 'Public policy shortcodes missing');
 foreach (array(false, true) as $locale) {
     $english = $locale;
     $privacy = do_shortcode('[marrison_privacy_policy]');
     $cookie = do_shortcode('[marrison_cookie_policy_content]');
-    verify(strpos($privacy, '<h1>Privacy Policy</h1>') !== false && strpos($privacy, 'Test &lt;Site&gt;') !== false, 'Privacy content or escaping missing');
-    verify(strpos($privacy, $locale ? 'Introduction' : 'Introduzione') !== false, 'Privacy language missing');
-    verify(strpos($cookie, $locale ? 'What cookies are' : 'Cosa sono i cookie') !== false && strpos($cookie, 'current_scan') !== false, 'Full Cookie Policy or current scan missing');
+    verify(strpos($privacy, '<strong>Privacy Policy</strong>') !== false && strpos($privacy, 'Test &amp; Site') !== false, 'Generated privacy or escaping missing');
+    verify(!preg_match('/<h[1-6]\b/i', $privacy . $cookie), 'Shortcodes must not produce headings');
+    verify(stripos($cookie, 'localStorage') !== false && strpos($cookie, 'current_scan') !== false, 'Generated Cookie Policy or current scan missing');
     verify(substr_count($cookie, 'class="marrison-cookie-policy-details"') === 1 && strpos($cookie, '[marrison_cookie_policy]') === false, 'Nested shortcode did not render once');
     verify(strpos($cookie, 'PRIVATE_VALUE') === false && strpos($cookie, '<script>bad') === false, 'Sensitive/unsafe cookie metadata published');
     verify(strpos($privacy . $cookie, 'href=""') === false, 'Unconfigured policy URL generated an empty link');
 }
 $options['marrison_cookie_privacy_policy_url'] = 'https://example.test/my-privacy';
 $options['marrison_cookie_cookie_policy_url'] = 'https://example.test/my-cookies';
-verify(strpos(do_shortcode('[marrison_privacy_policy]'), 'href="https://example.test/my-cookies"') !== false, 'Privacy ignores configured Cookie URL');
-verify(strpos(do_shortcode('[marrison_cookie_policy_content]'), 'href="https://example.test/my-privacy"') !== false, 'Cookie ignores configured Privacy URL');
+verify(strpos(do_shortcode('[marrison_privacy_policy]'), 'Test &amp; Site') !== false, 'Changing page URLs replaced generated policy content');
+verify(stripos(do_shortcode('[marrison_cookie_policy_content]'), 'localStorage') !== false, 'Changing page URLs replaced generated Cookie content');
 $table = do_shortcode('[marrison_cookie_policy]');
 verify(strpos($table, 'current_scan') !== false && strpos($table, '<h1>') === false, 'Legacy table shortcode changed its meaning');
 $before = $options;
@@ -131,10 +140,48 @@ verify($response->success && $options['marrison_cookie_privacy_policy_url'] === 
 $before = $options;
 $response = ajax('wp_ajax_marrison_wizard_finish', array('nonce' => 'fixture'));
 verify($response->success && $options === $before, 'Finishing without URL fields overwrote existing settings');
+$saved_profile = Marrison_Addon_Cookie_Policy_Content::profile();
+$options['marrison_cookie_privacy_profile'] = $saved_profile;
+$response = ajax('wp_ajax_marrison_wizard_save_step', array('nonce' => 'fixture', 'step' => 6, 'data' => array('current_step' => 6)));
+verify($response->success && $options['marrison_cookie_privacy_profile'] === $saved_profile, 'Skipping privacy changed the saved profile');
+$response = ajax('wp_ajax_marrison_wizard_save_step', array('nonce' => 'fixture', 'step' => 5, 'data' => array('privacy_profile' => $saved_profile + array('other_processing' => '<script>bad</script>Account: art. 6.1.b, 12 mesi'))));
+verify($response->success && strpos($options['marrison_cookie_privacy_profile']['other_processing'], '<script>') === false, 'Wizard profile was not sanitized/persisted');
+verify(Marrison_Setup_Wizard::get_instance()->get_total_steps() === 6, 'Optional privacy wizard step missing');
+$before = $options;
 $can_manage = false;
 $response = ajax('wp_ajax_marrison_wizard_finish', array('nonce' => 'fixture', 'data' => array('cookie_policy_url' => 'https://example.test/unapproved')));
 verify(!$response->success && $options === $before, 'Unauthorized wizard request changed URLs');
 $can_manage = true;
+// Every field is optional: empty and partial profiles must still render.
+$english = false;
+$profile_before = $options['marrison_cookie_privacy_profile'];
+foreach (array(array(), array('controller_name' => 'Example Controller'), array('controller_email' => 'privacy@example.test')) as $partial) {
+    $options['marrison_cookie_privacy_profile'] = $partial;
+    $partial_html = do_shortcode('[marrison_privacy_policy]');
+    verify(strpos($partial_html, 'non è ancora stata completata') === false && strpos($partial_html, 'Privacy Policy') !== false, 'An optional empty field blocked the shortcode');
+    foreach ($partial as $value) { verify(strpos($partial_html, $value) !== false, 'A populated field was omitted from the partial policy'); }
+    verify(strpos($partial_html, '4. Trasferimenti internazionali') === false && strpos($partial_html, 'artt. 46') === false, 'An unspecified transfer was presented as declared');
+    verify(strpos($partial_html, 'Conservazione: </li>') === false && strpos($partial_html, 'Destinatari o categorie di destinatari: .') === false, 'An empty field produced an empty statement');
+}
+verify(Marrison_Addon_Cookie_Policy_Content::required_fields() === array() && Marrison_Addon_Cookie_Policy_Content::missing() === array(), 'Optional fields remain mandatory');
+ob_start(); include MARRISON_COOKIE_PLUGIN_DIR . 'templates/privacy-fields.php'; $profile_form = ob_get_clean();
+$profile_dom = new DOMDocument(); @$profile_dom->loadHTML('<?xml encoding="utf-8" ?>' . $profile_form); $profile_xpath = new DOMXPath($profile_dom);
+verify($profile_xpath->query('//*[@required or @aria-required="true"]')->length === 0 && strpos($profile_form, ' *') === false, 'Optional fields still have required attributes or markers');
+verify(strpos($profile_form, 'Tutti i campi sono facoltativi') !== false && strpos($profile_form, 'non è ancora pubblicabile') === false, 'Form still reports a publication block');
+$profile = $profile_before;
+$profile['marketing_enabled'] = false;
+$profile['automated'] = false;
+$profile['unknown_field'] = 'must not persist';
+$response = ajax('wp_ajax_marrison_save_settings', array('nonce' => 'fixture', 'settings' => array('privacy_profile' => $profile)));
+verify($response->success && !isset($options['marrison_cookie_privacy_profile']['unknown_field']), 'Admin profile did not whitelist or persist fields');
+$generated = do_shortcode('[marrison_privacy_policy]');
+verify(strpos($generated, 'Newsletter e marketing') === false && strpos($generated, 'Hosting ed email') !== false && strpos($generated, 'artt. 15–22') !== false, 'Generated purposes, recipients or rights are incorrect');
+$options['marrison_cookie_privacy_profile']['marketing_enabled'] = true;
+verify(strpos(do_shortcode('[marrison_privacy_policy]'), 'Newsletter e marketing') !== false, 'Enabled newsletter not disclosed');
+$options['marrison_cookie_privacy_profile']['transfers'] = 'scc';
+$options['marrison_cookie_privacy_profile']['transfer_details'] = '';
+verify(Marrison_Addon_Cookie_Policy_Content::missing() === array() && strpos(do_shortcode('[marrison_privacy_policy]'), 'Privacy Policy') !== false, 'Optional transfer details blocked the policy');
+$options['marrison_cookie_privacy_profile'] = $profile_before;
 try {
     ajax('wp_ajax_marrison_wizard_create_pages', array('nonce' => 'bad'));
     throw new RuntimeException('Missing nonce validation');

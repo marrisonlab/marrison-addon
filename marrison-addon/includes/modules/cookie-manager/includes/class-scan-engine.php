@@ -1,10 +1,13 @@
 <?php
-/** Progressive same-site HTTP crawler and isolated browser scan coordinator. */
+/** Representative same-site HTTP samples and isolated browser measurements. */
+require_once __DIR__ . '/class-scan-sampler.php';
+require_once __DIR__ . '/class-scan-services.php';
 class Marrison_Addon_Cookie_Scan_Engine {
     const PROTOCOL = 2;
-    const REVISION = '20261018.1';
+    const REVISION = '20261022.1';
     private static $instance;
     private $frame = null;
+    private $sampler = null;
 
     public static function get_instance() {
         if (!self::$instance) { self::$instance = new self(); }
@@ -12,15 +15,20 @@ class Marrison_Addon_Cookie_Scan_Engine {
     }
 
     private function __construct() {
-        foreach (array('start', 'step', 'state', 'browser', 'inventory', 'cancel', 'export') as $action) {
+        foreach (array('start', 'step', 'state', 'resume', 'browser', 'remote', 'inventory', 'cancel', 'mode', 'export') as $action) {
             add_action('wp_ajax_marrison_addon_cookie_engine_' . $action, array($this, 'ajax_' . $action));
         }
         add_action('marrison_addon_cookie_engine_tick', array($this, 'scheduled_step'));
+        add_action('wp_ajax_marrison_addon_cookie_engine_worker', array($this, 'ajax_worker'));
+        add_action('wp_ajax_nopriv_marrison_addon_cookie_engine_worker', array($this, 'ajax_worker'));
+        add_action('admin_notices', array($this, 'background_notice'));
+        add_action('rest_api_init', array($this, 'register_scan_proof'));
         $this->frame = $this->frame_context();
         if ($this->frame) {
             if (!defined('DONOTCACHEPAGE')) { define('DONOTCACHEPAGE', true); }
             add_action('template_redirect', array($this, 'frame_headers'), -9999);
             add_action('wp_head', array($this, 'frame_agent'), -9999);
+            add_action('shutdown', array($this, 'capture_frame_cookies'), PHP_INT_MAX);
         }
     }
 
@@ -97,24 +105,79 @@ class Marrison_Addon_Cookie_Scan_Engine {
 
     public function ajax_start() {
         $this->respond(function() {
-            return $this->locked(function() {
-                $limit = isset($_POST['limit']) ? max(1, min(5000, (int) $_POST['limit'])) : 500;
-                $job = $this->new_job($limit);
+            if (isset($_POST['mode']) && $_POST['mode'] === 'commander') {
+                $check = wp_safe_remote_get($this->commander_endpoint(), array('timeout' => 8, 'redirection' => 0, 'limit_response_size' => 4096));
+                $configuration = is_wp_error($check) ? null : json_decode(wp_remote_retrieve_body($check), true);
+                if (is_wp_error($check) || wp_remote_retrieve_response_code($check) !== 200 || empty($configuration['enabled']) || ($configuration['protocol'] ?? null) !== 1) {
+                    throw new RuntimeException('Il browser remoto non è ancora attivo su Commander. Installa il pacchetto scanner e abilita Browserless nelle sue impostazioni.');
+                }
+            }
+            $result = $this->locked(function() {
+                $limit = isset($_POST['limit']) ? max(1, min(5000, (int) $_POST['limit'])) : 50;
+                if (isset($_POST['additional_urls']) && is_string($_POST['additional_urls']) && strlen($_POST['additional_urls']) > 20000) { throw new RuntimeException('Elenco delle pagine aggiuntive troppo lungo.'); }
+                $additional = isset($_POST['additional_urls']) && is_string($_POST['additional_urls']) ? preg_split('/\R/', wp_unslash($_POST['additional_urls'])) : array();
+                $mode = isset($_POST['mode']) && $_POST['mode'] === 'commander' ? 'commander' : 'local';
+                $job = $this->new_job($limit, $additional, $mode);
+                if (isset($_POST['mode'])) { update_option('marrison_cookie_scan_mode', $mode); }
                 $this->write_job($job);
                 return array('job' => $this->summary($job));
             });
+            $this->wake_background();
+            return $result;
         });
     }
 
     public function ajax_state() {
-        $this->respond(function() { return array('job' => $this->summary($this->read_job())); });
+        $this->respond(function() {
+            return array('job' => $this->summary($this->read_job()));
+        });
+    }
+
+    public function ajax_mode() {
+        $this->respond(function() {
+            $mode = isset($_POST['mode']) && is_string($_POST['mode']) ? $_POST['mode'] : '';
+            if (!in_array($mode, array('local', 'commander'), true)) { throw new RuntimeException('Metodo di scansione non valido.'); }
+            return $this->locked(function() use ($mode) {
+                $job = $this->read_job();
+                $interrupted = $job && in_array($job['status'], array('http', 'browser'), true);
+                if ($interrupted) {
+                    $job['status'] = 'cancelled';
+                    $job['updated'] = time();
+                    $this->write_job($job);
+                    wp_clear_scheduled_hook('marrison_addon_cookie_engine_tick');
+                }
+                update_option('marrison_cookie_scan_mode', $mode);
+                return array('job' => $this->summary($job), 'interrupted' => (bool) $interrupted);
+            });
+        });
+    }
+
+    public function ajax_resume() {
+        $this->respond(function() {
+            $this->locked(function() {
+                $job = $this->require_job();
+                if (!$this->background_active($job)) { return; }
+                $job['worker']['state'] = 'queued';
+                $job['worker']['error'] = '';
+                $job['worker']['dispatch_at'] = 0;
+                $job['worker']['dispatch_failures'] = 0;
+                unset($job['remote_error']);
+                $this->write_job($job);
+            });
+            $this->wake_background();
+            return array('job' => $this->summary($this->read_job()));
+        });
     }
 
     public function ajax_step() {
         $this->respond(function() {
             return $this->locked(function() {
                 $job = $this->require_job();
-                $this->http_step($job);
+                $deadline = microtime(true) + 4;
+                for ($step = 0; $step < 3 && $job['status'] === 'http'; $step++) {
+                    $this->http_step($job);
+                    if (microtime(true) >= $deadline) { break; }
+                }
                 $this->write_job($job);
                 return array('job' => $this->summary($job));
             });
@@ -128,6 +191,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
                 $job['status'] = 'cancelled';
                 $job['updated'] = time();
                 $this->write_job($job);
+                wp_clear_scheduled_hook('marrison_addon_cookie_engine_tick');
                 return array('job' => $this->summary($job));
             });
         });
@@ -151,7 +215,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
     public function ajax_export() {
         $this->respond(function() {
             $job = $this->read_job();
-            if ($job) { unset($job['saved_categories']); }
+            if ($job) { unset($job['saved_categories'], $job['remote_proof'], $job['remote_claim']); }
             return array('report' => $job);
         });
     }
@@ -160,11 +224,21 @@ class Marrison_Addon_Cookie_Scan_Engine {
         $job = $this->read_job();
         $id = isset($_POST['job']) && is_string($_POST['job']) ? wp_unslash($_POST['job']) : '';
         if (!$job || !hash_equals($job['id'], $id)) { throw new RuntimeException('La scansione è cambiata. Ricarica lo stato.'); }
+        if (($job['revision'] ?? '') !== self::REVISION) { throw new RuntimeException('La scansione appartiene al metodo precedente. Avvia una nuova scansione a campioni.'); }
         if ($job['expires'] < time()) { throw new RuntimeException('Scansione scaduta. Avvia una nuova scansione.'); }
         return $job;
     }
 
-    private function new_job($limit) {
+    private function new_job($limit, $additional = array(), $mode = 'local') {
+        $additional = array_values(array_filter(array_map('trim', $additional), 'strlen'));
+        if (count($additional) > 50) { throw new RuntimeException('Puoi indicare al massimo 50 pagine aggiuntive.'); }
+        $extra = array();
+        foreach ($additional as $url) {
+            if (trim($url) === '') { continue; }
+            $url = $this->normalize_url(trim($url), home_url('/'));
+            if (!$url) { throw new RuntimeException('Una delle pagine aggiuntive non è un URL pubblico valido dello stesso sito.'); }
+            $extra[$url] = true;
+        }
         $scanner = Marrison_Cookie_Scanner::get_instance();
         $categories = $scanner->engine_prepare();
         if ($categories === false) { throw new RuntimeException($scanner->get_last_scan_error()); }
@@ -172,10 +246,16 @@ class Marrison_Addon_Cookie_Scan_Engine {
         if ($previous && isset($previous['saved_categories'])) { $categories = array_replace($previous['saved_categories'], $categories); }
         $home = $this->normalize_url(home_url('/'), home_url('/'));
         if (!$home) { throw new RuntimeException('URL del sito non valido.'); }
-        $job = array('id' => bin2hex(random_bytes(16)), 'revision' => self::REVISION, 'status' => 'http', 'created' => time(), 'updated' => time(), 'expires' => time() + 24 * 3600,
+        $job = array('id' => bin2hex(random_bytes(16)), 'revision' => self::REVISION, 'plugin_version' => class_exists('Marrison_Addon') ? Marrison_Addon::VERSION : '', 'status' => 'http', 'created' => time(), 'updated' => time(), 'expires' => time() + 24 * 3600,
+            'mode' => $mode, 'remote_proof' => bin2hex(random_bytes(32)), 'remote_requests' => array(), 'storage' => array(), 'storage_supported' => true,
+            'worker' => array('state' => 'queued', 'lease_until' => 0, 'dispatch_at' => 0, 'error' => '', 'initiator' => function_exists('get_current_user_id') ? get_current_user_id() : 0),
             'limit' => $limit, 'limit_reached' => false, 'queue' => array(), 'seen' => array(), 'pages' => array(), 'http_done' => 0, 'http_failed' => 0,
-            'browser_cursor' => 0, 'browser_failed' => 0, 'cookies' => array(), 'issues' => array(), 'issues_total' => 0, 'saved_categories' => $categories);
+            'browser_cursor' => 0, 'browser_failed' => 0, 'cookies' => array(), 'services' => array(), 'issues' => array(), 'issues_total' => 0, 'saved_categories' => $categories,
+            'sampling' => array('strategy' => 'templates', 'candidates' => 0, 'equivalents' => 0, 'excluded' => 0, 'groups' => array(), 'unselected' => array()), 'additional_urls' => $extra);
+        $this->sampler = new Marrison_Addon_Cookie_Scan_Sampler();
         $this->enqueue($job, $home, 'page');
+        foreach (array_keys($job['additional_urls']) as $url) { $this->enqueue($job, $url, 'page'); }
+        foreach ($this->sampler->seeds() as $url) { $this->enqueue($job, $url, 'page'); }
         $this->enqueue($job, home_url('/wp-sitemap.xml'), 'sitemap');
         $this->enqueue($job, home_url('/robots.txt'), 'robots');
         return $job;
@@ -185,6 +265,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
     public function normalize_url($url, $base, $kind = 'page') {
         if (!is_string($url) || preg_match('/[\x00-\x20\\\\]/', $url)) { return false; }
         $url = html_entity_decode(trim($url), ENT_QUOTES, 'UTF-8');
+        if (preg_match('/\{\{|\}\}|\$\{|<%|%>|(?:^|\/)itemDataObject\./i', rawurldecode($url))) { return false; }
         $home = wp_parse_url(home_url('/'));
         $base_parts = wp_parse_url($base);
         if (strpos($url, '//') === 0) { $url = $home['scheme'] . ':' . $url; }
@@ -211,12 +292,18 @@ class Marrison_Addon_Cookie_Scan_Engine {
         $home_path = isset($home['path']) ? rtrim($home['path'], '/') : '';
         if ($home_path && strpos($decoded_path . '/', $home_path . '/') !== 0) { return false; }
         if ($kind === 'page' && preg_match('/\.(?:xml|txt|pdf|zip|jpe?g|png|gif|svg|webp|avif|mp[34]|webm|css|js|woff2?|ttf|ico)$/i', $path)) { return false; }
+        $allowed_query = array('p', 'page_id', 'paged', 'page', 'pagename', 'lang', 'product', 'product_cat', 'post_type', 'taxonomy', 'term', 'cat', 'tag', 'category_name', 's');
+        if (function_exists('get_taxonomies')) {
+            foreach (get_taxonomies(array('public' => true, 'publicly_queryable' => true), 'objects') as $taxonomy) {
+                if (!empty($taxonomy->query_var) && is_string($taxonomy->query_var)) { $allowed_query[] = $taxonomy->query_var; }
+            }
+        }
         $query = array();
         if (!empty($parts['query'])) {
             parse_str($parts['query'], $query);
             foreach ($query as $key => $value) {
                 if (strpos($key, 'utm_') === 0 || in_array($key, array('gclid', 'fbclid', 'marrison_scan', 'marrison_scan_phase', 'marrison_scan_token'), true)) { unset($query[$key]); continue; }
-                if (!in_array($key, array('p', 'page_id', 'paged', 'page', 'pagename', 'lang', 'product', 'product_cat'), true) || !is_scalar($value) || strlen((string) $value) > 200) { return false; }
+                if (!in_array($key, $allowed_query, true) || !is_scalar($value) || strlen((string) $value) > 200) { return false; }
             }
             ksort($query);
         }
@@ -226,9 +313,31 @@ class Marrison_Addon_Cookie_Scan_Engine {
     private function enqueue(&$job, $url, $kind, $base = '') {
         $url = $this->normalize_url($url, $base ?: home_url('/'), $kind);
         if (!$url || isset($job['seen'][$url])) { return; }
-        if (count($job['seen']) > $job['limit'] * 4 + 100) { $job['limit_reached'] = true; return; }
+        if (count($job['seen']) >= 10000) {
+            if (empty($job['discovery_limit'])) { $this->issue($job, '', 'Limite di 10000 URL da raggruppare raggiunto: copertura parziale.'); $job['discovery_limit'] = true; }
+            $job['limit_reached'] = true; return;
+        }
         $job['seen'][$url] = true;
-        $job['queue'][] = array('url' => $url, 'kind' => $kind);
+        $item = array('url' => $url, 'kind' => $kind);
+        if ($kind === 'page' && isset($job['sampling'])) {
+            $job['sampling']['candidates']++;
+            if (!$this->sampler) { $this->sampler = new Marrison_Addon_Cookie_Scan_Sampler(); }
+            $sample = !empty($job['additional_urls'][$url]) ? array('key' => 'additional:' . $url, 'kind' => 'additional', 'label' => 'Pagina aggiuntiva') : $this->sampler->describe($url);
+            if (!is_array($sample) || !isset($sample['key'], $sample['kind'], $sample['label'])) { $job['sampling']['excluded']++; return; }
+            $key = hash('sha256', $sample['key']); unset($sample['key']);
+            if (isset($job['sampling']['groups'][$key])) {
+                $group = &$job['sampling']['groups'][$key]; $group['represented_urls']++;
+                if (count($group['examples']) < 3) { $group['examples'][] = $url; }
+                $job['sampling']['equivalents']++; return;
+            }
+            if (count($job['sampling']['groups']) >= $job['limit']) {
+                if (!$job['sampling']['unselected']) { $this->issue($job, '', 'Limite di ' . $job['limit'] . ' campioni raggiunto: altri gruppi non sono stati visitati.'); }
+                $job['sampling']['unselected'][$key] = true; $job['limit_reached'] = true; return;
+            }
+            $job['sampling']['groups'][$key] = $sample + array('url' => $url, 'represented_urls' => 1, 'examples' => array($url), 'status' => 'queued');
+            $item['sample_key'] = $key;
+        }
+        $job['queue'][] = $item;
     }
 
     private function issue(&$job, $url, $message) {
@@ -264,8 +373,12 @@ class Marrison_Addon_Cookie_Scan_Engine {
             $url = $next;
         }
         $code = !is_wp_error($response) ? wp_remote_retrieve_response_code($response) : 0;
+        $missing = $item['kind'] === 'page' && in_array($code, array(404, 410), true) && $item['url'] !== $this->normalize_url(home_url('/'), home_url('/'));
         if (is_wp_error($response) || $code < 200 || $code >= 300) {
-            if ($item['kind'] === 'page') { $job['http_failed']++; $this->issue($job, $url, is_wp_error($response) ? $response->get_error_message() : 'Risposta HTTP ' . $code); }
+            if ($missing) {
+                if (!isset($job['skipped_missing'])) { $job['skipped_missing'] = array(); }
+                if (count($job['skipped_missing']) < 100) { $job['skipped_missing'][] = array('url' => $url, 'http_status' => $code); }
+            } elseif ($item['kind'] === 'page') { $job['http_failed']++; $this->issue($job, $url, is_wp_error($response) ? $response->get_error_message() : 'Risposta HTTP ' . $code); }
         } else {
             $body = wp_remote_retrieve_body($response);
             $type = strtolower((string) wp_remote_retrieve_header($response, 'content-type'));
@@ -281,10 +394,16 @@ class Marrison_Addon_Cookie_Scan_Engine {
                 }
             } elseif (strpos($type, 'text/html') !== false || strpos($type, 'application/xhtml+xml') !== false) {
                 if (!in_array($url, $job['pages'], true)) { $job['pages'][] = $url; $job['http_done']++; }
-                if (preg_match_all('/<a\b[^>]*\bhref\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))/i', $body, $matches, PREG_SET_ORDER)) {
-                    foreach ($matches as $match) { $this->enqueue($job, !empty($match[1]) ? $match[1] : (!empty($match[2]) ? $match[2] : (isset($match[3]) ? $match[3] : '')), 'page', $url); }
+                foreach ($this->html_elements($body) as $element) {
+                    if ($element['tag'] === 'a') { $this->enqueue($job, $element['url'], 'page', $url); }
+                    else { $this->observe_service($job, $element['url'], $element['tag'], $url); }
                 }
             }
+        }
+        if (isset($item['sample_key'], $job['sampling']['groups'][$item['sample_key']])) {
+            $group = &$job['sampling']['groups'][$item['sample_key']];
+            $group['status'] = $missing ? 'skipped_missing' : (in_array($url, $job['pages'], true) ? 'visited' : 'failed');
+            $group['final_url'] = $url;
         }
         $job['updated'] = time();
         if (!$job['queue']) {
@@ -293,11 +412,48 @@ class Marrison_Addon_Cookie_Scan_Engine {
         }
     }
 
+    /** Ignore inert templates and script text; :href/data-href are not navigable links. */
+    private function html_elements($body) {
+        $body = preg_replace('#<!--.*?-->|<(template|textarea)\b[^>]*>.*?</\1\s*>#is', '', $body);
+        $body = preg_replace('#(<(script|style)\b[^>]*>).*?</\2\s*>#is', '$1', $body);
+        $elements = array();
+        if (preg_match_all('/<(a|script|iframe|img)\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>/is', $body, $tags, PREG_SET_ORDER)) {
+            foreach ($tags as $tag) {
+                $name = strtolower($tag[1]);
+                $attribute = $name === 'a' ? 'href' : '(?:src|data-src|data-marrison-blocked-src)';
+                if (preg_match('/\s' . $attribute . '\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))/i', $tag[0], $value)) {
+                    $resource = $value[1] ?? '';
+                    if ($resource === '') { $resource = !empty($value[2]) ? $value[2] : ($value[3] ?? ''); }
+                    $elements[] = array('tag' => $name, 'url' => html_entity_decode($resource, ENT_QUOTES, 'UTF-8'));
+                }
+            }
+        }
+        return $elements;
+    }
+
+    private function observe_service(&$job, $resource, $kind, $page) {
+        if (!is_string($resource) || !in_array($kind, array('script', 'iframe', 'img', 'style', 'font', 'request', 'resource'), true)) { return; }
+        if (strpos($resource, '//') === 0) { $resource = 'https:' . $resource; }
+        $parts = wp_parse_url($resource);
+        $host = isset($parts['host']) ? strtolower($parts['host']) : '';
+        if (!$host || !in_array(strtolower($parts['scheme'] ?? ''), array('http', 'https'), true) || $host === strtolower(wp_parse_url(home_url('/'), PHP_URL_HOST))) { return; }
+        if (!isset($job['services'][$host]) && count($job['services']) >= 100) { return; }
+        if (!isset($job['services'][$host])) { $job['services'][$host] = array('host' => $host, 'kinds' => array(), 'pages' => array(), 'cookies_verified' => false); }
+        $entry = &$job['services'][$host];
+        foreach (Marrison_Addon_Cookie_Scan_Services::identify($resource) as $profile) { $entry['profiles'][$profile['id']] = $profile; }
+        if (!in_array($kind, $entry['kinds'], true)) { $entry['kinds'][] = $kind; }
+        if (count($entry['pages']) < 10 && !in_array($page, $entry['pages'], true)) { $entry['pages'][] = $page; }
+    }
+
     /** Set-Cookie values are deliberately discarded before any persistence. */
     public function http_cookies($response, $url) {
         $headers = wp_remote_retrieve_headers($response);
         $values = is_object($headers) && is_callable(array($headers, 'getValues')) ? $headers->getValues('set-cookie') : wp_remote_retrieve_header($response, 'set-cookie');
         if (is_string($values)) { $values = preg_split('/,(?=\s*[^=;,\s]+=)/', $values); }
+        return $this->parse_cookie_headers($values, $url);
+    }
+
+    private function parse_cookie_headers($values, $url) {
         $result = array();
         foreach (is_array($values) ? $values : array() as $header) {
             $parts = explode(';', $header);
@@ -367,6 +523,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
     private function browser_next($job) {
         $count = count($job['pages']);
         if (!$count || $job['status'] !== 'browser' || $job['browser_cursor'] >= $count * 2) { return null; }
+        if (($job['mode'] ?? 'local') === 'commander') { return array('url' => $job['pages'][(int) floor($job['browser_cursor'] / 2)], 'phase' => 'both'); }
         $phase = $job['browser_cursor'] < $count ? 'before' : 'after';
         $url = $job['pages'][$job['browser_cursor'] % $count];
         return array('url' => $url, 'phase' => $phase, 'token' => $this->signature($job, $url, $phase), 'frame_url' => add_query_arg(array('marrison_scan' => $job['id'], 'marrison_scan_phase' => $phase, 'marrison_scan_token' => $this->signature($job, $url, $phase)), $url));
@@ -374,26 +531,184 @@ class Marrison_Addon_Cookie_Scan_Engine {
 
     private function summary($job) {
         if (!$job) { return null; }
-        return array('id' => $job['id'], 'status' => $job['status'], 'created' => $job['created'], 'updated' => $job['updated'], 'limit' => $job['limit'],
+        $stale = ($job['revision'] ?? '') !== self::REVISION;
+        if ($stale && in_array($job['status'], array('http', 'browser'), true)) { $job['status'] = 'cancelled'; }
+        return array('revision' => $job['revision'] ?? '', 'mode' => $job['mode'] ?? 'local', 'remote_requests' => count($job['remote_requests'] ?? array()), 'stale' => $stale, 'rescan_required' => (bool) get_option('marrison_cookie_rescan_required_version'), 'id' => $job['id'], 'status' => $job['status'], 'created' => $job['created'], 'updated' => $job['updated'], 'limit' => $job['limit'],
             'limit_reached' => $job['limit_reached'], 'queued' => count($job['queue']), 'http_done' => $job['http_done'], 'http_failed' => $job['http_failed'],
             'browser_done' => $job['browser_cursor'], 'browser_total' => count($job['pages']) * 2, 'browser_failed' => $job['browser_failed'],
-            'cookie_count' => count($job['cookies']), 'issues' => $job['issues'], 'issues_total' => $job['issues_total'], 'next' => $this->browser_next($job),
-            'coverage' => 'Cookie HTTP del sito e cookie JavaScript leggibili dal browser. I cookie HttpOnly di domini terzi non sono accessibili dal plugin e non vengono inventati.');
+            'response_pages' => count($job['response_pages'] ?? array()), 'skipped_missing' => $job['skipped_missing'] ?? array(),
+            'remote_error' => $job['remote_error'] ?? '',
+            'background' => ($job['mode'] ?? 'local') === 'commander', 'worker' => $job['worker'] ?? array(),
+            'storage' => array_values($job['storage'] ?? array()), 'storage_count' => count($job['storage'] ?? array()), 'storage_supported' => $job['storage_supported'] ?? false,
+            'sampling' => isset($job['sampling']) ? array('strategy' => 'templates', 'candidates' => $job['sampling']['candidates'], 'equivalents' => $job['sampling']['equivalents'],
+                'selected' => count($job['sampling']['groups']), 'unselected' => count($job['sampling']['unselected']), 'groups' => array_values($job['sampling']['groups'])) : null,
+            'cookie_count' => count($job['cookies']), 'documented_cookie_count' => $this->documented_cookie_count($job), 'services' => array_values($job['services'] ?? array()), 'issues' => $job['issues'], 'issues_total' => $job['issues_total'], 'next' => $this->browser_next($job),
+            'coverage' => (isset($job['sampling']) ? 'Campioni per tipologia, template e servizi incorporati: non vengono visitati tutti i contenuti equivalenti. ' : '') . (($job['mode'] ?? 'local') === 'commander'
+                ? 'Browser remoto tramite Commander: cookie effettivamente osservati anche sui domini esterni e HttpOnly. Due fasi per pagina, prima e dopo il consenso. Cookie condizionati ad altre interazioni o bloccati dal browser possono non comparire.'
+                : 'Cookie HTTP del sito e cookie JavaScript leggibili dal browser. I cookie HttpOnly di domini terzi non sono accessibili dal plugin e non vengono inventati.'));
+    }
+
+    private function documented_cookie_count($job) {
+        $names = array();
+        foreach ($job['services'] ?? array() as $service) {
+            foreach ($service['profiles'] ?? array() as $profile) {
+                foreach ($profile['cookies'] as $cookie) { $names[$profile['id'] . ':' . $cookie['name']] = true; }
+            }
+        }
+        return count($names);
+    }
+
+    public function service_inventory() {
+        try { $job = $this->read_job(); return array_values($job['services'] ?? array()); }
+        catch (Throwable $error) { return array(); }
+    }
+
+    public function storage_inventory() {
+        try { $job = $this->read_job(); return array_values($job['storage'] ?? array()); }
+        catch (Throwable $error) { return array(); }
+    }
+
+    public function register_scan_proof() {
+        register_rest_route('marrison-cookie/v1', '/scan-proof', array('methods' => 'GET', 'permission_callback' => '__return_true',
+            'callback' => array($this, 'scan_proof')));
+    }
+
+    /** Expiring proof of an administrator-started scan, without a Commander license. */
+    public function scan_proof($request) {
+        try {
+            $job = $this->read_job();
+            $id = $request->get_param('job'); $proof = $request->get_param('proof'); $url = $request->get_param('url');
+            $next = $job ? $this->browser_next($job) : null;
+            if (!$job || ($job['mode'] ?? '') !== 'commander' || ($job['revision'] ?? '') !== self::REVISION || $job['expires'] < time()
+                || !is_string($id) || !is_string($proof) || !is_string($url) || !hash_equals($job['id'], $id)
+                || !hash_equals($job['remote_proof'] ?? '', $proof) || !$next || $next['url'] !== $url) {
+                return new WP_Error('scan_proof_invalid', 'Scansione non confermata.', array('status' => 403));
+            }
+            $response = new WP_REST_Response(array('proof_hash' => hash('sha256', $proof . "\n" . $url)));
+            $response->header('Cache-Control', 'no-store');
+            return $response;
+        } catch (Throwable $error) { return new WP_Error('scan_proof_unavailable', 'Verifica della scansione non disponibile.', array('status' => 503)); }
+    }
+
+    public function ajax_remote() {
+        $this->respond(function() { return array('job' => $this->summary($this->remote_step())); });
+    }
+
+    private function commander_endpoint() {
+        return apply_filters('marrison_addon/cookie_scan_commander_url', 'https://www.marrisonlab.com/commander/public/cookie-scan.php');
+    }
+
+    private function remote_step($scheduled = false, $expected_id = '') {
+        $claim = bin2hex(random_bytes(16));
+        $work = $this->locked(function() use ($claim, $scheduled, $expected_id) {
+            $job = $scheduled ? $this->read_job() : $this->require_job();
+            if (!$job || ($job['mode'] ?? '') !== 'commander' || ($job['revision'] ?? '') !== self::REVISION || $job['expires'] < time()) { throw new RuntimeException('Scansione remota non disponibile.'); }
+            if ($expected_id !== '' && $job['id'] !== $expected_id) { throw new RuntimeException('La scansione è cambiata.'); }
+            $next = $this->browser_next($job);
+            if (!$next) { throw new RuntimeException('Nessuna pagina remota da verificare.'); }
+            if (!empty($job['remote_claim']) && $job['remote_claim']['expires'] > time()) { throw new RuntimeException('engine_busy'); }
+            $job['remote_claim'] = array('id' => $claim, 'expires' => time() + 90);
+            $this->write_job($job);
+            return array('job' => $job['id'], 'url' => $next['url'], 'site_url' => home_url('/'), 'proof' => $job['remote_proof']);
+        });
+        try {
+            $endpoint = $this->commander_endpoint();
+            // No visitor cookies, WP login, Browserless token or custom scripts are sent.
+            $response = wp_safe_remote_post($endpoint, array('timeout' => 55, 'redirection' => 0, 'limit_response_size' => 1048576,
+                'headers' => array('Content-Type' => 'application/json', 'Accept' => 'application/json'), 'body' => wp_json_encode($work)));
+            if (is_wp_error($response)) { throw new RuntimeException('Commander non raggiungibile: la scansione remota non è completata. Premi Riprendi per ritentare.'); }
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+            if (wp_remote_retrieve_response_code($response) !== 200 || empty($body['success']) || !is_array($body['result'] ?? null)) {
+                $message = is_array($body) && is_string($body['error'] ?? null) ? sanitize_text_field($body['error']) : 'Endpoint scanner Commander non disponibile. Verifica l’installazione e l’attivazione del servizio.';
+                throw new RuntimeException($message);
+            }
+            $data = $body['result'];
+            if (($data['protocol'] ?? null) !== 1 || ($data['engine'] ?? '') !== 'commander_browserless' || ($data['url'] ?? '') !== $work['url']
+                || !is_array($data['cookies'] ?? null) || !is_array($data['resources'] ?? null) || !is_array($data['issues'] ?? null)
+                || count($data['cookies']) > 1000 || count($data['resources']) > 300) { throw new RuntimeException('Risultato del browser remoto non valido.'); }
+            return $this->locked(function() use ($work, $claim, $data) {
+                $job = $this->read_job();
+                if (!$job || $job['id'] !== $work['job'] || ($job['remote_claim']['id'] ?? '') !== $claim || $job['status'] !== 'browser') { throw new RuntimeException('La scansione è stata interrotta o sostituita.'); }
+                $hosts = array(strtolower(wp_parse_url($work['url'], PHP_URL_HOST)));
+                foreach ($data['resources'] as $resource) {
+                    if (!is_array($resource) || !is_string($resource['url'] ?? null)) { continue; }
+                    $host = wp_parse_url($resource['url'], PHP_URL_HOST);
+                    if ($host) { $hosts[] = strtolower($host); }
+                    $this->observe_service($job, $resource['url'], $resource['kind'] ?? 'resource', $work['url']);
+                }
+                foreach ($data['cookies'] as $record) {
+                    if (!is_array($record) || !in_array($record['phase'] ?? '', array('before', 'after'), true) || !is_string($record['cookie_domain'] ?? null)) { continue; }
+                    $domain = strtolower(ltrim($record['cookie_domain'], '.'));
+                    if (!preg_match('/^[a-z0-9.-]+\.[a-z0-9-]+$/', $domain)) { continue; }
+                    $associated = false;
+                    foreach ($hosts as $host) { if ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain) { $associated = true; break; } }
+                    if (!$associated) { continue; }
+                    $candidate = $record;
+                    $candidate['expires'] = isset($record['expires']) && is_numeric($record['expires']) ? (float) $record['expires'] * 1000 : null;
+                    $candidate['scope_known'] = true;
+                    $cookie = $this->validate_browser_cookie($candidate, 'https://' . $domain . '/');
+                    if (!$cookie) { continue; }
+                    $cookie['http_only'] = !empty($record['http_only']);
+                    $cookie['partitioned'] = !empty($record['partitioned']);
+                    $this->observe($job, $cookie, $work['url'], $record['phase'], 'remote_browser');
+                }
+                $job['storage_supported'] = !empty($job['storage_supported']) && isset($data['storage']) && is_array($data['storage']);
+                foreach (array_slice(is_array($data['storage'] ?? null) ? $data['storage'] : array(), 0, 500) as $record) {
+                    if (!is_array($record) || !is_string($record['key'] ?? null) || $record['key'] === '' || strlen($record['key']) > 255 || preg_match('/[\x00-\x1f\x7f]/', $record['key'])
+                        || !in_array($record['type'] ?? '', array('localStorage', 'sessionStorage'), true) || !in_array($record['phase'] ?? '', array('before', 'after'), true) || !is_string($record['origin'] ?? null)) { continue; }
+                    $parts = wp_parse_url($record['origin']);
+                    if (!$parts || !in_array($parts['scheme'] ?? '', array('http', 'https'), true) || empty($parts['host']) || isset($parts['user']) || isset($parts['port']) || isset($parts['query']) || isset($parts['fragment'])
+                        || !in_array(strtolower($parts['host']), $hosts, true) || !empty($parts['path']) && $parts['path'] !== '/') { continue; }
+                    $origin = $parts['scheme'] . '://' . strtolower($parts['host']);
+                    $key = hash('sha256', $origin . "\n" . $record['type'] . "\n" . $record['key']);
+                    if (!isset($job['storage'][$key])) {
+                        if (count($job['storage']) >= 1000) { $this->issue($job, $work['url'], 'Limite di 1000 voci di archiviazione browser raggiunto.'); break; }
+                        $job['storage'][$key] = array('key' => $record['key'], 'type' => $record['type'], 'origin' => $origin, 'domain' => strtolower($parts['host']), 'observations' => array());
+                    }
+                    $evidence = array('url' => $work['url'], 'phase' => $record['phase'], 'method' => 'remote_browser');
+                    if (count($job['storage'][$key]['observations']) < 50 && !in_array($evidence, $job['storage'][$key]['observations'], true)) { $job['storage'][$key]['observations'][] = $evidence; }
+                }
+                $issues = array_slice($data['issues'], 0, 30);
+                if (empty($data['consent_verified']) && !$issues) { $issues[] = 'Consenso nel browser remoto non confermato.'; }
+                foreach ($issues as $issue) { if (is_string($issue)) { $this->issue($job, $work['url'], sanitize_text_field($issue)); } }
+                if ($issues) { $job['browser_failed']++; }
+                $job['remote_requests'][] = array('url' => $work['url'], 'id' => sanitize_text_field($data['request_id'] ?? ''), 'consent_verified' => !empty($data['consent_verified']));
+                unset($job['remote_claim'], $job['remote_error']);
+                $job['browser_cursor'] += 2; $job['updated'] = time();
+                if ($job['browser_cursor'] >= count($job['pages']) * 2) { $job['status'] = $job['http_failed'] || $job['browser_failed'] || $job['limit_reached'] || $job['issues_total'] ? 'partial' : 'completed'; }
+                $this->commit($job); $this->write_job($job);
+                if (in_array($job['status'], array('completed', 'partial'), true)) { do_action('marrison_addon/cookie_scan_finished', $job); }
+                return $job;
+            });
+        } catch (Throwable $error) {
+            $this->locked(function() use ($work, $claim, $error) {
+                $job = $this->read_job();
+                if ($job && $job['id'] === $work['job'] && ($job['remote_claim']['id'] ?? '') === $claim) {
+                    unset($job['remote_claim']); $job['remote_error'] = sanitize_text_field($error->getMessage()); $this->write_job($job);
+                }
+            });
+            throw $error;
+        }
     }
 
     public function ajax_browser() {
         $this->respond(function() {
             return $this->locked(function() {
                 $job = $this->require_job();
+                if (($job['mode'] ?? 'local') === 'commander') { throw new RuntimeException('Questa scansione richiede il browser remoto di Commander.'); }
                 $next = $this->browser_next($job);
                 $raw = isset($_POST['result']) && is_string($_POST['result']) ? wp_unslash($_POST['result']) : '';
                 if (!$next || strlen($raw) > 262144) { throw new RuntimeException('Risultato browser non previsto.'); }
                 $data = json_decode($raw, true);
                 if (!is_array($data) || !isset($data['url'], $data['phase'], $data['token']) || $data['url'] !== $next['url'] || $data['phase'] !== $next['phase'] || !hash_equals($next['token'], $data['token'])) { throw new RuntimeException('Risultato browser non corrispondente alla pagina attesa.'); }
+                if (empty($data['error']) && ($data['storage_access'] ?? '') !== 'available') { $data['error'] = 'Il browser non permette di verificare i cookie nella sessione di scansione. Il risultato vuoto non è attendibile.'; }
                 if (!empty($data['error'])) {
                     $job['browser_failed']++;
                     $this->issue($job, $next['url'], sanitize_text_field($data['error']));
                 } else {
+                    foreach (array_slice(isset($data['resources']) && is_array($data['resources']) ? $data['resources'] : array(), 0, 100) as $resource) {
+                        if (is_array($resource)) { $this->observe_service($job, $resource['url'] ?? '', $resource['kind'] ?? '', $next['url']); }
+                    }
                     if (isset($data['cookies']) && is_array($data['cookies']) && count($data['cookies']) > 200) { $this->issue($job, $next['url'], 'Oltre 200 cookie leggibili nella pagina: risultato browser parziale.'); }
                     foreach (array_slice(isset($data['cookies']) && is_array($data['cookies']) ? $data['cookies'] : array(), 0, 200) as $cookie) {
                         $cookie = $this->validate_browser_cookie($cookie, $next['url']);
@@ -407,6 +722,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
                 }
                 $this->commit($job);
                 $this->write_job($job);
+                if (in_array($job['status'], array('completed', 'partial'), true)) { do_action('marrison_addon/cookie_scan_finished', $job); }
                 return array('job' => $this->summary($job));
             });
         });
@@ -429,8 +745,9 @@ class Marrison_Addon_Cookie_Scan_Engine {
 
     private function frame_context() {
         if (empty($_GET['marrison_scan']) || !is_string($_GET['marrison_scan'])) { return null; }
+        if (($_SERVER['HTTP_SEC_FETCH_DEST'] ?? '') !== 'iframe' || is_user_logged_in()) { return null; }
         try { $job = $this->read_job(); } catch (Throwable $error) { return null; }
-        $next = $job && $job['expires'] >= time() ? $this->browser_next($job) : null;
+        $next = $job && ($job['mode'] ?? 'local') === 'local' && ($job['revision'] ?? '') === self::REVISION && $job['expires'] >= time() ? $this->browser_next($job) : null;
         $token = isset($_GET['marrison_scan_token']) && is_string($_GET['marrison_scan_token']) ? wp_unslash($_GET['marrison_scan_token']) : '';
         $phase = isset($_GET['marrison_scan_phase']) && is_string($_GET['marrison_scan_phase']) ? wp_unslash($_GET['marrison_scan_phase']) : '';
         $home = wp_parse_url(home_url('/'));
@@ -443,6 +760,37 @@ class Marrison_Addon_Cookie_Scan_Engine {
     public function frame_headers() {
         nocache_headers();
         header('X-Robots-Tag: noindex, nofollow', true);
+        if (!$this->frame || $this->frame['phase'] !== 'after') { return; }
+        try {
+            if (($_SERVER['HTTP_SEC_FETCH_DEST'] ?? '') !== 'iframe' || is_user_logged_in()) { throw new RuntimeException('Contesto di scansione non isolato.'); }
+            $this->locked(function() {
+                $job = $this->read_job();
+                $next = $job ? $this->browser_next($job) : null;
+                if (!$next || !hash_equals($next['token'], $this->frame['token'])) { throw new RuntimeException('La scansione è cambiata durante la verifica del consenso.'); }
+                $store = Marrison_Addon_Cookie_Consent_Store::get_instance();
+                $store->record('accept_all', array(), 'scan');
+            });
+        } catch (Throwable $error) { $this->frame['error'] = 'Salvataggio del consenso nella scansione non riuscito: ' . $error->getMessage(); }
+    }
+
+    /** Capture real response headers, including HttpOnly and late plugin cookies. */
+    public function capture_frame_cookies($headers = null) {
+        if (!$this->frame || !empty($this->frame['error']) || ($_SERVER['HTTP_SEC_FETCH_DEST'] ?? '') !== 'iframe' || is_user_logged_in()) { return; }
+        $values = array();
+        foreach (is_array($headers) ? $headers : headers_list() as $header) {
+            if (stripos($header, 'Set-Cookie:') === 0) { $values[] = trim(substr($header, 11)); }
+        }
+        $cookies = $this->parse_cookie_headers($values, $this->frame['url']);
+        try {
+            $this->locked(function() use ($cookies) {
+                $job = $this->read_job();
+                $next = $job ? $this->browser_next($job) : null;
+                if (!$next || !hash_equals($next['token'], $this->frame['token'])) { return; }
+                $job['response_pages'][$next['phase'] . ' ' . $next['url']] = true;
+                foreach ($cookies as $cookie) { $this->observe($job, $cookie, $next['url'], $next['phase'], 'http_browser'); }
+                $this->write_job($job);
+            });
+        } catch (Throwable $error) { error_log('Marrison cookie scan: response cookie capture failed: ' . $error->getMessage()); }
     }
 
     public function frame_agent() {
@@ -456,20 +804,150 @@ class Marrison_Addon_Cookie_Scan_Engine {
 
     public function frame_phase() { return $this->frame ? $this->frame['phase'] : null; }
 
+    private function background_active($job) {
+        return $job && ($job['mode'] ?? '') === 'commander' && ($job['revision'] ?? '') === self::REVISION
+            && $job['expires'] >= time() && in_array($job['status'], array('http', 'browser'), true);
+    }
+
+    private function worker_token($job) {
+        return hash_hmac('sha256', "background-worker\n" . $job['id'] . "\n" . $job['expires'], wp_salt('nonce'));
+    }
+
+    private function watchdog() {
+        if (!wp_next_scheduled('marrison_addon_cookie_engine_tick')) { wp_schedule_single_event(time() + 95, 'marrison_addon_cookie_engine_tick'); }
+    }
+
+    /** A signed nonblocking loopback chains bounded batches independently of admin tabs. */
+    private function wake_background() {
+        $work = $this->locked(function() {
+            $job = $this->read_job();
+            if (!$this->background_active($job) || ($job['worker']['state'] ?? '') === 'paused') { return null; }
+            $this->watchdog();
+            if (($job['worker']['lease_until'] ?? 0) > time() || ($job['remote_claim']['expires'] ?? 0) > time()
+                || ($job['worker']['dispatch_at'] ?? 0) > time() - 5) { return null; }
+            $job['worker']['state'] = 'queued';
+            $job['worker']['dispatch_at'] = time();
+            $this->write_job($job);
+            return array('job' => $job['id'], 'token' => $this->worker_token($job));
+        });
+        if (!$work) { return; }
+        $response = wp_remote_post(admin_url('admin-ajax.php'), array('blocking' => false, 'timeout' => 2, 'redirection' => 0,
+            'cookies' => array(), 'body' => array('action' => 'marrison_addon_cookie_engine_worker') + $work));
+        if (is_wp_error($response)) {
+            $this->locked(function() use ($work) {
+                $job = $this->read_job();
+                if (!$job || $job['id'] !== $work['job'] || !$this->background_active($job)) { return; }
+                $job['worker']['dispatch_failures'] = ($job['worker']['dispatch_failures'] ?? 0) + 1;
+                $job['worker']['error'] = 'Avvio in background non riuscito: il server non permette la richiesta interna. Verifica loopback e WP-Cron, poi premi Riprendi.';
+                if ($job['worker']['dispatch_failures'] >= 3) { $job['worker']['state'] = 'paused'; }
+                $this->write_job($job);
+            });
+        }
+    }
+
+    public function ajax_worker() {
+        try {
+            $job = $this->read_job();
+        } catch (Throwable $error) {
+            wp_send_json_error(array('message' => 'Archivio del lavoro non disponibile.'), 503);
+            return;
+        }
+        $id = isset($_POST['job']) && is_string($_POST['job']) ? wp_unslash($_POST['job']) : '';
+        $token = isset($_POST['token']) && is_string($_POST['token']) ? wp_unslash($_POST['token']) : '';
+        if (!$this->background_active($job) || !hash_equals($job['id'], $id) || !hash_equals($this->worker_token($job), $token)) {
+            wp_send_json_error(array('message' => 'Richiesta di lavoro non valida.'), 403);
+            return;
+        }
+        ignore_user_abort(true);
+        if (function_exists('set_time_limit')) { @set_time_limit(70); }
+        $this->background_batch($id);
+        wp_send_json_success(array('accepted' => true));
+    }
+
+    private function background_batch($expected_id = '') {
+        $owner = bin2hex(random_bytes(12));
+        $work = $this->locked(function() use ($expected_id, $owner) {
+            $job = $this->read_job();
+            if (!$this->background_active($job) || ($expected_id !== '' && $job['id'] !== $expected_id)
+                || ($job['worker']['state'] ?? '') === 'paused' || ($job['worker']['lease_until'] ?? 0) > time() || ($job['remote_claim']['expires'] ?? 0) > time()) { return null; }
+            $job['worker']['state'] = 'running';
+            $job['worker']['owner'] = $owner;
+            $job['worker']['lease_until'] = time() + 90;
+            $job['worker']['heartbeat'] = time();
+            $job['worker']['error'] = '';
+            $job['worker']['dispatch_failures'] = 0;
+            $this->write_job($job);
+            $this->watchdog();
+            return array('id' => $job['id'], 'status' => $job['status']);
+        });
+        if (!$work) { $this->wake_background(); return; }
+        try {
+            if ($work['status'] === 'http') {
+                $this->locked(function() use ($work) {
+                    $job = $this->read_job();
+                    if (!$job || $job['id'] !== $work['id'] || $job['status'] !== 'http') { return; }
+                    $deadline = microtime(true) + 4;
+                    for ($step = 0; $step < 3 && $job['status'] === 'http'; $step++) {
+                        $this->http_step($job);
+                        if (microtime(true) >= $deadline) { break; }
+                    }
+                    $this->write_job($job);
+                });
+            } else { $this->remote_step(true, $work['id']); }
+            $this->locked(function() use ($work, $owner) {
+                $job = $this->read_job();
+                if (!$job || $job['id'] !== $work['id'] || ($job['worker']['owner'] ?? '') !== $owner) { return; }
+                $job['worker']['lease_until'] = 0;
+                $job['worker']['dispatch_at'] = 0;
+                $job['worker']['heartbeat'] = time();
+                $job['worker']['state'] = $this->background_active($job) ? 'queued' : 'finished';
+                $this->write_job($job);
+                if (!$this->background_active($job)) { wp_clear_scheduled_hook('marrison_addon_cookie_engine_tick'); }
+            });
+            $this->wake_background();
+        } catch (Throwable $error) {
+            $this->locked(function() use ($work, $owner, $error) {
+                $job = $this->read_job();
+                if (!$job || $job['id'] !== $work['id'] || ($job['worker']['owner'] ?? '') !== $owner) { return; }
+                $job['worker']['lease_until'] = 0;
+                $job['worker']['state'] = 'paused';
+                $job['worker']['error'] = sanitize_text_field($error->getMessage());
+                $this->write_job($job);
+            });
+        }
+    }
+
+    public function background_notice() {
+        if (!current_user_can('manage_options') || (isset($_GET['page']) && $_GET['page'] === 'marrison-cookie')) { return; }
+        try { $job = $this->read_job(); } catch (Throwable $error) { return; }
+        if (!$this->background_active($job) || !empty($job['worker']['initiator']) && $job['worker']['initiator'] !== get_current_user_id()) { return; }
+        $message = ($job['worker']['state'] ?? '') === 'paused' ? 'Scansione cookie in pausa: apri lo scanner per consultare l’errore e riprendere.'
+            : 'Scansione cookie in background. Puoi continuare a lavorare: avanzamento e risultati vengono salvati sul server.';
+        echo '<div class="notice notice-info"><p>' . esc_html($message) . ' <a href="' . esc_url(admin_url('admin.php?page=marrison-cookie&tab=scanner')) . '">' . esc_html('Apri scanner') . '</a></p></div>';
+    }
+
     public function start_scheduled_scan() {
+        if (class_exists('Marrison_Addon') && method_exists('Marrison_Addon', 'is_module_enabled') && !Marrison_Addon::is_module_enabled('cookie_manager')) { return; }
+        if (!Marrison_Cookie_Scanner::auto_scan_enabled()) { return; }
         try {
             $this->locked(function() {
                 $job = $this->read_job();
-                if (!$job || !in_array($job['status'], array('http', 'browser'), true) || $job['expires'] < time()) { $this->write_job($this->new_job(500)); }
+                if (!$job || ($job['revision'] ?? '') !== self::REVISION || !in_array($job['status'], array('http', 'browser'), true) || $job['expires'] < time()) { $this->write_job($this->new_job(50, array(), get_option('marrison_cookie_scan_mode', 'local') === 'commander' ? 'commander' : 'local')); }
             });
-            $this->scheduled_step();
+            $job = $this->read_job();
+            if ($this->background_active($job)) { $this->wake_background(); }
+            else { $this->scheduled_step(); }
         } catch (Throwable $error) { /* The next admin status request reports storage failures. */ }
     }
 
     public function scheduled_step() {
+        if (class_exists('Marrison_Addon') && method_exists('Marrison_Addon', 'is_module_enabled') && !Marrison_Addon::is_module_enabled('cookie_manager')) { return; }
         try {
+            $current = $this->read_job();
+            if ($this->background_active($current)) { $this->background_batch($current['id']); return; }
             $job = $this->locked(function() {
                 $job = $this->read_job();
+                if ($job && ($job['revision'] ?? '') !== self::REVISION && in_array($job['status'], array('http', 'browser'), true)) { $job['status'] = 'cancelled'; $this->write_job($job); }
                 if ($job && $job['status'] === 'http') { $this->http_step($job); $this->write_job($job); }
                 return $job;
             });

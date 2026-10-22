@@ -36,6 +36,8 @@ namespace {
 	$GLOBALS['marrison_test_hooks'] = [];
 	$GLOBALS['marrison_test_filters'] = [];
 	$GLOBALS['marrison_test_assets'] = [];
+	$GLOBALS['marrison_test_documents'] = [];
+	$GLOBALS['marrison_test_printed_styles'] = [];
 
 	function add_action( $name, $callback ) { $GLOBALS['marrison_test_hooks'][ $name ][] = $callback; }
 	function add_filter( $name, $callback ) { $GLOBALS['marrison_test_filters'][ $name ][] = $callback; }
@@ -48,6 +50,12 @@ namespace {
 	function plugins_url( $path ) { return $path; }
 	function wp_enqueue_style( $handle ) { $GLOBALS['marrison_test_assets'][] = $handle; }
 	function wp_enqueue_script( $handle ) { $GLOBALS['marrison_test_assets'][] = $handle; }
+	function get_queried_object_id() { return 42; }
+	function is_singular() { return $GLOBALS['marrison_test_is_singular'] ?? true; }
+	function absint( $value ) { return abs( (int) $value ); }
+	function get_post_meta( $id ) { return $GLOBALS['marrison_test_documents'][ $id ] ?? ''; }
+	function wp_style_is( $handle ) { return in_array( $handle, $GLOBALS['marrison_test_printed_styles'], true ); }
+	function wp_print_styles( $handles ) { $GLOBALS['marrison_test_printed_styles'] = array_merge( $GLOBALS['marrison_test_printed_styles'], $handles ); }
 
 	function check( $condition, $message ) {
 		if ( ! $condition ) {
@@ -87,6 +95,9 @@ namespace {
 	check( 1 === count( $GLOBALS['marrison_test_hooks']['elementor/element/after_section_end'] ?? [] ), 'Control hook was not registered.' );
 	check( 1 === count( $GLOBALS['marrison_test_hooks']['wp_enqueue_scripts'] ?? [] ), 'Frontend assets should be hooked before the page head is printed.' );
 	check( 1 === count( $GLOBALS['marrison_test_filters']['elementor/widget/render_content'] ?? [] ), 'Render filter was not registered.' );
+	check( 'maybe_enqueue_current_document_assets' === $GLOBALS['marrison_test_hooks']['wp_enqueue_scripts'][0][1], 'Frontend enqueue must inspect document usage.' );
+	$module->maybe_enqueue_current_document_assets();
+	check( [] === $GLOBALS['marrison_test_assets'], 'Page without Read More must not load assets.' );
 
 	$text_widget = new Fake_Read_More_Widget( 'text-editor' );
 	$module->maybe_register_controls( $text_widget, 'section_editor' );
@@ -148,6 +159,25 @@ namespace {
 
 	$disabled_widget = new Fake_Read_More_Widget( 'text-editor', [ 'marrison_read_more_enabled' => '' ] );
 	check( '<p>No wrap</p>' === $module->render_read_more( '<p>No wrap</p>', $disabled_widget ), 'Disabled widget content changed.' );
+
+	$GLOBALS['marrison_test_documents'][42] = json_encode( [ [ 'widgetType' => 'jet-listing-grid', 'settings' => [ 'lisitng_id' => 99 ] ] ] );
+	$GLOBALS['marrison_test_documents'][99] = json_encode( $cached_data );
+	$listing_module = new \Marrison_Addon_Read_More();
+	$listing_module->maybe_enqueue_current_document_assets();
+	check( 6 === count( $GLOBALS['marrison_test_assets'] ), 'A listing template must prepare assets before initially empty/AJAX results.' );
+	$GLOBALS['marrison_test_is_singular'] = false;
+	$archive_module = new \Marrison_Addon_Read_More();
+	$archive_module->maybe_enqueue_current_document_assets();
+	check( 6 === count( $GLOBALS['marrison_test_assets'] ), 'A term ID must not be interpreted as an unrelated Elementor post ID.' );
+	$GLOBALS['marrison_test_is_singular'] = true;
+	$listing_module->print_late_styles();
+	$listing_module->print_late_styles();
+	check( [ 'marrison-addon-read-more' ] === $GLOBALS['marrison_test_printed_styles'], 'Late rendered documents need one stylesheet output.' );
+
+	$GLOBALS['marrison_test_documents'][99] = json_encode( [ [ 'widgetType' => 'template', 'settings' => [ 'template_id' => 42 ] ] ] );
+	$cyclic_module = new \Marrison_Addon_Read_More();
+	$cyclic_module->maybe_enqueue_current_document_assets();
+	check( 6 === count( $GLOBALS['marrison_test_assets'] ), 'Template cycles without usage must terminate without loading assets.' );
 
 	echo "Read More PHP contract: PASS\n";
 }

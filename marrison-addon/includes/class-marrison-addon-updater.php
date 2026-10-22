@@ -173,7 +173,7 @@ class Marrison_Addon_Updater {
 			'new_version'  => $remote_version,
 			'url'          => "https://github.com/{$this->username}/{$this->repo}",
 			'package'      => $download_url,
-			'tested'       => '6.9', // Safe hardcoded value
+			'tested'       => '7.1.3',
 			'requires_php' => '7.4',
 			'icons'        => [
 				'default' => "https://raw.githubusercontent.com/{$this->username}/{$this->repo}/main/assets/icon-256x256.png"
@@ -242,7 +242,7 @@ class Marrison_Addon_Updater {
 		$res->name = 'Marrison Addon';
 		$res->slug = dirname( $this->slug );
 		$res->version = $remote_version;
-		$res->tested = '6.9';
+		$res->tested = '7.1.3';
 		$res->requires = '6.0';
 		$res->author = '<a href="https://marrisonlab.com">Angelo Marra</a>';
 		$res->author_profile = 'https://github.com/marrisonlab';

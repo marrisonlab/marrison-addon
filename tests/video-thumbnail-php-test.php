@@ -15,6 +15,9 @@ function esc_html__( $text ) { return esc_html( $text ); }
 function esc_attr( $text ) { return esc_html( $text ); }
 function esc_html_e( $text ) { echo esc_html( $text ); }
 function current_user_can() { return true; }
+function check_ajax_referer() {}
+function esc_url_raw( $value ) { return (string) $value; }
+function wp_send_json_error( $message ) { throw new RuntimeException( 'ajax-error:' . $message ); }
 function get_option() { return $GLOBALS['mvt_settings']; }
 function wp_parse_args( $args, $defaults ) { return array_merge( $defaults, $args ); }
 function sanitize_text_field( $text ) { return trim( (string) $text ); }
@@ -55,6 +58,31 @@ function mvt_html( $module ) {
     finally { ob_end_clean(); }
 }
 $module = new Marrison_Addon_Video_Thumbnail();
+$thumbnail_method = new ReflectionMethod( $module, 'is_allowed_youtube_thumbnail' );
+if ( PHP_VERSION_ID < 80100 ) { $thumbnail_method->setAccessible( true ); }
+$youtube_id = 'dQw4w9WgXcQ';
+foreach ( [ 'maxresdefault.jpg', 'sddefault.jpg' ] as $name ) {
+    mvt_check( $thumbnail_method->invoke( $module, 'https://img.youtube.com/vi/' . $youtube_id . '/' . $name, $youtube_id ), 'Offered thumbnail must remain importable.' );
+}
+foreach ( [
+    'https://other.test/vi/' . $youtube_id . '/maxresdefault.jpg',
+    'https://img.youtube.com/vi/aaaaaaaaaaa/maxresdefault.jpg',
+    'https://img.youtube.com/vi/' . $youtube_id . '/hqdefault.jpg',
+    'https://img.youtube.com/vi/' . $youtube_id . '/maxresdefault.jpg?url=http://localhost',
+    'http://img.youtube.com/vi/' . $youtube_id . '/maxresdefault.jpg',
+    'https://img.youtube.com.evil.test/vi/' . $youtube_id . '/maxresdefault.jpg',
+] as $url ) {
+    mvt_check( ! $thumbnail_method->invoke( $module, $url, $youtube_id ), 'Arbitrary image host/path/video must be rejected before download.' );
+}
+mvt_check( ! $thumbnail_method->invoke( $module, 'https://img.youtube.com/vi/bad/maxresdefault.jpg', 'bad' ), 'Invalid video ID must be rejected.' );
+$_POST = [ 'image_url' => 'https://other.test/private.jpg', 'video_id' => $youtube_id ];
+try {
+    $module->ajax_import_thumbnail();
+    throw new RuntimeException( 'Unexpected successful import.' );
+} catch ( RuntimeException $error ) {
+    mvt_check( 'ajax-error:Invalid thumbnail URL for the selected YouTube video.' === $error->getMessage(), 'AJAX must reject arbitrary images before loading/downloading media.' );
+}
+$_POST = [];
 $status = mvt_status( $module );
 mvt_check( ! $status['available'], 'Missing binary or disabled exec must be unavailable.' );
 mvt_check( false !== strpos( $status['message'], 'YouTube restano disponibili' ), 'Warning must explain the available workflow.' );

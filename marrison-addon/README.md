@@ -8,17 +8,22 @@
 *   **Author URI:** https://marrisonlab.com
 *   **Tags:** elementor, container, link, wrapper, read more, steps, anchor, ticker, discount, woocommerce, cursor, preloader, logout, video thumbnail, cookie, calendar, liquid background, dynamic svg, marrison
 *   **Requires at least:** 6.0
-*   **Tested up to:** 7.0.1
+*   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
-*   **Stable tag:** 1.3.64
-*   **License:** GPL-3.0+
-*   **License URI:** https://www.gnu.org/licenses/gpl-3.0.txt
+*   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
+*   **Stable tag:** 1.3.78
+*   **License:** GPL-3.0-or-later
+*   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
 ## Description
 
 **Marrison Addon** is a modular plugin designed to enhance your WordPress site and Elementor workflow. It provides a suite of essential tools that can be enabled or disabled individually to keep your site lightweight.
 
 **Included Modules:**
+
+**Query Fallback (JetEngine + Elementor):** adds a backup Posts Query directly after the Listing Grid Custom Query controls. Choose Only when empty or Fill missing items, with ordered duplicate-free results and preserved dynamic context. This first version is for single-page grids: public AJAX, Load More, Lazy Load and requests with applied filters have explicit safety gates. An installed JetSmartFilters plugin does not block unfiltered listings. See [configuration, compatibility and test procedure](docs/query-fallback.md).
+
+The module dashboard always lists required active plugins. Missing dependencies keep the related switch off and locked and prevent server-side activation. Standalone modules remain available.
 
 1.  **Wrapped Link (Elementor):**
     *   Make an entire Elementor Container or widget clickable.
@@ -103,17 +108,26 @@
     *   Includes shortcode support for templates and dynamic content.
 
 16. **Cookie Manager:**
-    *   Cookie banner, floating widget, preferences modal, and setup wizard.
-    *   Automatic cookie scanning and category management.
-    *   The scanner recursively crawls internal links, WordPress sitemaps and sitemap locations in robots.txt, with a visible page limit (default 500; maximum 5,000), incremental requests and saved progress. Administrative/action URLs, external hosts and asset downloads are excluded. The report exposes failed pages, limits and incomplete coverage; reaching a limit is a partial scan.
-    *   HTTP response cookies are observed without forwarding the administrator's cookies. In current Chrome/Edge, the admin panel then visits discovered pages in credentialless browser frames, first before consent and then with consent simulated. JavaScript and embedded resources execute, and readable cookies are measured with domain, path, observed expiration and page/phase evidence. Starting a scan reloads the admin panel to create a fresh isolated session. Keep the panel open for browser measurements; interrupted work can be resumed. Missing browser isolation, blocked frames and timeouts are reported without pretending that browser coverage completed.
-    *   The scanner records actual observations, never cookie catalog entries or cookie values. It can read same-site HTTP `Set-Cookie` headers (including HttpOnly) and browser-readable cookies; third-party HttpOnly cookies and interactions that require filling forms, signing in or clicking site controls need a separate browser audit. Page responses are capped at 2 MiB and browser observations at 200 cookies per page, with a maximum of 5,000 distinct cookies per report; exceeded limits mark coverage partial.
+    *   Cookie banner, floating widget, preferences modal, and setup wizard. The wizard uses the shared WordPress/Marrison admin style; the floating widget inherits the configured button background and text colors.
+    *   After a plugin update, administrators see a compact notice linking to the scanner while Cookie Manager is enabled. It remains until a new scan started with the updated version saves its report and finishes all planned browser measurements without browser errors. An HTTP failure such as a missing test policy page can leave the report partial without falsely claiming that no new scan was performed. Old, cancelled, failed and browser-incomplete jobs do not clear the notice. Turning the module off hides the notice without loading its files, hooks or assets; first installations retain the setup wizard.
+    *   Manual cookie scanning and category management. Automatic scans are disabled until explicitly enabled and saved in Behavior; installations with the previous enabled default must opt in again. Installing the plugin, opening the wizard or viewing the scanner does not start a scan. Changing the scan method saves it and cancels active work without starting another job. Remote scans consume Browserless credits; a request already submitted may still finish after cancellation.
+    *   Background consent checks do not add technical diagnostics or retry buttons to the visitor banner. A failed save remains an explicit error and never enables optional tracking. Receipt storage installs the server's access protection (IIS web.config or Apache-compatible .htaccess); an unused IIS configuration cannot block a Unix host. Detailed storage errors remain available in the administrator receipt view.
+    *   Every Privacy Policy profile field is optional. Saving and shortcode output work with empty or partial profiles; populated identity details remain visible. Empty details are omitted and unspecified transfers are not presented as declared. The form has no required markers or publication-block messages.
+    *   The scanner selects representative samples before making HTTP/browser requests. It groups public posts, announcements and other CPTs by content type, assigned/classic WordPress template, Elementor widget/component structure and saved embedded services/forms/inline scripts. Text, widget IDs, pagination and image IDs alone do not create another visit. Home, configured policies, post-type archives and public taxonomy archives receive their own representatives; unique templates and services keep extra samples. WordPress APIs provide seed routes; internal links, sitemaps and robots.txt identify further candidates without visiting every equivalent page.
+    *   The visible limit controls samples (default 50; maximum 5,000). Each successful sample receives two isolated browser passes, before/after simulated consent. The report lists the chosen URLs, selection reasons, represented URL counts and equivalent URLs avoided. Up to 50 same-site **Additional pages** can be explicitly included even when they share a template. Dynamic display conditions or integrations not identifiable from saved content require these targeted URLs; Elementor supports custom inclusion/exclusion rules ([developer documentation](https://developers.elementor.com/docs/theme-conditions/)). Non-WordPress routes are grouped by route family and identified as uncertain. Sampling completion means the representative plan finished, not that every URL or possible interaction was visited.
+    *   Requests are incremental and progress is saved. Administrative/action URLs, external hosts and asset downloads are excluded. Discovery is bounded to 10,000 candidate URLs; limits, failed samples and incomplete coverage are explicit. Large/nested saved content that cannot be fully classified gets a dedicated sample rather than being silently merged. Scans from the previous exhaustive method cannot resume under the new grouping strategy.
+    *   Remote scans run in bounded server batches through signed asynchronous loopbacks, with persistent leases and a WP-Cron watchdog. The administrator may close the scanner, return to the dashboard or continue the wizard. Reopening either view reads the current server state without dispatching work or requiring sessionStorage. Failed dispatch/provider requests pause visibly and can be resumed. Local iframe measurements still require an open panel; navigation has a 30-second timeout and a loaded frame gets a separate 15-second observation window. Blocked frames/scripts remain explicit partial results.
+    *   The remote browser observes cookie metadata across origins, including HttpOnly cookies, before and after real consent. Separate localStorage/sessionStorage inventories contain key names and origin only, never values, and do not increase cookie counts. Known service declarations remain separate from actual observations. Page/resource/storage caps and interactions not executed limit coverage; a completed sample plan is not an exhaustive browser audit.
     *   Inventory and policy lists consolidate duplicates by name, domain and path, retaining manual categories. A successful complete scan removes cookies no longer observed; partial scans retain earlier observations. Legacy catalog-only records and duplicates are cleaned on the next scan. Database and JSON fallback storage remain supported. Reports can be exported and show runtime version, loaded scanner path and source fingerprint so stale or conflicting installations cannot silently report successful scans.
-    *   Automatic scans use WP-Cron and respect the configured interval of 1–30 days (default: 7). They crawl HTTP pages incrementally; browser measurements remain pending until the administrator opens the scanner and resumes. Normal requests repair scheduling without crawling inline. Disabling the module removes scheduled events. WP-Cron execution depends on site traffic or a server cron invoking WordPress cron.
-    *   Policy codes are always available in **AM Addon > Cookie Manager > Shortcode**, each with a **Copy** button and Elementor instructions. `[marrison_privacy_policy]` renders the Privacy Policy; `[marrison_cookie_policy_content]` renders the full Cookie Policy with current scan results and a preferences link. Insert them in your own pages with Elementor's Shortcode widget or WordPress's Shortcode block, then configure their URLs in the **Banner** tab. The same copy controls appear in the wizard and banner settings, without creating pages automatically.
+    *   Automatic scans respect the configured interval (1–30 days, default 7). Remote jobs continue through chained server requests after their initial scheduled start; WP-Cron repairs stalled work. The host must allow same-site loopback requests; failures are shown explicitly. The local method leaves browser work pending. Disabling the module removes cron and excludes worker handlers/assets.
+    *   Policy codes are always available in **AM Addon > Cookie Manager > Shortcode**, each with a **Copy** button and Elementor instructions. `[marrison_privacy_policy]` renders the Privacy Policy; `[marrison_cookie_policy_content]` renders the full Cookie Policy with current scan results and a preferences link. Insert them in your own pages with Elementor's Shortcode widget or WordPress's Shortcode block, then configure their URLs in the **Banner** tab. The same copy controls appear in the wizard; no pages are created automatically.
     *   `[marrison_cookie_policy]` remains available for just the scanned cookie list and preferences link. Existing policy pages and configured URLs are preserved, and legacy Cookie Policy pages still receive current scan details without replacing saved content.
     *   The policy distinguishes detected expiration (in the site timezone), session cookies and unavailable expiration; lifetimes are never inferred from cookie names. Run a new scan after updating to collect metadata for existing records.
     *   Consent blocking covers known or explicitly categorized scripts, iframes, pixels and dynamic requests, plus optional JavaScript cookie writes. Additional service domains/paths can be configured per category in **Behavior**. Revoking a category removes accessible cookies at their detected scopes and reloads the page so already-executed integrations stop. Essential WordPress/WooCommerce sessions and the consent itself are preserved. Site-specific integrations and server-set cookies still require verification; unknown services cannot all be identified by their URL alone.
+    *   Accept, reject and customize have equal visual prominence. Closing the banner with X records a refusal. Choices last 184–365 days (default 184; shorter legacy settings are raised), can be changed through the floating widget or preferences link, and must be renewed when the controller changes the revision for significant processing changes or adds/changes service rules. Minor text/layout corrections alone do not re-prompt visitors; each receipt retains the exact information available when saved. Old unsigned acceptances require a new choice; an existing refusal is preserved without inventing an affirmative consent record.
+    *   Consent is verified by an uncached, same-origin, nonce-protected request against a signed HttpOnly/SameSite cookie. Optional resources stay inert in cacheable HTML even when the generating visitor has accepted. A failed verification or receipt write does not activate optional tracking; errors are visible and retryable.
+    *   **Consent receipts** provides administrator-only, paginated viewing and daily JSON exports, including timestamp, categories, choice/withdrawal, linked previous receipt, policy revision and integrity results. Random per-device IDs replace the old IP-keyed transient storage; no IP address or user agent is recorded. Private append-only daily files and policy snapshots live in `wp-content/uploads/marrison-cookie/consent/`, protected by webserver rules and PHP exit prefixes. Back up this archive together with the database option `marrison_cookie_receipt_key`; historical integrity does not depend on WordPress authentication salts. Retention is configurable from 365 to 1,095 days (default 365), with daily WP-Cron cleanup; choose and disclose a proportionate retention period.
+    *   **Privacy and policies** generates the Privacy Policy from structured controller details, actual processing, legal bases, retention and provider/transfer settings. The wizard step is optional; incomplete required information is flagged. Cookie Policy text, current scan inventory and preferences access are generated automatically. Shortcode content uses basic paragraphs/bold/lists without headings. Existing independently written Elementor pages remain user-managed. Receipts preserve the generator inputs/text and the configured local policy page sources; their admin view shows readable choices and integrity results.
     *   Frontend UI only loads when the module is active and in a real frontend context.
 
 17. **Video Thumbnail:**
@@ -135,7 +149,7 @@
     *   Nginx instructions separate `http` maps from directives for the existing static location, preserving response policies and excluding errors/dynamic responses. A system administrator must apply and later remove these directives; disabling the WordPress module cannot remove manual Nginx configuration.
     *   Manual GET diagnostics check up to three assets per enabled category, including CSS backgrounds and fonts, with HTTP status, content type and cache directives. Missing categories and failed checks cannot retain a previous green status. The module does not configure HTTP/2, compression or page cache.
 
-20. **Scroll Orizzontale (Elementor):**
+20. **Scroll Orizzontale (Elementor, Beta):**
     *   Adds **Marrison — Scroll Orizzontale** to the Advanced tab of ordinary Elementor Containers; no separate widget is required.
     *   Put the content in a child Container arranged as a horizontal row and give its children the widths you want in Elementor. The module measures the actual overflow and supports either movement direction, optional pin, and independent desktop/tablet/mobile switches (mobile is off by default).
     *   With Pin, vertical scroll distance equals horizontal overflow multiplied by **Durata scroll** (1 is natural distance). Without Pin, the duration scales the section's passage through the viewport.
@@ -179,14 +193,100 @@
     *   Catchable load errors and identifiable fatal errors, including deferred WordPress hook/shortcode/JetEngine callbacks, disable the failing revision and record its diagnostic. Shutdown recovery reserves 512 KiB for resource exhaustion. If memory/time exhaustion has no attributable trace, all snippets loaded in that request are conservatively suspended; the actual cause may be another component. The current request can still fail. PHP shutdown cannot guarantee recovery after a killed process, intentional `exit`, fatal errors in later shutdown handlers/destructors, unavailable database, or failures in external code without a snippet trace. See [PHP shutdown behavior](https://www.php.net/manual/en/function.register-shutdown-function.php).
     *   Recovery: open `/wp-admin/admin.php?page=marrison_addon_php_snippets` (or the module dashboard) and disable the offending entry or all snippets. If necessary add `define( 'MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE', true );` to `wp-config.php` before WordPress loads; remove it after correcting/deactivating the code. This bypass does not execute snippets or change stored activation states. Management still requires both capabilities and valid nonces.
 
+25. **Listing Columns (JetEngine + Elementor):**
+    * Enable **Colonne Listing** in AM Addon, then add the **Colonne Listing** widget in Elementor. Assign a CSS ID such as `catalogo` to the existing Listing Grid and set the widget target to `#catalogo`. The default target `.griglia-variabile` also supports the class used by the original HTML snippet; remove the old snippet to avoid competing scripts/styles.
+    * Choose minimum, maximum and initial columns (1–12) separately for each active Elementor breakpoint using the native responsive controls. Optional laptop, mobile/tablet extra and widescreen devices use the site's actual breakpoint widths. Empty fields inherit from larger devices; widescreen inherits desktop. Invalid initial values are clamped to that breakpoint's enabled range. The default range is 2–4 with 3 selected. A target selector can control several grids; repeated toolbars with the same target share the choice.
+    * Automatic two-row SVG icons depict each column count. Choose icons/numbers/both and icon position, or override individual labels/icons with Elementor's native icon library and SVG uploads.
+    * Native responsive style controls cover alignment, direction, gaps, typography, padding, dimensions, radius, icon size/stroke and normal/hover/active/focus colors, backgrounds, borders and shadows. Elementor provides its usual Advanced tab according to the installed edition.
+    * Optional browser storage is scoped to page path, target selector and breakpoint; blocked storage does not prevent selection. Returning to a breakpoint restores its own choice and buttons. Existing desktop preferences are preserved. Editor choices are not persisted. Below the activation width (default 768 px; set 0 to use the mobile settings too), the toolbar hides and the original Listing responsive layout returns.
+    * Handles AJAX grid replacements, pagination and editor rerenders, leaving nested listings independent. Slider and masonry grids are excluded. Assets load only for pages rendering the widget; the module is disabled by default and requires Elementor and JetEngine.
+
 ## Installation
 
 1.  Upload the `marrison-addon` folder to the `/wp-content/plugins/` directory of your site.
 2.  Activate the plugin through the 'Plugins' menu in WordPress.
-3.  Go to **Settings > Marrison Addon** to enable/disable specific modules.
+3.  Go to **AM Addon** to enable/disable specific modules.
 4.  Configure each module's settings as needed.
 
+## Compatibility and distribution
+
+The minimum requirements remain WordPress 6.0 and PHP 7.4. Current compatibility targets are **WordPress 7.1.3** and **PHP 8.5.11**, the stable releases checked on 20 October 2026. PHP 8.6 release candidates are not the stable target. Elementor, WooCommerce and JetEngine are required only by the modules that integrate with them; unavailable dependencies are shown in the module dashboard. Disabled modules load no operational module classes, hooks, CSS or JavaScript.
+
+GitHub uses this Markdown documentation and the repository-root overview. The installable plugin also includes a standard **readme.txt** for WordPress, with the same version, minimum requirements and current changelog. WordPress reads installation requirements from the main PHP header; `Requires PHP` is the minimum, not the newest supported release.
+
+Updates use the latest published stable GitHub Release from `marrisonlab/marrison-addon`. Commit and push the updated plugin code before creating a lowercase `vX.Y.Z` tag and publishing its Release as Latest. The PHP header/constant and readme stable tags must match `X.Y.Z`. A tag alone does not publish a Release. The updater downloads the source archive at that tag, not an attached ZIP; its version check is cached for six hours. After updating, open **AM Addon > Cookie Manager > Scanner Cookie** when the rescan notice appears. The GitHub updater runs in admin/WP-Cron while the plugin is active.
+
 ## Changelog
+
+### Unreleased
+* **Listing Columns:** Make minimum, maximum and initial columns responsive across all active Elementor breakpoints, with inherited empty values and independent per-breakpoint browser preferences.
+* **Listing Columns:** Add the optional Colonne Listing Elementor widget with configurable column range, SVG/native icons, responsive activation, browser preferences, AJAX replacement handling and native style controls.
+
+### 1.3.78
+* **Query Fallback UI:** Fix the native Choose control clipping stacked radio options. Use a full-width field with automatic height, a visible Select2 placeholder and stable selection/search without rebuilding the control on every setting change. Compact notices and identify the actual incompatible setting.
+* **Query Fallback execution:** Remove the global block for installed JetSmartFilters. Use JetEngine native filter-request detection for the primary and backup queries; preserve applied filters while allowing unfiltered grids and requests targeting other queries. Verify empty main queries against 3,000 fallback products in both modes.
+
+### 1.3.77
+* **Query Fallback:** Fix the Elementor "Cannot add a control outside of a section" error by using the native Custom Query section before_section_end hook. Controls also register with JetEngine legacy queries disabled. Add a regression check using the real Listing Grid query control registration and a strict section fixture.
+
+### 1.3.76
+* **Module settings:** Show each required plugin with a compact green check when active or red cross when missing/inactive, with accessible status. Remove redundant requirement sentences.
+
+### 1.3.75
+* **Query Fallback:** Add a backup Posts Query directly to the native JetEngine Listing Grid controls. Support empty-only and fill modes with progressive deduplication, preserved dynamic context and per-widget isolation.
+* **Compatibility:** Explicitly suspend fallback for pagination, Load More, Lazy Load, JetSmartFilters and public AJAX. Document integration hooks, local verification and reproducible manual tests in `docs/query-fallback.md`.
+* **Module settings:** Always show required active plugins; keep unavailable switches off and locked, prevent operational module loading and validate new activations server-side.
+
+### 1.3.74
+* Skip trashed/private sample pages and record removed 404/410 routes separately, without marking a completed scan incomplete. Keep genuine network/server failures visible.
+* Add a structured Privacy Policy generator in settings and an optional, skippable wizard step. Include controller/contact details, purposes and legal bases, retention, providers/transfers, DPO, rights and optional marketing/automated processing. Flag missing inputs.
+* Generate fuller Cookie Policy text and observed browser-storage details. Use paragraphs, bold text and lists instead of headings. Keep existing user-created pages and shortcodes.
+* Remove duplicate shortcode controls from Banner and remove the banner close X/note. Preserve compact mobile actions and explicit rejection.
+* Hide the scanner progress bar on completion and show a clear final state; reduce explanatory text. Display readable consent receipts with integrity status; retain the technical JSON export.
+
+### 1.3.73
+* **Cookie Manager:** Server background processing continues after closing the scanner or wizard. Persistent leases, signed loopbacks, watchdog recovery, pause/resume and dashboard progress notice; wizard may advance immediately without reloading.
+* **Scan coverage:** Observe localStorage/sessionStorage key names and origins separately from cookies, with no values; recover both inventories in new tabs. Requires the small Commander storage patch.
+
+### 1.3.72
+* **Cookie Manager:** Remote browser scanning through Commander and Browserless observes first-party, third-party and HttpOnly cookies without collecting values. Checks real consent before/after and starts existing YouTube embeds. No Commander license or Browserless key is required on WordPress.
+* **Reliability:** Expiring site proof, provider preflight, independent page requests, bounded quota/concurrency, idempotent retries and explicit errors. Local scanning remains available with limited coverage; disabled Cookie Manager loads no scanner or network hooks.
+
+### 1.3.71
+
+*   **Cookie Manager:** Captures actual Set-Cookie headers in signed anonymous scan iframes, including late HttpOnly cookies; uses the native after-consent choice without recording visitor receipts. Top-level and authenticated requests cannot enter the scan context. Gives delayed scripts time to run and includes external resources observed through browser performance entries.
+*   **Cookie Manager:** Separates observed cookies from provider-documented cookies for detected Google Maps, Analytics and YouTube integrations, with evidence labels and source links in the scanner and policy. No remote scanning service is required. Desktop banner text is stacked with explicit spacing.
+
+### 1.3.70
+*   **Cookie scanner:** Removes visible page previews while preserving layout and lazy-resource checks. Ignores inert script/template links and Vue bindings, groups cosmetic Elementor differences and date archives, and batches short HTTP checks. Verifies cookie read/write access before accepting browser results, retains document-cookie fallback when Cookie Store returns no entries, explains incomplete/empty results in Italian and lists external service hosts without inventing cookies or storing resource queries.
+
+### 1.3.69
+*   **Fix:** Cookie acceptance bars no longer collapse their text to zero width on desktop: the content and actions occupy explicit grid columns, empty consent-status messages are hidden and nonempty messages have a separate full-width row. The close-control explanation spans the text area. Mobile descriptions and button labels wrap without clipping; banner height stays within the viewport.
+
+### 1.3.68
+*   **Cookie Manager:** Adds a compact administrator notice requesting a new cookie scan after an update, with a direct scanner link. It appears only while the module is enabled and clears after a saved scan from the updated version finishes its browser measurements. Fresh installs, older/incomplete jobs and storage failures are handled separately; no global notice assets are added.
+*   **Compatibility:** Updates the WordPress compatibility metadata to 7.1.3 and checks PHP 8.5.11 support. Minimum requirements remain WordPress 6.0 and PHP 7.4; adds the native requirement/license headers to the main plugin file and aligns the GitHub updater metadata.
+*   **Documentation:** Adds a standard WordPress readme.txt and a GitHub repository overview, names Angelo Marra as author, and documents the GitHub tag/Release workflow and post-update cookie scan.
+
+### 1.3.67
+*   **Module lifecycle:** Single, bulk, Settings API and direct option updates share cleanup, status notifications and Elementor CSS invalidation. Disabling the plugin removes its own scheduled tasks and server rules while preserving settings and data. Failed cleanup or persistence is reported instead of confirming an unsuccessful save. Disabled modules retain conditional loading; registered background callbacks also stop after an OFF transition in the same request.
+*   **Cookie Manager:** Pending consent verification preserves existing optional cookies while blocking new optional writes/resources. Confirmed refusal, revocation and expiration retain cleanup. Inventory and manual categories no longer disappear after 30 days; database and JSON storage preserve observations on partial scans and identify older results. Preferences use a minimal layout, named dialog, trapped keyboard focus, Escape and restored trigger focus.
+*   **Dashboard:** Adds compact settings icons to all ten modules with their own settings page and a Beta label to Horizontal Scroll. Links become available when their module and dependencies are enabled.
+*   **Frontend:** Calendar strings without an offset use the WordPress timezone. Anchor links respect target/download. Preloader defaults to hidden without its JavaScript and handles browser history restoration. Cursor animation pauses when settled or invisible. Read More assets follow actual document/template usage; Ticker instances share static CSS.
+*   **Media and performance:** Prevents image-size slug collisions and bounds public background URL resolution. Local Fonts distinguishes frontend observations from source-only candidates. YouTube imports validate the selected video and thumbnail host. Dynamic SVG limits DOM complexity. Large product-discount import queues run in batches of up to 50 using Action Scheduler or WP-Cron.
+
+### 1.3.66
+*   **Fix:** Cookie scanning now groups equivalent WordPress content before HTTP and browser work. Hundreds of posts or CPT entries using the same template no longer produce hundreds of repeated visits. Distinct templates, Elementor widgets/components, embedded providers, forms and inline scripts retain their own samples. Archives/taxonomies, home and configured policy pages are covered separately.
+*   **Enhancement:** Adds a default budget of 50 representative samples, per-group URL counts, chosen pages/reasons and equivalent URLs avoided. Additional same-site URLs can be explicitly included for special service or display conditions. Limits and unresolved route families are visible; the report describes representative coverage rather than claiming every page was visited. Old exhaustive jobs cannot silently resume; automatic jobs use the same sampling strategy.
+*   **Fix:** Frontend banner-enabled values now handle WordPress-localized empty strings correctly, preserving disabled-banner policy access. The X control retains compact dimensions under theme button padding.
+*   **Validation:** A PHP integration fixture with 100 articles, 100 CPT records and distinct template/provider/archive variants groups 207 candidate URLs into 9 HTTP samples and 18 browser passes, avoiding 198 repeated URLs while retaining all declared variants. This is local fixture validation; the installed version must be verified separately on the target site.
+
+### 1.3.65
+*   **Fix:** Scanner compatibility checks normalize WordPress-localized protocol strings before comparison with numeric AJAX values. Valid installations no longer fail with a false PHP/scanner mismatch; real mismatches expose both expected and actual runtime details. Engine asset revision is refreshed to prevent stale clients.
+*   **Enhancement:** Replaces IP-keyed consent transients and unsigned cookie authorization with signed per-device choices, private append-only receipts, policy snapshots, withdrawal chains and administrator-only daily exports with integrity results. Cookie activation requires a verified current choice and successful receipt persistence; cached HTML never embeds an optional tracking grant.
+*   **Enhancement:** Adds **Policy texts** for approved site-specific content and explicit revision management for significant changes, removing generic assumed legal text. Minor text/layout corrections do not re-prompt visitors. Adds **Consent receipts** and configurable archive retention. Existing Elementor pages and shortcode semantics remain available.
+*   **Fix:** Raises short legacy consent durations to a minimum of 184 days, preserves refusals during migration, prevents acceptance of an outdated notice, and handles verification/storage failures visibly. X records refusal; accept/reject/customize receive equal prominence. Revocation continues to remove accessible optional cookies and reload the page.
+*   **UI:** Restyles the wizard with shared WordPress/Marrison colors, compact controls and responsive spacing; its step values correctly handle WordPress-localized strings. Floating widget background/icon colors follow the configured button colors. Adds scanner report padding and hides inactive resume/stop controls.
 
 ### 1.3.64
 *   **Enhancement:** Cookie Manager adds a dedicated **Shortcode** tab with selectable codes, individual Copy buttons, copy-failure feedback and instructions for Elementor and WordPress. The shared controls also appear in the wizard and Banner tab. Viewing/copying codes does not submit or change settings.

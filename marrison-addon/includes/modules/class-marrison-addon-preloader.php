@@ -95,7 +95,7 @@ class Marrison_Addon_Preloader {
 			(int) $transition_duration
 		);
 		?>
-		<div id="marrison-preloader" class="marrison-anim-<?php echo esc_attr( $animation_type ); ?>" style="<?php echo esc_attr( $inline_vars ); ?>" aria-hidden="true">
+		<div id="marrison-preloader" class="marrison-anim-<?php echo esc_attr( $animation_type ); ?>" style="<?php echo esc_attr( $inline_vars ); ?>" aria-hidden="true" hidden>
 			<?php if ( 'split' === $animation_type ) : ?>
 				<div class="marrison-preloader-curtain-top"></div>
 				<div class="marrison-preloader-curtain-bottom"></div>

@@ -25,7 +25,8 @@
         mouseY: window.innerHeight / 2,
         velX: 0,
         velY: 0,
-        insideViewport: false
+        insideViewport: false,
+        frame: null
     };
 
     var root = document.documentElement;
@@ -85,16 +86,32 @@
     }
 
     function handlePointerMove(event) {
+        if (!state.insideViewport) {
+            state.dotX = state.circleX = event.clientX;
+            state.dotY = state.circleY = event.clientY;
+            state.velX = state.velY = 0;
+        }
         state.insideViewport = true;
         state.mouseX = event.clientX;
         state.mouseY = event.clientY;
 
         setDisabledZone(event.target);
         setHoverState(event.target);
+        if (body.classList.contains('marrison-cursor-disabled-zone')) {
+            stopAnimation();
+            return;
+        }
         root.classList.add('marrison-cursor-visible');
+        if (state.frame === null && !document.hidden) {
+            state.frame = window.requestAnimationFrame(animate);
+        }
     }
 
     function animate() {
+        state.frame = null;
+        if (!state.insideViewport || document.hidden || body.classList.contains('marrison-cursor-disabled-zone')) {
+            return;
+        }
         var animationType = marrison_cursor_settings.animation || 'lag';
 
         state.dotX += (state.mouseX - state.dotX) * 0.55;
@@ -115,14 +132,34 @@
             state.circleY += (state.mouseY - state.circleY) * 0.16;
         }
 
+        var settled = Math.abs(state.mouseX - state.dotX) < 0.1 && Math.abs(state.mouseY - state.dotY) < 0.1 &&
+            Math.abs(state.mouseX - state.circleX) < 0.1 && Math.abs(state.mouseY - state.circleY) < 0.1 &&
+            Math.abs(state.velX) < 0.1 && Math.abs(state.velY) < 0.1;
+        if (settled) {
+            state.dotX = state.circleX = state.mouseX;
+            state.dotY = state.circleY = state.mouseY;
+            state.velX = state.velY = 0;
+        }
+
         var rotate = marrison_cursor_settings.shape === 'diamond' ? ' rotate(45deg)' : '';
         state.dot.style.transform = 'translate3d(' + state.dotX + 'px,' + state.dotY + 'px,0) translate(-50%, -50%)' + rotate;
         state.circle.style.transform = 'translate3d(' + state.circleX + 'px,' + state.circleY + 'px,0) translate(-50%, -50%)' + rotate;
 
-        window.requestAnimationFrame(animate);
+        if (!settled) {
+            state.frame = window.requestAnimationFrame(animate);
+        }
+    }
+
+    function stopAnimation() {
+        if (state.frame !== null) {
+            window.cancelAnimationFrame(state.frame);
+            state.frame = null;
+        }
     }
 
     function hideCursor() {
+        state.insideViewport = false;
+        stopAnimation();
         root.classList.remove('marrison-cursor-visible');
         body.classList.remove('marrison-cursor-hover');
         body.classList.remove('marrison-cursor-disabled-zone');
@@ -138,6 +175,4 @@
             hideCursor();
         }
     });
-
-    animate();
 })();

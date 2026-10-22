@@ -1,0 +1,291 @@
+[
+  {
+    "command": [
+      "php",
+      "tests/cookie-engine-php-test.php"
+    ],
+    "exit_code": 0,
+    "output": "PASS expiration: Expires/Max-Age/precedence/session/unknown, timestamps, malformed headers, path/domain, existing records/categories, DB failure and JSON file round-trip\nPASS observed-only scan: 432 synthetic rows removed, admin filtering, DB/JSON deduplication, per-domain/path identity, manual categories, null expiration, repeated/empty scans and failure diagnostics\nPASS deleted routes: trashed policy excluded, deleted 404 and 410 skipped, browser not sent to missing pages, completed status preserved\nPASS representative sampling: 207 candidate URLs (100 articles + 100 CPT entries + template/provider/archive variants), 9 HTTP samples, 18 browser passes, 198 equivalent URLs avoided, explicit extra URL, export reasons and legacy-job guard\nPASS Ceris regression: inert JetMenu links ignored, real links retained, external map identified without invented cookies, blocked cookie access reported\nPASS scan consent: clean before pass, signed after pass, real response headers including late HttpOnly cookies, no cookie values or fabricated observations, stale/forged frame rejected\nPASS Commander integration: preflight, expiring site proof, remote-only results, timeout/resume, foreign-domain HttpOnly import, unrelated cookie rejection, no cookie values or proof export, cancellation race\nPASS background worker: no browser/admin session, signed loopback chain, storage separation and privacy, no duplicate lease, watchdog recovery, cancellation/replay guards, visible loopback failure and server-side resume\nPASS progressive cookie engine: recursive crawl, scope/redirect guards, no admin cookies, signed before/after browser reports, real JSON locks, privacy, normalized inventory, page limits, cancellation and authorization\n"
+  },
+  {
+    "command": [
+      "php",
+      "tests/cookie-shortcodes-php-test.php",
+      "C:/Users/Angelo/Local Sites/tesy/app/public"
+    ],
+    "exit_code": 0,
+    "output": "PASS policy shortcodes: native WordPress parsing/hooks, full Privacy/Cookie content, live scan, legacy table, configured URLs, no page creation, wizard persistence and authorization\n"
+  },
+  {
+    "command": [
+      "php",
+      "tests/cookie-policy-php-test.php"
+    ],
+    "exit_code": 0,
+    "output": "PASS cookie policy: legacy/generated, fresh/empty scan, escaping, no cookie values, no duplication, context isolation, disabled banner and Italian/English\n"
+  },
+  {
+    "command": [
+      "php",
+      "tests/cookie-consent-php-test.php"
+    ],
+    "exit_code": 0,
+    "output": "PASS cookie quoted/unquoted src and module type, entities, nonce and selective consent\n"
+  },
+  {
+    "command": [
+      "php",
+      "tests/cookie-consent-store-php-test.php"
+    ],
+    "exit_code": 0,
+    "output": "PASS consent store: signed/expired/tampered states, revisions, withdrawals, integrity, authorization, retention; isolated scan sets all three real cookies without visitor receipts or value leaks\n"
+  },
+  {
+    "command": [
+      "node",
+      "tests/cookie-runtime-js-test.js"
+    ],
+    "exit_code": 0,
+    "output": "PASS cookie runtime: pending preserves existing values while blocking writes/resources, valid consent, refusal/revocation/expiry, necessary cookies and before/after scan phases\n"
+  },
+  {
+    "command": [
+      "node",
+      "tests/cookie-background-ui-js-test.js"
+    ],
+    "exit_code": 0,
+    "output": "PASS background UI: wizard can continue, no reload or sessionStorage dependency, server-only progress, new-tab recovery, terminal inventory refresh and paused-job resume.\n"
+  },
+  {
+    "command": [
+      "node",
+      "tests/cookie-receipts-ui-js-test.js"
+    ],
+    "exit_code": 0,
+    "output": "PASS receipt UI: translated choices/categories/events, dates, verified/invalid integrity, empty state, no raw JSON or unsafe HTML rendering.\n"
+  },
+  {
+    "command": [
+      "php",
+      "tests/cookie-auto-scan-php-test.php"
+    ],
+    "exit_code": 0,
+    "output": "PASS automatic scan: deferred visitor execution, no duplicate schedules, due/default/daily/bounded intervals, disable cleanup, re-enable and manual independence\n"
+  },
+  {
+    "command": [
+      "php",
+      "tests/cookie-update-notice-php-test.php",
+      "C:/Users/Angelo/Local Sites/tesy/app/public"
+    ],
+    "exit_code": 0,
+    "output": "PASS cookie update notice: upgrade/fresh install, persistence, active/capability guards, IT/EN, scanner link, old/incomplete/failed scans and completed/partial acknowledgment.\n"
+  },
+  {
+    "command": [
+      "php",
+      "tests/module-lifecycle-php-test.php",
+      "C:/Users/Angelo/Local Sites/tesy/app/public"
+    ],
+    "exit_code": 0,
+    "output": "PASS module lifecycle: 24 OFF, single/bulk/direct writes, CSS invalidation, cron with args, server cleanup/errors, snippet capabilities and plugin deactivation.\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-admin-settings.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-admin-settings.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-consent-store.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-consent-store.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-banner.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-banner.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-consent.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-consent.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-scanner.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-cookie-scanner.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-policy-content.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-policy-content.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-scan-engine.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-scan-engine.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-scan-sampler.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-scan-sampler.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-scan-services.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-scan-services.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-setup-wizard.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\includes\\class-setup-wizard.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\admin-settings.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\admin-settings.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-banner.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-banner.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-policy.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-policy.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-preferences.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\cookie-preferences.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\floating-widget.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\floating-widget.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\policy-shortcodes.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\policy-shortcodes.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\privacy-fields.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\privacy-fields.php\n"
+  },
+  {
+    "command": [
+      "php",
+      "-l",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\setup-wizard.php"
+    ],
+    "exit_code": 0,
+    "output": "No syntax errors detected in C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\templates\\setup-wizard.php\n"
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\assets\\js\\admin.js"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\assets\\js\\wizard.js"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\assets\\js\\scanner.js"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "C:\\Users\\Angelo\\Documents\\GitHub\\marrison-addon\\marrison-addon\\includes\\modules\\cookie-manager\\assets\\js\\frontend.js"
+    ],
+    "exit_code": 0,
+    "output": ""
+  }
+]

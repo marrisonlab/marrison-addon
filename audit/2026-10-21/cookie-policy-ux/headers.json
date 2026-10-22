@@ -1,0 +1,23 @@
+[
+  {
+    "url": "https://demo.ceris-srl.it/",
+    "status": 200,
+    "permissions_policy": [],
+    "iframes": []
+  },
+  {
+    "url": "https://darkblue-mongoose-141713.hostingersite.com/",
+    "status": 200,
+    "permissions_policy": [],
+    "iframes": [
+      "https://maps.google.com/maps?q=ideal%20plast%20Via%20Vignazzola%2C%20117%20%E2%80%94%2020821%20Meda%20%28MB%29&amp;t=m&amp;z=12&amp;output=embed&amp;iwloc=near"
+    ]
+  },
+  {
+    "url": "https://maps.google.com/maps?q=ideal%20plast%20Via%20Vignazzola%2C%20117%20%E2%80%94%2020821%20Meda%20%28MB%29&t=m&z=12&output=embed&iwloc=near",
+    "final_url": "https://www.google.com/maps/embed?origin=mfe&pb=!1m4!2m1!1sideal+plast+Via+Vignazzola,+117+%E2%80%94+20821+Meda!5e0!6i12",
+    "status": 200,
+    "permissions_policy": [],
+    "source": "iframe embedded by https://darkblue-mongoose-141713.hostingersite.com/"
+  }
+]

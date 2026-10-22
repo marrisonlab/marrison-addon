@@ -1,0 +1,38 @@
+tests/read-more-js-test.js	PASS
+Read More JS contract: PASS
+
+tests/horizontal-scroll-js-test.js	PASS
+Horizontal scroll JS snap wheel contract: PASS
+
+tests/liquid-background-js-test.js	PASS
+Liquid background JS fallback/mobile contract: PASS
+
+tests/header-animations-js-test.js	PASS
+PASS Header pre-init custom breakpoints, responsive inheritance, explicit none and widescreen
+
+tests/image-sizes-background-js-test.js	PASS
+Image Sizes background hero/session cache: PASS
+
+tests/image-sizes-admin-js-test.js	PASS
+Image Sizes admin selected/full/stop/SVG reporting: PASS
+
+tests/browser-cache-copy-js-test.js	PASS
+Browser Cache clipboard success/failure: PASS
+
+tests/preloader-js-test.js	PASS
+PASS preloader empty/normal anchors, cancelled click, modifiers, download, target, external and normal navigation
+
+tests/read-more-php-test.php	PASS
+Read More PHP contract: PASS
+
+tests/horizontal-scroll-php-test.php	PASS
+Horizontal scroll PHP contract: PASS
+
+tests/liquid-background-php-test.php	PASS
+Liquid background PHP contract: PASS
+
+tests/dynamic-svg-php-test.php	PASS
+Dynamic SVG PHP contract: PASS
+
+tests/dynamic-background-editor-php-test.php	PASS
+Dynamic background editor assets: 8 assertions PASS

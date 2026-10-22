@@ -1,0 +1,166 @@
+{
+  "data": {
+    "protocol": 1,
+    "engine": "commander_browserless",
+    "url": "https://demo.ceris-srl.it/contatti/",
+    "consent_verified": true,
+    "cookies": [
+      {
+        "cookie_name": "marrison_cookie_state",
+        "cookie_domain": "demo.ceris-srl.it",
+        "cookie_path": "/",
+        "expires": 1808427582.19604,
+        "secure": true,
+        "http_only": true,
+        "same_site": "lax",
+        "phase": "after",
+        "partitioned": false,
+        "observed_at": 1792529989403
+      },
+      {
+        "cookie_name": "marrison_cookie_consent",
+        "cookie_domain": "demo.ceris-srl.it",
+        "cookie_path": "/",
+        "expires": 1808427582.196252,
+        "secure": true,
+        "http_only": false,
+        "same_site": "lax",
+        "phase": "after",
+        "partitioned": false,
+        "observed_at": 1792529989403
+      },
+      {
+        "cookie_name": "marrison_cookie_categories",
+        "cookie_domain": "demo.ceris-srl.it",
+        "cookie_path": "/",
+        "expires": 1808427582.196315,
+        "secure": true,
+        "http_only": false,
+        "same_site": "lax",
+        "phase": "after",
+        "partitioned": false,
+        "observed_at": 1792529989403
+      }
+    ],
+    "resources": [
+      {
+        "url": "https://fonts.googleapis.com/css",
+        "kind": "style"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/raleway/v37/1Ptug8zYS_SKggPNyC0ITw.woff2",
+        "kind": "font"
+      },
+      {
+        "url": "https://maps.google.com/maps",
+        "kind": "iframe"
+      },
+      {
+        "url": "https://www.google.com/maps/embed",
+        "kind": "iframe"
+      },
+      {
+        "url": "https://maps.gstatic.com/maps-api-v3/embed/js/66/9d/init_embed.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps/api/js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/geometry.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/search.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/main.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204",
+        "kind": "request"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/common.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/util.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/map.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/controls.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/places_impl.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/places.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps/api/js/StaticMapService.GetMapImage",
+        "kind": "img"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/onion.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/search_impl.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.gstatic.com/mapfiles/openhand_8_8.cur",
+        "kind": "img"
+      },
+      {
+        "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/9d/log.js",
+        "kind": "script"
+      },
+      {
+        "url": "https://maps.googleapis.com/$rpc/google.internal.maps.mapsjs.v1.MapsJsInternalService/GetViewportInfo",
+        "kind": "request"
+      },
+      {
+        "url": "https://maps.googleapis.com/$rpc/google.internal.maps.mapsjs.v1.MapsJsInternalService/InitMapsJwt",
+        "kind": "request"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/roboto/v51/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMa3yUBA.woff2",
+        "kind": "font"
+      },
+      {
+        "url": "https://maps.googleapis.com/$rpc/google.internal.maps.mapsjs.v1.MapsJsInternalService/GetPlaceWidgetMetadata",
+        "kind": "request"
+      },
+      {
+        "url": "https://www.google.com/maps/vt",
+        "kind": "img"
+      },
+      {
+        "url": "https://places.googleapis.com/$rpc/google.maps.places.v1.Places/GetPlace",
+        "kind": "request"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/googlesanstext/v29/5aUu9-KzpRiLCAt4Unrc-xIKmCU5qEp2iw.woff2",
+        "kind": "font"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/googlesanstext/v29/5aUp9-KzpRiLCAt4Unrc-xIKmCU5oLlVnmhjtg.woff2",
+        "kind": "font"
+      }
+    ],
+    "issues": []
+  },
+  "type": "application/json"
+}

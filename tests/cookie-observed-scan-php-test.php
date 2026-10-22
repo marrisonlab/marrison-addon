@@ -1,10 +1,10 @@
 <?php
 /** Observed-only scan, legacy cleanup and deduplication in DB/JSON fixtures. */
 require __DIR__ . '/cookie-expiration-php-test.php';
-function update_option($name, $value) {}
+function update_option($name, $value) { $GLOBALS['scan_fixture_options'][$name] = $value; }
 function check_ajax_referer($action = '', $key = '') { global $engine_validate_nonce; if ($engine_validate_nonce && ($_POST[$key] ?? '') !== 'fixture') { throw new RuntimeException('Invalid nonce'); } }
 function current_user_can() { global $engine_can_manage; return $engine_can_manage !== false; }
-function get_option($name, $default = false) { return $default; }
+function get_option($name, $default = false) { return $GLOBALS['scan_fixture_options'][$name] ?? $default; }
 function add_shortcode() {}
 function esc_sql($text) { return $text; }
 class ScanJsonResponse extends RuntimeException {
@@ -39,6 +39,7 @@ class ObservedCookieDatabase extends CookieDatabase {
     public function get_results($sql) {
         $this->last_error = '';
         $rows = array_values($this->rows);
+        if (strpos($sql, 'scan_date > DATE_SUB') !== false) { $rows = array_filter($rows, function($row) { return strtotime($row['scan_date'] . ' UTC') > time() - 30 * 86400; }); }
         usort($rows, function($a, $b) { return strcmp($b['scan_date'], $a['scan_date']) ?: ($b['id'] <=> $a['id']); });
         return array_map(function($row) { return (object) $row; }, $rows);
     }
@@ -62,6 +63,10 @@ class ObservedCookieDatabase extends CookieDatabase {
         $this->last_error = '';
         if ($this->fail_table && strpos($sql, 'CREATE TABLE') === 0) { $this->last_error = 'fixture table unavailable'; return false; }
         if ($this->fail_delete) { $this->last_error = 'fixture delete failed'; return false; }
+        if (strpos($sql, 'scan_date < DATE_SUB') !== false) {
+            foreach ($this->rows as $id => $row) { if (strtotime($row['scan_date'] . ' UTC') < time() - 30 * 86400) { unset($this->rows[$id]); } }
+            return 1;
+        }
         if (preg_match('/WHERE id IN \(([^)]+)\)/', $sql, $match)) {
             $ids = array_map('intval', explode(',', $match[1]));
             foreach ($ids as $id) { unset($this->rows[$id]); }
@@ -124,6 +129,27 @@ try {
     $wpdb->fail_lookup = true;
     verify(invoke($scanner, 'save_cookie', array('new_cookie', 'current')) === 0 && count($wpdb->rows) === $count, 'Failed existence lookup inserted a duplicate/new record');
 
+    // Observations do not expire with age, in either storage backend. Partial
+    // scans retain old records and classifications; recent rows are not stale.
+    $aged = record(1, '_ga', 'browser', 'necessary');
+    $aged['scan_date'] = gmdate('Y-m-d H:i:s', time() - 31 * 86400);
+    foreach (array('table', 'json') as $mode) {
+        $wpdb = new ObservedCookieDatabase();
+        $wpdb->fail_table = $mode === 'json';
+        storage($scanner, $mode);
+        if ($mode === 'table') { $wpdb->rows[1] = $aged; }
+        else { invoke($scanner, 'write_json_cookies', array(array($aged))); }
+        $inventory = $scanner->get_cookies();
+        verify(count($inventory) === 1 && $inventory[0]->observation_stale && $inventory[0]->cookie_category === 'necessary', '31-day observation or manual category disappeared in ' . $mode);
+        $saved_categories = $scanner->engine_prepare();
+        verify(is_array($saved_categories) && in_array('necessary', $saved_categories, true), 'Engine preparation lost an aged manual category in ' . $mode);
+        verify($scanner->engine_store(array(), $saved_categories, false) && count($scanner->get_cookies()) === 1, 'Partial scan lost aged inventory in ' . $mode);
+        invoke($scanner, 'save_cookie', array('_ga', 'browser'));
+        $inventory = $scanner->get_cookies();
+        verify(!$inventory[0]->observation_stale && $inventory[0]->cookie_category === 'necessary', 'Fresh observation did not clear stale status while preserving category in ' . $mode);
+    }
+    invoke($scanner, 'write_json_cookies', array(array()));
+
     $wpdb = new ObservedCookieDatabase();
     $_COOKIE = array();
     $response['cookies'] = array();
@@ -132,6 +158,7 @@ try {
     $result = scan_json(array($wizard, 'ajax_scan_cookies'));
     verify($result->success && !$result->data['cookies'], 'Wizard treats an empty observed scan as failure');
     $wpdb->rows[1] = record(1, 'real_cookie', 'current');
+    $wpdb->rows[2] = record(2, 'real_cookie', 'current');
     $wpdb->fail_delete = true;
     foreach (array($scanner, $wizard) as $endpoint) {
         $result = scan_json(array($endpoint, 'ajax_scan_cookies'));
@@ -152,10 +179,10 @@ try {
     invoke($scanner, 'scan_homepage_cookies');
     invoke($scanner, 'scan_current_cookies');
     $json = invoke($scanner, 'read_json_cookies');
-    verify(count($json) === 3 && count(invoke($scanner, 'get_json_cookies', array('marketing'))) === 1, 'JSON scan inflated counts or lost manual category');
+    verify(count($json) === 6 && count(invoke($scanner, 'get_json_cookies', array('marketing'))) === 1, 'JSON partial scan lost earlier observations or manual category');
     verify(strpos(json_encode($json), 'private') === false && strpos(json_encode($json), 'secret') === false, 'JSON stored cookie values');
     invoke($scanner, 'save_cookie', array('session', 'homepage', 'functional', '', 'other.test', '/other'));
-    verify(count(invoke($scanner, 'read_json_cookies')) === 4, 'JSON merged distinct cookie domain/path identities');
+    verify(count(invoke($scanner, 'read_json_cookies')) === 7, 'JSON merged distinct cookie domain/path identities');
     echo "PASS observed-only scan: 432 synthetic rows removed, admin filtering, DB/JSON deduplication, per-domain/path identity, manual categories, null expiration, repeated/empty scans and failure diagnostics\n";
 } finally {
     foreach (array('marrison-cookie/scanned-cookies.json', 'marrison-cookie/index.html', 'marrison-cookie/.htaccess', 'wp-admin/includes/upgrade.php') as $file) {

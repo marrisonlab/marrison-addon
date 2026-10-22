@@ -87,7 +87,7 @@ class Marrison_Cookie_Banner {
         wp_localize_script('marrison-cookie-frontend', 'marrisonCookie', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('marrison_cookie_nonce'),
-            'consentDuration' => get_option('marrison_cookie_consent_duration', 30),
+            'consentDuration' => Marrison_Addon_Cookie_Consent_Store::duration(),
             'loadingText' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Caricamento cookie...', 'Loading cookies...') : __('Caricamento cookie...', 'marrison-cookie'),
             'customizeTitle' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Personalizza Cookie', 'Customize Cookies') : __('Personalizza Cookie', 'marrison-cookie'),
             'acceptAll' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Accetta tutti', 'Accept all') : __('Accetta tutti', 'marrison-cookie'),
@@ -95,7 +95,7 @@ class Marrison_Cookie_Banner {
             'savePreferences' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Salva Preferenze', 'Save preferences') : __('Salva Preferenze', 'marrison-cookie'),
             'privacyPolicy' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Privacy Policy', 'Privacy Policy') : __('Privacy Policy', 'marrison-cookie'),
             'cookiePolicy' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Cookie Policy', 'Cookie Policy') : __('Cookie Policy', 'marrison-cookie'),
-            'hasConsent' => isset($_COOKIE['marrison_cookie_consent']),
+            'hasConsent' => false,
             'showBanner' => (bool) get_option('marrison_cookie_show_banner', true),
             'scanPhase' => class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::get_instance()->frame_phase() : null,
             'closedTriggerModes' => $this->get_closed_trigger_modes(),
@@ -138,9 +138,7 @@ class Marrison_Cookie_Banner {
         if (!$this->should_render_consent_ui()) {
             return;
         }
-        if (isset($_COOKIE['marrison_cookie_consent'])) {
-            echo '<style>#marrison-cookie-banner{display:none}</style>' . "\n";
-        }
+        echo '<style>#marrison-cookie-banner{display:none}</style>' . "\n";
     }
     
     /**
@@ -152,7 +150,7 @@ class Marrison_Cookie_Banner {
         }
         
         // Verifica se l'utente ha già dato il consenso
-        if (isset($_COOKIE['marrison_cookie_consent'])) {
+        if (Marrison_Addon_Cookie_Consent_Store::get_instance()->current()) {
             return false;
         }
         
@@ -168,7 +166,7 @@ class Marrison_Cookie_Banner {
         }
         
         // Se l'utente ha già dato il consenso, renderizza il banner nascosto
-        $banner_hidden = isset($_COOKIE['marrison_cookie_consent']) || !get_option('marrison_cookie_show_banner', true);
+        $banner_hidden = !get_option('marrison_cookie_show_banner', true);
         $is_english = function_exists('marrison_cookie_is_english_site') && marrison_cookie_is_english_site();
         
         $banner_layout = get_option('marrison_cookie_banner_layout', 'bar');
@@ -216,7 +214,7 @@ class Marrison_Cookie_Banner {
             return false;
         }
 
-        return get_option('marrison_cookie_show_banner', true) || isset($_COOKIE['marrison_cookie_consent']) || $this->is_cookie_policy_page() || $this->page_has_policy_shortcode();
+        return true;
     }
 
     /**
@@ -301,39 +299,11 @@ class Marrison_Cookie_Banner {
      * AJAX: Salva consenso dell'utente
      */
     public function ajax_save_consent() {
-        check_ajax_referer('marrison_cookie_nonce', 'nonce');
-        
-        $consent_type = isset($_POST['consent_type']) ? sanitize_text_field(wp_unslash($_POST['consent_type'])) : '';
+        $type = isset($_POST['consent_type']) && is_string($_POST['consent_type']) ? sanitize_key(wp_unslash($_POST['consent_type'])) : '';
         $categories = isset($_POST['categories']) && is_array($_POST['categories']) ? $this->sanitize_categories(wp_unslash($_POST['categories'])) : array();
-        $valid_consent_types = array('accept_all', 'reject_all', 'custom');
-        
-        if (!in_array($consent_type, $valid_consent_types, true)) {
-            wp_send_json_error(array('message' => 'Tipo di consenso non valido'));
-        }
-
-        if ($consent_type === 'accept_all') {
-            $categories = array('necessary', 'functional', 'analytics', 'marketing');
-        } elseif ($consent_type === 'reject_all') {
-            $categories = array('necessary');
-        }
-        
-        // Salva consenso nel database
-        $this->save_user_consent($consent_type, $categories);
-        
-        // Imposta cookie
-        $consent_duration = get_option('marrison_cookie_consent_duration', 30);
-        $expiry = time() + ($consent_duration * DAY_IN_SECONDS);
-        
-        // Il frontend deve poter leggere questi cookie per mantenere nascosto il banner tra le pagine.
-        setcookie('marrison_cookie_consent', $consent_type, $expiry, '/', COOKIE_DOMAIN, is_ssl(), false);
-        setcookie('marrison_cookie_categories', implode('|', $categories), $expiry, '/', COOKIE_DOMAIN, is_ssl(), false);
-        
-        // Gestisci i cookie in base al consenso
-        $this->handle_consent($consent_type, $categories);
-        
-        wp_send_json_success(array('message' => 'Consenso salvato con successo'));
+        Marrison_Addon_Cookie_Consent_Store::get_instance()->save_request($type, $categories);
     }
-    
+
     /**
      * AJAX: Ottieni elenco cookie scansionati
      */
@@ -397,43 +367,6 @@ class Marrison_Cookie_Banner {
     }
     
     /**
-     * Salva consenso dell'utente nel database
-     */
-    private function save_user_consent($consent_type, $categories) {
-        $user_id = get_current_user_id();
-        $ip_address = $this->get_user_ip();
-        
-        $consent_data = array(
-            'consent_type' => $consent_type,
-            'categories' => $categories,
-            'timestamp' => current_time('mysql'),
-            'user_id' => $user_id,
-            'ip_address' => $ip_address,
-        );
-        
-        // Salva come opzione per utenti loggati, o in transients per visitatori
-        if ($user_id) {
-            update_user_meta($user_id, 'marrison_cookie_consent', $consent_data);
-        } else {
-            set_transient('marrison_consent_' . md5($ip_address), $consent_data, 30 * DAY_IN_SECONDS);
-        }
-    }
-    
-    /**
-     * Ottieni IP dell'utente
-     */
-    private function get_user_ip() {
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            return sanitize_text_field(wp_unslash($_SERVER['HTTP_CLIENT_IP']));
-        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $forwarded_for = explode(',', wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR']));
-            return sanitize_text_field(trim($forwarded_for[0]));
-        } else {
-            return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
-        }
-    }
-    
-    /**
      * Gestisci i cookie in base al consenso
      */
     public function handle_consent($consent_type, $categories) {
@@ -474,7 +407,7 @@ class Marrison_Cookie_Banner {
                 }
             }
             
-            if (in_array($name, array('marrison_cookie_consent', 'marrison_cookie_categories'), true)) { $is_essential = true; }
+            if (in_array($name, array('marrison_cookie_consent', 'marrison_cookie_categories', 'marrison_cookie_state'), true)) { $is_essential = true; }
             if (!$is_essential && Marrison_Cookie_Scanner::get_instance()->classify_cookie($name)['category'] === 'necessary') { $is_essential = true; }
             if (!$is_essential) {
                 $this->delete_cookie($name);
@@ -505,7 +438,7 @@ class Marrison_Cookie_Banner {
      * Elimina un cookie
      */
     private function delete_cookie($name, $domain = '', $path = '/') {
-        if (in_array($name, array('marrison_cookie_consent', 'marrison_cookie_categories'), true)) { return; }
+        if (in_array($name, array('marrison_cookie_consent', 'marrison_cookie_categories', 'marrison_cookie_state'), true)) { return; }
         $host = strtolower(wp_parse_url(home_url('/'), PHP_URL_HOST));
         $domain = strtolower(ltrim((string) $domain, '.'));
         if ($domain && $domain !== $host && substr($host, -strlen('.' . $domain)) !== '.' . $domain) { return; }

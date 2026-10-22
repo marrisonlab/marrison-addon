@@ -1,0 +1,49 @@
+{
+  "beta": [
+    "Scroll Orizzontale Beta"
+  ],
+  "enabled": 24,
+  "settings": [
+    {
+      "name": "Impostazioni di Browser Cache",
+      "url": "https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison_addon_browser_cache"
+    },
+    {
+      "name": "Impostazioni di Calendar Sync",
+      "url": "https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison_addon_calendar_sync"
+    },
+    {
+      "name": "Impostazioni di Cookie Manager",
+      "url": "https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison-cookie"
+    },
+    {
+      "name": "Impostazioni di Cursore Animato",
+      "url": "https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison_addon_cursor"
+    },
+    {
+      "name": "Impostazioni di Dimensioni Immagini",
+      "url": "https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison_addon_image_sizes"
+    },
+    {
+      "name": "Impostazioni di Local Google Fonts",
+      "url": "https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison_addon_local_google_fonts"
+    },
+    {
+      "name": "Impostazioni di PHP Snippets",
+      "url": "https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison_addon_php_snippets"
+    },
+    {
+      "name": "Impostazioni di Preloader",
+      "url": "https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison_addon_preloader"
+    },
+    {
+      "name": "Impostazioni di Sconto Prodotto",
+      "url": "https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison_addon_product_discount"
+    },
+    {
+      "name": "Impostazioni di Video Thumbnail",
+      "url": "https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison-video-thumb"
+    }
+  ],
+  "total": 24
+}

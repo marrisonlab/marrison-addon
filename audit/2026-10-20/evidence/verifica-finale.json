@@ -1,0 +1,125 @@
+{
+  "version": "1.3.67",
+  "site": "https://lightskyblue-ape-529924.hostingersite.com/",
+  "moduleOff": {
+    "checked": 0,
+    "settingsLinks": 0,
+    "total": 24
+  },
+  "frontendOff": {
+    "elements": [],
+    "external": [],
+    "inline": [],
+    "url": "https://lightskyblue-ape-529924.hostingersite.com/"
+  },
+  "settingsPages": [
+    {
+      "name": "Impostazioni di Browser Cache",
+      "headings": [
+        "Browser Cache",
+        "Stato",
+        "Impostazioni"
+      ],
+      "error": false
+    },
+    {
+      "name": "Impostazioni di Calendar Sync",
+      "headings": [
+        "Calendar Sync",
+        "Shortcode e impostazioni",
+        "Impostazioni calendario"
+      ],
+      "error": false
+    },
+    {
+      "name": "Impostazioni di Cookie Manager",
+      "headings": [
+        "Marrison Cookie Manager",
+        "Banner        \n        \n            Aspetto        \n        \n            Comportamento        \n        \n            Scanner Cookie        \n        \n            Shortcode        \n        Testi policy\n        Ricevute consenso",
+        "Impostazioni Banner"
+      ],
+      "error": false
+    },
+    {
+      "name": "Impostazioni di Cursore Animato",
+      "headings": [
+        "Impostazioni Cursore Animato",
+        "Stile e Animazione",
+        "Colori"
+      ],
+      "error": false
+    },
+    {
+      "name": "Impostazioni di Dimensioni Immagini",
+      "headings": [
+        "Gestore Dimensioni Immagini",
+        "Gestisci Dimensioni Generate",
+        "WebP e AVIF per Dimensioni WordPress"
+      ],
+      "error": false
+    },
+    {
+      "name": "Impostazioni di Local Google Fonts",
+      "headings": [
+        "Local Google Fonts",
+        "Stato modulo",
+        "Azioni"
+      ],
+      "error": false
+    },
+    {
+      "name": "Impostazioni di PHP Snippets",
+      "headings": [
+        "PHP Snippets",
+        "Snippet registrati",
+        "Nuovo snippet"
+      ],
+      "error": false
+    },
+    {
+      "name": "Impostazioni di Preloader",
+      "headings": [
+        "Impostazioni Preloader",
+        "Aspetto",
+        "Spinner & Animazione"
+      ],
+      "error": false
+    },
+    {
+      "name": "Impostazioni di Sconto Prodotto",
+      "headings": [
+        "Sconto Prodotto",
+        "Ricalcolo manuale",
+        "Ricalcolo automatico"
+      ],
+      "error": false
+    },
+    {
+      "name": "Impostazioni di Video Thumbnail",
+      "headings": [
+        "Marrison Video Thumbnail",
+        "YouTube",
+        "Video locali"
+      ],
+      "error": false
+    }
+  ],
+  "pluginInactiveFrontend": {
+    "elements": 0,
+    "external": [],
+    "inline": []
+  },
+  "restoredModules": 24,
+  "cache": {
+    "checked": 12,
+    "passing": 11,
+    "failingAsset": "WooCommerce.woff"
+  },
+  "modal": {
+    "keyboardFocusCycle": true,
+    "escapeCloses": true,
+    "restoresTriggerFocus": true,
+    "backgroundInertAttributesObserved": true,
+    "optionalChoicesRemainDisabledAfterReload": true
+  }
+}

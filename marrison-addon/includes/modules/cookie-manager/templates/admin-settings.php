@@ -34,6 +34,8 @@ $categories = $scanner->get_categories();
         <a href="<?php echo esc_url(admin_url('admin.php?page=marrison-cookie&tab=shortcodes')); ?>" class="nav-tab <?php echo $active_tab === 'shortcodes' ? 'nav-tab-active' : ''; ?>">
             <?php _e('Shortcode', 'marrison-cookie'); ?>
         </a>
+        <a href="<?php echo esc_url(admin_url('admin.php?page=marrison-cookie&tab=policies')); ?>" class="nav-tab <?php echo $active_tab === 'policies' ? 'nav-tab-active' : ''; ?>"><?php _e('Privacy e policy', 'marrison-cookie'); ?></a>
+        <a href="<?php echo esc_url(admin_url('admin.php?page=marrison-cookie&tab=receipts')); ?>" class="nav-tab <?php echo $active_tab === 'receipts' ? 'nav-tab-active' : ''; ?>"><?php _e('Ricevute consenso', 'marrison-cookie'); ?></a>
     </h2>
     
     <form method="post" action="">
@@ -134,13 +136,6 @@ $categories = $scanner->get_categories();
                                    name="cookie_policy_url" 
                                    value="<?php echo esc_url($settings['cookie_policy_url']); ?>" 
                                    class="regular-text">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php echo esc_html(marrison_cookie_site_text('Shortcode policy', 'Policy shortcodes')); ?></th>
-                        <td>
-                            <?php include MARRISON_COOKIE_PLUGIN_DIR . 'templates/policy-shortcodes.php'; ?>
-                            <p class="description"><?php echo esc_html(marrison_cookie_site_text('Dopo aver inserito gli shortcode, indica qui sopra gli URL delle pagine da collegare nel banner.', 'After inserting the shortcodes, enter the page URLs above to link them in the banner.')); ?></p>
                         </td>
                     </tr>
                 </table>
@@ -333,8 +328,16 @@ $categories = $scanner->get_categories();
                                    id="consent_duration" 
                                    name="consent_duration" 
                                    value="<?php echo esc_attr($settings['consent_duration']); ?>" 
-                                   min="1" 
+                                   min="184"
                                    max="365">
+                            <p class="description"><?php echo esc_html(marrison_cookie_site_text('Da 184 a 365 giorni. Il minimo mantiene anche il rifiuto per almeno sei mesi; la cancellazione dei cookie nel browser può rendere irriconoscibile la scelta precedente.', 'From 184 to 365 days. The minimum also preserves a refusal for at least six months; deleting browser cookies can make the previous choice unrecognizable.')); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="receipt_retention"><?php _e('Conservazione ricevute (giorni)', 'marrison-cookie'); ?></label></th>
+                        <td>
+                            <input type="number" id="receipt_retention" name="receipt_retention" value="<?php echo esc_attr($settings['receipt_retention']); ?>" min="365" max="1095">
+                            <p class="description"><?php echo esc_html(marrison_cookie_site_text('Definisci un periodo proporzionato e riportalo nell’informativa. Le ricevute contengono identificativi casuali, scelte, data e versione dell’informativa; non vengono raccolti IP o user agent. WP-Cron elimina le ricevute scadute.', 'Choose a proportionate period and disclose it in the notice. Receipts contain random identifiers, choices, date and notice version; IP addresses and user agents are not collected. WP-Cron deletes expired receipts.')); ?></p>
                         </td>
                     </tr>
                     
@@ -352,6 +355,7 @@ $categories = $scanner->get_categories();
                                 <span class="marrison-admin-switch-slider"></span>
                                 <span class="marrison-admin-switch-label"><?php _e('Attiva scansione automatica dei cookie', 'marrison-cookie'); ?></span>
                             </label>
+                            <p class="description"><?php echo esc_html(marrison_cookie_site_text('Disattivata finché non la abiliti e salvi. Usa il metodo scelto nello scanner: quello remoto consuma crediti Browserless a ogni esecuzione. Le precedenti attivazioni predefinite richiedono una nuova conferma.', 'Disabled until you enable it and save. Uses the method selected in the scanner: remote runs consume Browserless credits each time. Previous default activations require confirmation again.')); ?></p>
                         </td>
                     </tr>
                     
@@ -384,6 +388,31 @@ $categories = $scanner->get_categories();
                     </tr>
                     <?php endforeach; ?>
                 </table>
+            </div>
+        <?php elseif ($active_tab === 'policies'): ?>
+            <div class="marrison-card">
+                <div class="marrison-card-header"><h2>Generatore Privacy Policy</h2><p>I dati compilati alimentano lo shortcode della Privacy Policy. La Cookie Policy è generata automaticamente e include l’inventario della scansione.</p></div>
+                <div class="marrison-shortcodes-panel">
+                    <?php $privacy_prefix = 'privacy-profile-'; include MARRISON_COOKIE_PLUGIN_DIR . 'templates/privacy-fields.php'; ?>
+                    <p><label for="policy_revision"><strong>Revisione informativa</strong></label></p>
+                    <input type="text" id="policy_revision" name="policy_revision" maxlength="80" value="<?php echo esc_attr($settings['policy_revision']); ?>">
+                    <p class="description">Aggiorna la revisione quando cambiano sostanzialmente trattamenti o destinatari: verrà richiesta una nuova scelta. Le semplici correzioni di impaginazione non la richiedono.</p>
+                    <details><summary>Anteprima Privacy Policy salvata</summary><?php echo Marrison_Addon_Cookie_Policy_Content::content('privacy'); ?></details>
+                    <details><summary>Anteprima testo Cookie Policy</summary><?php echo Marrison_Addon_Cookie_Policy_Content::content('cookie'); ?></details>
+                </div>
+            </div>
+        <?php elseif ($active_tab === 'receipts'): ?>
+            <div class="marrison-card">
+                <div class="marrison-card-header"><h2><?php _e('Ricevute consenso', 'marrison-cookie'); ?></h2><p><?php echo esc_html(marrison_cookie_site_text('Storico delle scelte per dispositivo, incluse le revoche, con versione dell’informativa e verifica di integrità. L’archivio è privato e accessibile agli amministratori.', 'History of device choices, including withdrawals, with notice version and integrity verification. The archive is private and accessible to administrators.')); ?></p></div>
+                <div class="marrison-shortcodes-panel">
+                    <label for="marrison-receipt-date"><?php _e('Data (UTC)', 'marrison-cookie'); ?></label>
+                    <input type="date" id="marrison-receipt-date" value="<?php echo esc_attr(gmdate('Y-m-d')); ?>">
+                    <button type="button" class="button" id="marrison-receipts-load"><?php _e('Mostra ricevute', 'marrison-cookie'); ?></button>
+                    <button type="button" class="button" id="marrison-receipts-export"><?php _e('Esporta dati tecnici (JSON)', 'marrison-cookie'); ?></button>
+                    <p id="marrison-receipts-status" role="status" aria-live="polite"></p>
+                    <div id="marrison-receipts-result" class="marrison-receipts-view"></div>
+                    <button type="button" class="button" id="marrison-receipts-next" hidden><?php _e('Pagina successiva', 'marrison-cookie'); ?></button>
+                </div>
             </div>
         <?php elseif ($active_tab === 'shortcodes'): ?>
             <div class="marrison-card">
@@ -418,16 +447,34 @@ $categories = $scanner->get_categories();
                 <div id="marrison-scan-engine" class="marrison-scanner-report" aria-live="polite">
                     <p><strong><?php echo esc_html(marrison_cookie_site_text('Motore di scansione', 'Scan engine')); ?></strong> <span id="marrison-engine-runtime"><?php echo esc_html(marrison_cookie_site_text('Verifica in corso…', 'Checking…')); ?></span></p>
                     <p>
-                        <label for="marrison-scan-limit"><?php echo esc_html(marrison_cookie_site_text('Limite pagine', 'Page limit')); ?></label>
-                        <input type="number" id="marrison-scan-limit" min="1" max="5000" value="500" class="small-text">
+                        <label for="marrison-scan-limit"><?php echo esc_html(marrison_cookie_site_text('Limite campioni', 'Sample limit')); ?></label>
+                        <input type="number" id="marrison-scan-limit" min="1" max="5000" value="50" class="small-text">
                         <button type="button" id="marrison-scan-resume" class="button" hidden><?php echo esc_html(marrison_cookie_site_text('Riprendi scansione', 'Resume scan')); ?></button>
                         <button type="button" id="marrison-scan-cancel" class="button" hidden><?php echo esc_html(marrison_cookie_site_text('Interrompi', 'Stop')); ?></button>
                         <button type="button" id="marrison-scan-export" class="button"><?php echo esc_html(marrison_cookie_site_text('Esporta rapporto', 'Export report')); ?></button>
                     </p>
+                    <p><label for="marrison-scan-mode"><?php echo esc_html(marrison_cookie_site_text('Metodo di scansione', 'Scan method')); ?></label>
+                        <select id="marrison-scan-mode"><option value="commander" <?php selected(get_option('marrison_cookie_scan_mode', 'commander'), 'commander'); ?>><?php echo esc_html(marrison_cookie_site_text('Browser remoto tramite Commander', 'Remote browser through Commander')); ?></option><option value="local" <?php selected(get_option('marrison_cookie_scan_mode', 'commander'), 'local'); ?>><?php echo esc_html(marrison_cookie_site_text('Locale — solo cookie accessibili dal sito', 'Local — site-accessible cookies only')); ?></option></select></p>
+                    <p class="description"><?php echo esc_html(marrison_cookie_site_text('La scansione parte premendo Avvia; quella periodica richiede un’abilitazione esplicita in Comportamento. Il metodo remoto consuma crediti Browserless e continua in background. Cambiare metodo interrompe il lavoro attivo senza avviarne un altro; una richiesta remota già inviata può comunque terminare. Il metodo locale richiede la pagina aperta e una verifica tramite iframe: se il sito la blocca, i risultati restano parziali.', 'Press Start to scan; periodic scans require explicit activation in Behavior. The remote method consumes Browserless credits and continues in the background. Changing method stops active work without starting another scan; an already submitted remote request may still finish. Local scanning requires this page open and iframe verification: if the site blocks it, results remain partial.')); ?></p>
+                    <details class="marrison-scan-additional"><summary><?php echo esc_html(marrison_cookie_site_text('Pagine aggiuntive da verificare', 'Additional pages to test')); ?></summary>
+                        <label for="marrison-scan-additional"><?php echo esc_html(marrison_cookie_site_text('URL dello stesso sito, uno per riga (massimo 50). Usali per pagine con condizioni o servizi particolari: saranno verificate anche se condividono il template.', 'Same-site URLs, one per line (up to 50). Use these for pages with special conditions or services: they will be checked even when sharing a template.')); ?></label>
+                        <textarea id="marrison-scan-additional" rows="3" class="large-text" style="width:100%;box-sizing:border-box"></textarea>
+                    </details>
                     <progress id="marrison-engine-progress" max="1" value="0" style="width:100%"></progress>
-                    <p id="marrison-engine-summary"></p>
+                    <p id="marrison-engine-summary" role="status" aria-live="polite"></p>
                     <p id="marrison-engine-current" style="overflow-wrap:anywhere"></p>
-                    <p id="marrison-engine-coverage"></p>
+                    <p id="marrison-engine-sampling"></p>
+                    <p id="marrison-engine-services" style="overflow-wrap:anywhere"></p>
+                    <div id="marrison-browser-storage"><h3><?php echo esc_html(marrison_cookie_site_text('Dati del browser: localStorage e sessionStorage', 'Browser data: localStorage and sessionStorage')); ?></h3>
+                        <p id="marrison-browser-storage-note"></p>
+                        <table class="widefat striped"><thead><tr><th><?php esc_html_e('Chiave', 'marrison-cookie'); ?></th><th><?php esc_html_e('Tipo', 'marrison-cookie'); ?></th><th><?php esc_html_e('Origine', 'marrison-cookie'); ?></th><th><?php esc_html_e('Rilevazione', 'marrison-cookie'); ?></th></tr></thead><tbody id="marrison-browser-storage-rows"></tbody></table>
+                    </div>
+                    <div id="marrison-service-cookies" hidden>
+                        <h3>Cookie documentati dei servizi rilevati</h3>
+                        <p>Questi cookie provengono dalla documentazione dei fornitori. Il servizio è presente nel sito, ma l’installazione di ogni cookie dipende da consenso, utilizzo e browser. Non sono conteggiati come cookie osservati.</p>
+                        <div style="overflow-x:auto"><table class="widefat striped"><thead><tr><th>Servizio</th><th>Cookie</th><th>Dominio</th><th>Durata dichiarata</th><th>Finalità</th><th>Fonte</th></tr></thead><tbody id="marrison-service-cookie-rows"></tbody></table></div>
+                    </div>
+                    <details><summary><?php echo esc_html(marrison_cookie_site_text('Pagine campione e gruppi rappresentati', 'Sample pages and represented groups')); ?></summary><ul id="marrison-engine-samples" style="overflow-wrap:anywhere"></ul></details>
                     <details><summary><?php echo esc_html(marrison_cookie_site_text('Dettagli e problemi rilevati', 'Details and detected issues')); ?></summary><pre id="marrison-engine-details" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></details>
                 </div>
 
@@ -464,7 +511,7 @@ $categories = $scanner->get_categories();
             </div>
         <?php endif; ?>
         
-        <?php if (!in_array($active_tab, array('scanner', 'shortcodes'), true)): ?>
+        <?php if (!in_array($active_tab, array('scanner', 'shortcodes', 'receipts'), true)): ?>
             <p class="submit">
                 <input type="submit" 
                        name="marrison_save_settings" 

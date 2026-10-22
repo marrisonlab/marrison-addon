@@ -1,0 +1,9 @@
+Seleziona Marrison Addon
+	
+Marrison Addon
+Settings | Disattiva
+	
+
+A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Dynamic Background Image Size, Local Google Fonts, Inline CSS, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, PHP Snippets, and Video Thumbnail.
+
+Versione 1.3.68 | Di: Angelo Marra | Visualizza i dettagli

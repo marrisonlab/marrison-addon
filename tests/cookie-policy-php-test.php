@@ -2,6 +2,7 @@
 /** Focused WordPress fixture for generated/legacy cookie policies and consent UI gating. */
 define('ABSPATH', __DIR__ . '/');
 define('MARRISON_COOKIE_PLUGIN_DIR', __DIR__ . '/../marrison-addon/includes/modules/cookie-manager/');
+require __DIR__ . '/cookie-test-support.php';
 $options = array('marrison_cookie_cookie_policy_url' => 'http://cookie-fixture.local/cookie-policy', 'marrison_cookie_show_banner' => true);
 $queried_id = 42;
 $loop_id = 42;
@@ -81,7 +82,7 @@ $loop_id = 42;
 $queried_id = 7;
 verify($banner->append_policy_details($original) === $original, 'Unrelated page changed');
 $options['marrison_cookie_show_banner'] = false;
-verify(!invoke_private($banner, 'should_render_consent_ui'), 'Disabled banner UI loaded on unrelated page');
+verify(invoke_private($banner, 'should_render_consent_ui'), 'Consent bootstrap missing on unrelated page with disabled banner');
 $post_content = '[marrison_cookie_policy]';
 verify(invoke_private($banner, 'should_render_consent_ui'), 'Explicit shortcode cannot open preferences with banner disabled');
 $post_content = '[marrison_cookie_policy_content]';
@@ -95,6 +96,12 @@ $elementor_data = '';
 verify(invoke_private($banner, 'should_render_consent_ui'), 'Policy cannot open preferences with banner disabled');
 ob_start(); $banner->render_banner(); $hidden = ob_get_clean();
 verify(strpos($hidden, 'style="display: none;') !== false && strpos($hidden, 'id="marrison-cookie-modal"') !== false, 'Disabled banner visible or modal missing');
+verify(strpos($hidden, 'role="dialog" aria-modal="true" aria-labelledby="marrison-cookie-dialog-title"') !== false && strpos($hidden, 'id="marrison-cookie-dialog-title"') !== false, 'Preferences dialog has no accessible name or semantics');
+verify(strpos($hidden, 'aria-label="Chiudi preferenze cookie"') !== false && strpos($hidden, 'aria-labelledby="marrison-cookie-category-analytics"') !== false && strpos($hidden, 'id="marrison-cookie-category-analytics"') !== false, 'Preferences controls have no accessible labels');
+verify(strpos($hidden, 'id="marrison-modal-status" role="status" aria-live="polite"') !== false, 'Modal cannot announce consent failures');
+Marrison_Cookie_Scanner::$cookies = array((object) array('cookie_name' => 'aged_cookie', 'cookie_category' => 'analytics', 'observation_stale' => true));
+$aged_policy = $banner->render_policy_shortcode();
+verify(strpos($aged_policy, 'aged_cookie') !== false && strpos($aged_policy, 'oltre 30 giorni') !== false && strpos($aged_policy, 'Osservazione da aggiornare') !== false, 'Old observations are missing from policy or presented as current');
 Marrison_Cookie_Scanner::$cookies = array((object) array('cookie_name' => 'new_scan_cookie', 'cookie_category' => 'marketing'));
 $updated = $banner->render_policy_shortcode();
 verify(strpos($updated, 'new_scan_cookie') !== false && strpos($updated, '_ga') === false, 'Policy retains old scan snapshot');
@@ -105,7 +112,7 @@ $wizard = Marrison_Setup_Wizard::get_instance();
 foreach (array(false, true) as $locale) {
     $english = $locale;
     $generated = invoke_private($wizard, 'get_cookie_page_content');
-    verify(substr_count($generated, '[marrison_cookie_policy]') === 1 && strpos($generated, '\\n') === false, 'Generated policy shortcode/newline failed');
+    verify(strpos($generated, 'Google Analytics') === false && strpos($generated, '[marrison_cookie_policy]') === false, 'Unconfigured policy invents services or recursive shortcodes');
     $translated = $banner->render_policy_shortcode();
     verify(strpos($translated, $locale ? 'No cookies detected' : 'Nessun cookie rilevato') !== false, 'Policy language failed');
     verify($banner->get_cookie_expiration_label((object) array('cookie_expiration_status' => 'session')) === ($locale ? 'Session' : 'Sessione'), 'Session language failed');

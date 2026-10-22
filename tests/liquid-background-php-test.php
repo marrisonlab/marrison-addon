@@ -21,6 +21,7 @@ namespace {
 	error_reporting( E_ALL );
 	ini_set( 'display_errors', '1' );
 	define( 'ABSPATH', __DIR__ . '/' );
+	function register_deactivation_hook() {}
 	$GLOBALS['marrison_test_modules'] = [];
 	$GLOBALS['marrison_test_elementor_loaded'] = false;
 	$GLOBALS['marrison_test_hooks'] = [];

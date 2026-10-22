@@ -28,13 +28,14 @@ const fixture = mode => execFileSync('php', [path.join(__dirname, 'cookie-shortc
             });
             await page.goto('http://cookie-fixture.local/wizard');
             await page.addStyleTag({ content: 'body{font:14px Arial;margin:0}' });
+            await page.addStyleTag({ path: path.join(moduleRoot, 'assets/css/admin.css') });
             await page.addStyleTag({ path: path.join(moduleRoot, 'assets/css/wizard.css') });
             await page.addScriptTag({ path: jquery });
             await page.evaluate(() => {
-                window.marrisonWizard = { ajaxUrl: 'http://cookie-fixture.local/admin-ajax.php', nonce: 'fixture', currentStep: 5, totalSteps: 5, shouldOpen: true, stepText: 'Step {step} di {total}', completeText: 'Completa', nextText: 'Avanti', finishErrorText: 'Errore', connectionErrorText: 'Connessione non riuscita' };
+                window.marrisonWizard = { ajaxUrl: 'http://cookie-fixture.local/admin-ajax.php', nonce: 'fixture', currentStep: '6', totalSteps: '6', shouldOpen: true, stepText: 'Step {step} di {total}', completeText: 'Completa', nextText: 'Avanti', finishErrorText: 'Errore', connectionErrorText: 'Connessione non riuscita' };
             });
             await page.addScriptTag({ path: path.join(moduleRoot, 'assets/js/wizard.js') });
-            const step = page.locator('.marrison-wizard-step[data-step="5"]');
+            const step = page.locator('.marrison-wizard-step[data-step="6"]');
             await step.waitFor({ state: 'visible' });
             assert.equal(await step.locator('input[type="checkbox"]').count(), 0);
             for (const shortcode of ['[marrison_privacy_policy]', '[marrison_cookie_policy_content]', '[marrison_cookie_policy]']) {
@@ -65,6 +66,10 @@ const fixture = mode => execFileSync('php', [path.join(__dirname, 'cookie-shortc
             await policy.route('http://cookie-fixture.local/**', async route => {
                 if (route.request().url().endsWith('/admin-ajax.php')) {
                     const data = new URLSearchParams(route.request().postData());
+                    if (data.get('action') === 'marrison_cookie_consent_state') {
+                        await route.fulfill({ json: { success: true, data: { state: { valid: false, type: null, categories: ['necessary'], expires: null, revision: 'fixture' } } } });
+                        return;
+                    }
                     assert.equal(data.get('action'), 'marrison_get_cookie_list');
                     await route.fulfill({ json: { success: true, data: { categories: { necessary: '<ul><li>current_scan</li></ul>' } } } });
                 } else {
@@ -76,7 +81,7 @@ const fixture = mode => execFileSync('php', [path.join(__dirname, 'cookie-shortc
             await policy.addStyleTag({ path: path.join(moduleRoot, 'assets/css/frontend.css') });
             await policy.addScriptTag({ path: jquery });
             await policy.evaluate(() => {
-                window.marrisonCookie = { ajaxUrl: 'http://cookie-fixture.local/admin-ajax.php', nonce: 'fixture', loadingText: 'Caricamento...', hasConsent: false, showBanner: false, closedTriggerModes: { desktop: 'link', tablet: 'link', mobile: 'link' } };
+                window.marrisonCookie = { ajaxUrl: 'http://cookie-fixture.local/admin-ajax.php', nonce: 'fixture', loadingText: 'Caricamento...', hasConsent: false, showBanner: '', closedTriggerModes: { desktop: 'link', tablet: 'link', mobile: 'link' } };
             });
             await policy.addScriptTag({ path: path.join(moduleRoot, 'assets/js/frontend.js') });
             assert.equal(await policy.locator('.marrison-cookie-policy-content').count(), 1);
@@ -96,7 +101,7 @@ const fixture = mode => execFileSync('php', [path.join(__dirname, 'cookie-shortc
             await page.addStyleTag({ path: path.join(moduleRoot, 'assets/css/admin.css') });
             await page.addScriptTag({ path: jquery });
             await page.addScriptTag({ path: path.join(moduleRoot, 'assets/js/admin.js') });
-            assert.equal(await page.locator('.nav-tab-active').innerText(), 'Shortcode');
+            assert.equal((await page.locator('.nav-tab-active').innerText()).trim(), 'Shortcode');
             assert.equal(await page.locator('[name="marrison_save_settings"]').count(), 0);
             const codes = ['[marrison_privacy_policy]', '[marrison_cookie_policy_content]', '[marrison_cookie_policy]'];
             for (let index = 0; index < codes.length; index++) {

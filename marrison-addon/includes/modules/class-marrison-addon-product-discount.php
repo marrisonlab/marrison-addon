@@ -17,6 +17,8 @@ class Marrison_Addon_Product_Discount {
 	const SCHEDULE_TRIGGER_HOOK = 'marrison_product_discount_scheduled_sync';
 	const SCHEDULE_BATCH_HOOK = 'marrison_product_discount_scheduled_sync_batch';
 	const SCHEDULE_PAGE_OPTION = 'marrison_product_discount_scheduled_sync_page';
+	const QUEUED_SYNC_HOOK = 'marrison_product_discount_queued_sync_batch';
+	const SHUTDOWN_SYNC_LIMIT = 50;
 
 	private $queued_product_ids = array();
 
@@ -37,6 +39,7 @@ class Marrison_Addon_Product_Discount {
 		add_action( self::BACKFILL_HOOK, [ $this, 'run_backfill_batch' ] );
 		add_action( self::SCHEDULE_TRIGGER_HOOK, [ $this, 'start_scheduled_sync' ] );
 		add_action( self::SCHEDULE_BATCH_HOOK, [ $this, 'run_scheduled_sync_batch' ] );
+		add_action( self::QUEUED_SYNC_HOOK, [ $this, 'run_queued_sync_batch' ] );
 
 		add_action( 'woocommerce_after_product_object_save', [ $this, 'sync_saved_product' ], 20, 2 );
 		add_action( 'woocommerce_updated_product_price', [ $this, 'sync_product_id' ], 20 );
@@ -341,6 +344,7 @@ class Marrison_Addon_Product_Discount {
 	}
 
 	public function sync_recurring_schedule( $force = false ) {
+		if ( ! Marrison_Addon::is_module_enabled( 'product_discount' ) ) { return; }
 		$frequency = get_option( self::SCHEDULE_OPTION, 'manual' );
 		$frequency = array_key_exists( $frequency, $this->get_frequency_options() ) ? $frequency : 'manual';
 		$scheduled_frequency = get_option( self::SCHEDULED_FREQUENCY_OPTION, '' );
@@ -365,14 +369,19 @@ class Marrison_Addon_Product_Discount {
 		if ( 'product_discount' !== $module_id || $enabled ) {
 			return;
 		}
+		$this->queued_product_ids = array();
+		if ( method_exists( 'Marrison_Addon', 'module_effects_were_cleaned' ) && Marrison_Addon::module_effects_were_cleaned( $module_id ) ) { return; }
 
 		$this->clear_recurring_schedule();
 		$this->clear_backfill_schedule();
+		$this->clear_queued_sync_schedule();
+		$this->queued_product_ids = array();
 		update_option( self::SCHEDULED_FREQUENCY_OPTION, 'manual' );
 		delete_option( self::SCHEDULE_PAGE_OPTION );
 	}
 
 	public function start_scheduled_sync() {
+		if ( ! Marrison_Addon::is_module_enabled( 'product_discount' ) ) { return; }
 		if ( false !== get_option( self::SCHEDULE_PAGE_OPTION, false ) ) {
 			$this->schedule_single_scheduled_sync_batch();
 			return;
@@ -383,6 +392,7 @@ class Marrison_Addon_Product_Discount {
 	}
 
 	public function run_scheduled_sync_batch() {
+		if ( ! Marrison_Addon::is_module_enabled( 'product_discount' ) ) { return; }
 		$page = max( 1, absint( get_option( self::SCHEDULE_PAGE_OPTION, 1 ) ) );
 		$result = $this->process_product_batch( $page );
 
@@ -481,19 +491,52 @@ class Marrison_Addon_Product_Discount {
 	}
 
 	public function sync_queued_products() {
-		if ( empty( $this->queued_product_ids ) ) {
+		if ( empty( $this->queued_product_ids ) || ! Marrison_Addon::is_module_enabled( 'product_discount' ) ) {
 			return;
 		}
 
 		$product_ids = array_keys( $this->queued_product_ids );
 		$this->queued_product_ids = array();
+		sort( $product_ids, SORT_NUMERIC );
+
+		if ( count( $product_ids ) > self::SHUTDOWN_SYNC_LIMIT ) {
+			foreach ( array_chunk( $product_ids, self::BACKFILL_BATCH_SIZE ) as $batch ) {
+				$args = array( 'product_ids' => $batch );
+				if ( function_exists( 'as_enqueue_async_action' ) ) {
+					// Unique actions coalesce identical batches queued by repeated import/save hooks.
+					as_enqueue_async_action( self::QUEUED_SYNC_HOOK, $args, self::BACKFILL_GROUP, true );
+				} elseif ( ! wp_next_scheduled( self::QUEUED_SYNC_HOOK, $args ) ) {
+					wp_schedule_single_event( time() + 30, self::QUEUED_SYNC_HOOK, $args );
+				}
+			}
+			return;
+		}
 
 		foreach ( $product_ids as $product_id ) {
 			$this->sync_product_id( $product_id );
 		}
 	}
 
+	public function run_queued_sync_batch( $product_ids ) {
+		if ( ! Marrison_Addon::is_module_enabled( 'product_discount' ) || ! is_array( $product_ids ) ) {
+			return;
+		}
+		foreach ( array_slice( array_unique( array_map( 'absint', $product_ids ) ), 0, self::BACKFILL_BATCH_SIZE ) as $product_id ) {
+			if ( $product_id ) {
+				$this->sync_product_id( $product_id );
+			}
+		}
+	}
+
+	private function clear_queued_sync_schedule() {
+		wp_unschedule_hook( self::QUEUED_SYNC_HOOK );
+		if ( function_exists( 'as_unschedule_all_actions' ) ) {
+			as_unschedule_all_actions( self::QUEUED_SYNC_HOOK, null, self::BACKFILL_GROUP );
+		}
+	}
+
 	public function maybe_schedule_backfill() {
+		if ( ! Marrison_Addon::is_module_enabled( 'product_discount' ) ) { return; }
 		if ( $this->is_backfill_complete() ) {
 			return;
 		}
@@ -510,6 +553,7 @@ class Marrison_Addon_Product_Discount {
 	}
 
 	public function run_backfill_batch() {
+		if ( ! Marrison_Addon::is_module_enabled( 'product_discount' ) ) { return; }
 		if ( $this->is_backfill_complete() || ! function_exists( 'wc_get_products' ) ) {
 			return;
 		}

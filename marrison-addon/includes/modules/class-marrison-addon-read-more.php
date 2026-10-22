@@ -12,10 +12,13 @@ class Marrison_Addon_Read_More {
 
 	private $registered_elements = [];
 	private $assets_enqueued = false;
+	private $document_usage = [];
 
 	public function __construct() {
 		add_action( 'elementor/element/after_section_end', [ $this, 'maybe_register_controls' ], 10, 2 );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'maybe_enqueue_current_document_assets' ] );
+		add_action( 'elementor/preview/enqueue_scripts', [ $this, 'enqueue_assets' ] );
+		add_action( 'wp_footer', [ $this, 'print_late_styles' ], 19 );
 		add_filter( 'elementor/widget/render_content', [ $this, 'render_read_more' ], 10, 2 );
 		add_filter( 'elementor/frontend/builder_content_data', [ $this, 'maybe_enqueue_assets_from_data' ] );
 	}
@@ -297,6 +300,42 @@ class Marrison_Addon_Read_More {
 		return $elements;
 	}
 
+	public function maybe_enqueue_current_document_assets() {
+		if ( ! is_singular() ) {
+			return;
+		}
+		$document_id = get_queried_object_id();
+		if ( $document_id && $this->document_uses_read_more( $document_id ) ) {
+			$this->enqueue_assets();
+		}
+	}
+
+	private function document_uses_read_more( $document_id ) {
+		$document_id = absint( $document_id );
+		if ( ! $document_id ) {
+			return false;
+		}
+		if ( array_key_exists( $document_id, $this->document_usage ) ) {
+			return $this->document_usage[ $document_id ];
+		}
+
+		// Also break cycles between Elementor templates/listings.
+		$this->document_usage[ $document_id ] = false;
+		$elements = get_post_meta( $document_id, '_elementor_data', true );
+		if ( is_string( $elements ) ) {
+			$elements = json_decode( $elements, true );
+		}
+		$this->document_usage[ $document_id ] = is_array( $elements ) && $this->has_enabled_widget( $elements );
+		return $this->document_usage[ $document_id ];
+	}
+
+	public function print_late_styles() {
+		// Theme-builder documents can first be rendered after wp_head.
+		if ( $this->assets_enqueued && ! wp_style_is( 'marrison-addon-read-more', 'done' ) ) {
+			wp_print_styles( [ 'marrison-addon-read-more' ] );
+		}
+	}
+
 	private function is_supported_widget_name( $name ) {
 		return in_array( $name, self::SUPPORTED_WIDGETS, true );
 	}
@@ -353,6 +392,20 @@ class Marrison_Addon_Read_More {
 
 			if ( $this->is_supported_widget_name( $widget_type ) && 'yes' === ( $settings['marrison_read_more_enabled'] ?? '' ) ) {
 				return true;
+			}
+
+			// A listing may initially be empty and only render its items after AJAX.
+			// Inspect its selected template without rendering it or loading every listing.
+			$referenced_ids = [];
+			if ( 'jet-listing-grid' === $widget_type ) {
+				$referenced_ids[] = $settings['lisitng_id'] ?? $settings['listing_id'] ?? 0;
+			} elseif ( 'template' === $widget_type ) {
+				$referenced_ids[] = $settings['template_id'] ?? 0;
+			}
+			foreach ( $referenced_ids as $referenced_id ) {
+				if ( is_scalar( $referenced_id ) && $this->document_uses_read_more( $referenced_id ) ) {
+					return true;
+				}
 			}
 
 			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) && $this->has_enabled_widget( $element['elements'] ) ) {

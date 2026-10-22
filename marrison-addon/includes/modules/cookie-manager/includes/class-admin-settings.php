@@ -63,6 +63,7 @@ class Marrison_Cookie_Admin_Settings {
         register_setting('marrison_cookie_settings', 'marrison_cookie_customize_button_text');
         register_setting('marrison_cookie_settings', 'marrison_cookie_privacy_policy_url');
         register_setting('marrison_cookie_settings', 'marrison_cookie_cookie_policy_url');
+        register_setting('marrison_cookie_settings', 'marrison_cookie_privacy_profile', array('type' => 'array', 'sanitize_callback' => array('Marrison_Addon_Cookie_Policy_Content', 'sanitize_profile')));
         
         // Appearance settings
         register_setting('marrison_cookie_settings', 'marrison_cookie_banner_layout');
@@ -166,10 +167,19 @@ class Marrison_Cookie_Admin_Settings {
         }
 
         if (isset($_POST['consent_duration'])) {
-            update_option('marrison_cookie_consent_duration', max(1, min(365, intval($_POST['consent_duration']))));
+            update_option('marrison_cookie_consent_duration', max(184, min(365, intval($_POST['consent_duration']))));
         }
+        if (isset($_POST['receipt_retention'])) { update_option('marrison_cookie_receipt_retention', max(365, min(1095, (int) $_POST['receipt_retention']))); }
+        if (isset($_POST['privacy_profile']) && is_array($_POST['privacy_profile'])) { update_option('marrison_cookie_privacy_profile', Marrison_Addon_Cookie_Policy_Content::sanitize_profile(wp_unslash($_POST['privacy_profile']))); }
+        foreach (array('privacy_policy_content', 'cookie_policy_content') as $key) {
+            if (isset($_POST[$key]) && is_string($_POST[$key])) { update_option('marrison_cookie_' . $key, wp_kses_post(wp_unslash($_POST[$key]))); }
+        }
+        if (isset($_POST['policy_revision']) && is_string($_POST['policy_revision'])) { update_option('marrison_cookie_policy_revision', substr(sanitize_text_field(wp_unslash($_POST['policy_revision'])), 0, 80)); }
 
-        if ($behavior_tab || isset($_POST['auto_scan'])) { update_option('marrison_cookie_auto_scan', isset($_POST['auto_scan'])); }
+        if ($behavior_tab || isset($_POST['auto_scan'])) {
+            update_option('marrison_cookie_auto_scan', isset($_POST['auto_scan']));
+            update_option('marrison_cookie_auto_scan_confirmed', isset($_POST['auto_scan']));
+        }
 
         if (isset($_POST['scan_interval'])) {
             update_option('marrison_cookie_scan_interval', max(1, min(30, intval($_POST['scan_interval']))));
@@ -218,6 +228,11 @@ class Marrison_Cookie_Admin_Settings {
             'functional_sources',
             'analytics_sources',
             'marketing_sources',
+            'privacy_policy_content',
+            'cookie_policy_content',
+            'policy_revision',
+            'receipt_retention',
+            'privacy_profile',
         );
         
         foreach ($settings as $key => $value) {
@@ -229,15 +244,24 @@ class Marrison_Cookie_Admin_Settings {
 
             $option_key = 'marrison_cookie_' . $key;
             
-            if (in_array($key, array('functional_sources', 'analytics_sources', 'marketing_sources'), true)) {
+            if ($key === 'privacy_profile') {
+                update_option($option_key, Marrison_Addon_Cookie_Policy_Content::sanitize_profile($value));
+            } elseif (in_array($key, array('privacy_policy_content', 'cookie_policy_content'), true)) {
+                update_option($option_key, is_string($value) ? wp_kses_post($value) : '');
+            } elseif ($key === 'receipt_retention') {
+                update_option($option_key, max(365, min(1095, (int) $value)));
+            } elseif ($key === 'policy_revision') {
+                update_option($option_key, is_string($value) ? substr(sanitize_text_field($value), 0, 80) : '1');
+            } elseif (in_array($key, array('functional_sources', 'analytics_sources', 'marketing_sources'), true)) {
                 update_option($option_key, $this->sanitize_sources($value));
             } elseif (in_array($key, array('show_banner', 'auto_scan'), true)) {
                 update_option($option_key, (bool) $value);
+                if ($key === 'auto_scan') { update_option('marrison_cookie_auto_scan_confirmed', (bool) $value); }
             } elseif (in_array($key, array('closed_trigger_desktop', 'closed_trigger_tablet', 'closed_trigger_mobile'), true)) {
                 update_option($option_key, $this->sanitize_closed_trigger_mode($value));
             } elseif (in_array($key, array('consent_duration', 'scan_interval'), true)) {
                 $max = $key === 'consent_duration' ? 365 : 30;
-                update_option($option_key, max(1, min($max, intval($value))));
+                update_option($option_key, max($key === 'consent_duration' ? 184 : 1, min($max, intval($value))));
             } elseif (in_array($key, array('privacy_policy_url', 'cookie_policy_url'), true)) {
                 update_option($option_key, esc_url_raw($value));
             } elseif ($key === 'banner_layout') {
@@ -282,8 +306,12 @@ class Marrison_Cookie_Admin_Settings {
             'closed_trigger_desktop' => $this->sanitize_closed_trigger_mode(get_option('marrison_cookie_closed_trigger_desktop', 'floating')),
             'closed_trigger_tablet' => $this->sanitize_closed_trigger_mode(get_option('marrison_cookie_closed_trigger_tablet', 'floating')),
             'closed_trigger_mobile' => $this->sanitize_closed_trigger_mode(get_option('marrison_cookie_closed_trigger_mobile', 'floating')),
-            'consent_duration' => get_option('marrison_cookie_consent_duration', 30),
-            'auto_scan' => get_option('marrison_cookie_auto_scan', true),
+            'consent_duration' => Marrison_Addon_Cookie_Consent_Store::duration(),
+            'receipt_retention' => Marrison_Addon_Cookie_Consent_Store::retention(),
+            'policy_revision' => get_option('marrison_cookie_policy_revision', '1'),
+            'privacy_policy_content' => get_option('marrison_cookie_privacy_policy_content', ''),
+            'cookie_policy_content' => get_option('marrison_cookie_cookie_policy_content', ''),
+            'auto_scan' => Marrison_Cookie_Scanner::auto_scan_enabled(),
             'scan_interval' => get_option('marrison_cookie_scan_interval', 7),
             'functional_sources' => get_option('marrison_cookie_functional_sources', ''),
             'analytics_sources' => get_option('marrison_cookie_analytics_sources', ''),

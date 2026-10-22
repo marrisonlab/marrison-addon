@@ -446,6 +446,7 @@ foreach ( $runtime_urls as $runtime_url ) {
 // A second scan must retain proved sources for fonts still used after remote links disappear.
 lgf_set_property( $runtime_module, 'manifest_cache', array( 'active' => array( 'source_css_urls' => $runtime_urls ) ) );
 $rescan_fonts = $rescan_remote = array();
+lgf_set_property( $runtime_module, 'scan_provenance', 'document' );
 lgf_invoke( $runtime_module, 'add_font_variant', array( &$rescan_fonts, 'Poppins', '600', 'normal', 'Current Elementor CSS' ) );
 lgf_invoke( $runtime_module, 'scan_previous_google_stylesheets', array( &$rescan_fonts, &$rescan_remote ) );
 lgf_invoke( $runtime_module, 'classify_fonts', array( &$rescan_fonts ) );
@@ -473,6 +474,39 @@ $failed_fonts = $failed_remote = $failed_warnings = array();
 $failed_stats = array( 'frontend_pages' => 0 );
 lgf_invoke( $runtime_module, 'scan_frontend_google_stylesheets', array( &$failed_fonts, &$failed_remote, &$failed_stats, &$failed_warnings ) );
 lgf_assert( empty( $failed_fonts ) && 0 === $failed_stats['frontend_pages'] && ! empty( $failed_warnings ), 'A blocked homepage must warn without inventing fonts.' );
+
+// Source candidates cannot promote unused admin/editor fonts or unused weights into frontend downloads.
+$provenance_module = new Marrison_Addon_Local_Google_Fonts();
+$provenance_fonts = $provenance_remote = array();
+lgf_invoke( $provenance_module, 'extract_remote_google_stylesheets', array( 'https://fonts.googleapis.com/css2?family=Admin+Only:wght@400&family=Poppins:wght@900', &$provenance_remote, &$provenance_fonts, 'Plugin source: admin.js' ) );
+lgf_set_property( $provenance_module, 'scan_provenance', 'document' );
+lgf_invoke( $provenance_module, 'add_font_variant', array( &$provenance_fonts, 'Poppins', '400', 'normal', 'Published Elementor document' ) );
+lgf_invoke( $provenance_module, 'classify_fonts', array( &$provenance_fonts ) );
+$downloadable = lgf_invoke( $provenance_module, 'get_downloadable_google_fonts', array( array( 'fonts' => $provenance_fonts ) ) );
+lgf_assert( isset( $provenance_fonts['admin only'] ) && ! isset( $downloadable['admin only'] ), 'Source-only Google fonts must remain diagnostic candidates, excluded from downloads.' );
+lgf_assert( isset( $downloadable['poppins']['variants']['normal|400'] ) && ! isset( $downloadable['poppins']['variants']['normal|900'] ), 'Only variants with frontend/document evidence may enter downloads.' );
+lgf_assert( false !== strpos( $provenance_fonts['admin only']['sources'][0], 'admin.js' ), 'A Google URL must retain its original source file in diagnostics.' );
+$sorted_fonts = lgf_invoke( $provenance_module, 'prepare_fonts_for_manifest', array( $provenance_fonts ) );
+lgf_assert( key( $sorted_fonts ) === 'poppins', 'Configured frontend fonts must be listed before alphabetically earlier source candidates.' );
+lgf_set_property( $provenance_module, 'manifest_cache', array( 'active' => array( 'source_css_urls' => array( 'https://fonts.googleapis.com/css2?family=Admin+Only:wght@400' ) ) ) );
+lgf_invoke( $provenance_module, 'scan_previous_google_stylesheets', array( &$provenance_fonts, &$provenance_remote ) );
+lgf_assert( ! lgf_invoke( $provenance_module, 'has_font_usage_evidence', array( $provenance_fonts['admin only'] ) ), 'Historical manifest entries must not turn current source-only candidates into frontend evidence.' );
+
+$frontend_css_path = $upload_dir['basedir'] . '/public-linked.css';
+file_put_contents( $frontend_css_path, '@import url("https://fonts.googleapis.com/css2?family=Public+Linked:wght@500");body{font-family:"Public Linked";font-weight:500;}' );
+$GLOBALS['lgf_home_response'] = array( 'status' => 200, 'headers' => array( 'content-type' => 'text/html' ), 'body' => '<html><head><link rel="stylesheet" href="https://example.test/wp-content/uploads/public-linked.css?ver=1"></head><body></body></html>' );
+$linked_fonts = $linked_remote = $linked_warnings = array();
+$linked_stats = array( 'frontend_pages' => 0 );
+lgf_invoke( $provenance_module, 'scan_frontend_google_stylesheets', array( &$linked_fonts, &$linked_remote, &$linked_stats, &$linked_warnings ) );
+lgf_invoke( $provenance_module, 'classify_fonts', array( &$linked_fonts ) );
+lgf_assert( ! empty( $linked_fonts['public linked']['variants']['normal|500']['provenance']['frontend'] ), 'CSS actually linked by the public page must receive frontend evidence before general source scanning.' );
+$linked_downloadable = lgf_invoke( $provenance_module, 'get_downloadable_google_fonts', array( array( 'fonts' => $linked_fonts ) ) );
+lgf_assert( isset( $linked_downloadable['public linked'] ) && $linked_stats['css_files'] === 1, 'Linked local CSS must remain eligible for downloads, with bounded scan statistics.' );
+lgf_assert( '' === lgf_invoke( $provenance_module, 'get_frontend_stylesheet_path', array( 'https://other.example/wp-content/uploads/public-linked.css' ) ), 'External URLs must never resolve to local stylesheet files.' );
+$candidate_url = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;900';
+$selected_candidate = lgf_invoke( $provenance_module, 'get_google_css_url_for_font', array( array( 'remote_stylesheets' => array( $candidate_url ), 'stylesheet_provenance' => array( $candidate_url => array( 'source' => true ) ) ), 'Poppins', array( array( 'style' => 'normal', 'weight' => '400' ) ) ) );
+lgf_assert( false === strpos( $selected_candidate, '900' ), 'A source-only Google URL must not expand downloads to its unused weights.' );
+unlink( $frontend_css_path );
 
 if ( isset( $argv[1] ) ) {
 	$google_response_active = array( 'families' => array() );

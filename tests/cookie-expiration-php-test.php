@@ -19,7 +19,7 @@ function wp_remote_retrieve_header($response, $name) { return isset($response['r
 function wp_upload_dir() { global $test_directory; return array('basedir' => $test_directory, 'error' => false); }
 function trailingslashit($path) { return rtrim($path, '/\\') . '/'; }
 function wp_mkdir_p($path) { return is_dir($path) || mkdir($path, 0777, true); }
-function wp_json_encode($value, $flags) { return json_encode($value, $flags); }
+function wp_json_encode($value, $flags = 0) { return json_encode($value, $flags); }
 if (isset($argv[1])) {
     require $argv[1]; // Optionally use the installed WordPress WP_Http_Cookie class.
 } else {

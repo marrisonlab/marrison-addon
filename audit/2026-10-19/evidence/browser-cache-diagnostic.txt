@@ -1,0 +1,103 @@
+Browser Cache
+
+Uno o piu asset non hanno header cache sufficienti.
+
+Ignora questa notifica.
+
+Ottimizza gli header cache degli asset statici mantenendo intatto il versioning WordPress, Elementor e degli altri plugin.
+
+Stato
+SERVER PHP RILEVATO
+LiteSpeed LiteSpeed
+METODO
+.htaccess
+STATO
+ERRORE CONFIGURAZIONE
+ULTIMO AGGIORNAMENTO
+2026-10-19 16:31:31
+
+Uno o piu asset non hanno header cache sufficienti.
+
+PHP puo essere servito da Apache mentre Nginx distribuisce gli asset. Solo la verifica degli header pubblici conferma la cache effettiva.
+
+Impostazioni
+Abilita Browser Cache	
+
+Spegnendo il modulo vengono rimosse solo le regole Marrison da .htaccess. Le direttive Nginx inserite dal sistemista restano attive e vanno rimosse manualmente. Le impostazioni restano salvate.
+
+
+TTL asset versionati	
+
+Default: 7 giorni. ?ver= identifica una versione, ma il TTL lungo e sicuro solo se l URL cambia ad ogni modifica.
+
+
+TTL asset non versionati	
+
+Default prudente: 7 giorni. Non usa immutable per non bloccare asset senza cache busting affidabile.
+
+
+Immutable	 Aggiungi immutable solo agli asset versionati o hashati
+
+Default disattivato. Abilitalo solo dopo aver verificato il cambio URL per CSS Elementor, immagini rigenerate e altri file aggiornabili.
+
+
+Tipologie asset	
+ CSS
+ JavaScript
+ Font
+ Immagini
+
+Versioning e cache busting
+
+Il versioning degli asset WordPress (?ver=...) viene mantenuto. Quando la versione cambia, cambia l URL e il browser scarica automaticamente la nuova risorsa.
+
+Il modulo non rimuove query string, non altera handle WordPress e non applica regole a HTML, REST API, AJAX, wp-admin, login, checkout o altre risposte dinamiche.
+
+Configurazione server
+
+Su Apache 2.4 o server compatibili Marrison gestisce un blocco .htaccess isolato e idempotente con mod_headers. Le regole scritte richiedono una verifica degli header reali; le politiche Cache-Control gia presenti vengono conservate.
+
+Regole .htaccess generate 
+Diagnostica header reali
+
+La verifica viene eseguita solo su richiesta. Marrison legge gli header HTTP effettivamente restituiti dal server per alcuni asset reali della home page.
+
+Uno o piu asset non hanno header cache sufficienti. 2026-10-19 16:31:31
+
+Asset	Cache-Control	Expires	Age	ETag	Last-Modified	Risultato
+CSS: frontend.css HTTP 200 Versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/jet-engine/assets/css/frontend.css?ver=3.9.0
+	public, max-age=604800	Mon, 26 Oct 2026 16:24:45 GMT	406	-	-	OK OK
+CSS: woocommerce-layout.css HTTP 200 Versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/css/woocommerce-layout.css?ver=11.2.1
+	public, max-age=604800	Mon, 26 Oct 2026 16:24:45 GMT	406	-	-	OK OK
+CSS: woocommerce-smallscreen.css HTTP 200 Versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/css/woocommerce-smallscreen.css?ver=11.2.1
+	public, max-age=604800	Mon, 26 Oct 2026 16:31:31 GMT	-	-	-	OK OK
+JS: consent-runtime.js HTTP 200 Versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/marrison-addon/includes/modules/cookie-manager/assets/js/consent-runtime.js?ver=20261019.2
+	public, max-age=604800	Mon, 26 Oct 2026 16:31:31 GMT	-	"28c0-6ad64391-4c8ec05286b1f25c;br"	Mon, 19 Oct 2026 16:21:37 GMT	OK OK
+JS: jquery.min.js HTTP 200 Versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-includes/js/jquery/jquery.min.js?ver=3.7.1
+	public, max-age=604800	Mon, 26 Oct 2026 16:24:45 GMT	406	"15601-6991a593-b28f0a087548dd4c;br"	Sun, 15 Feb 2026 10:53:07 GMT	OK OK
+JS: jquery-migrate.min.js HTTP 200 Versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1
+	public, max-age=604800	Mon, 26 Oct 2026 16:31:31 GMT	-	"3509-6991a593-3e21715307db6d7d;br"	Sun, 15 Feb 2026 10:53:07 GMT	OK OK
+IMAGES: loader.svg HTTP 200 Non versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/images/icons/loader.svg
+	public, max-age=604800	Mon, 26 Oct 2026 16:31:31 GMT	-	W/"9e-6ad63ba1-64a34b9f881d7e07;;;"	Mon, 19 Oct 2026 15:47:45 GMT	OK OK
+IMAGES: visa.svg HTTP 200 Non versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/images/icons/credit-cards/visa.svg
+	public, max-age=604800	Mon, 26 Oct 2026 16:31:31 GMT	-	"54f-6ad63ba1-86e56ef11e2a2341;br"	Mon, 19 Oct 2026 15:47:45 GMT	OK OK
+IMAGES: mastercard.svg HTTP 200 Non versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/images/icons/credit-cards/mastercard.svg
+	public, max-age=604800	Mon, 26 Oct 2026 16:24:45 GMT	406	"121a-6ad63ba1-41a711b5bb2393a4;br"	Mon, 19 Oct 2026 15:47:45 GMT	OK OK
+FONTS: WooCommerce.woff2 HTTP 200 Non versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/fonts/WooCommerce.woff2
+	public, max-age=604800	Mon, 26 Oct 2026 16:24:45 GMT	406	"1958-6ad63ba1-a12dfd16d5e00616;;;"	Mon, 19 Oct 2026 15:47:45 GMT	OK OK
+FONTS: WooCommerce.woff HTTP 200 Non versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/fonts/WooCommerce.woff
+	-	-	-	W/"1f94-6ad63ba1-dc43ed68c8390422;;;"	Mon, 19 Oct 2026 15:47:45 GMT	ERRORE Header Cache-Control assente.
+FONTS: WooCommerce.ttf HTTP 200 Non versionato
+https://lightskyblue-ape-529924.hostingersite.com/wp-content/plugins/woocommerce/assets/fonts/WooCommerce.ttf
+	public, max-age=604800	Mon, 26 Oct 2026 16:31:31 GMT	-	"399c-6ad63ba1-cb32c531afbd9e38;br"	Mon, 19 Oct 2026 15:47:45 GMT	OK OK

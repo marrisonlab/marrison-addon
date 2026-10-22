@@ -900,6 +900,23 @@ input[type="color"]:hover {
     padding: 16px 18px;
 }
 
+.marrison-cookie-settings .marrison-scanner-report {
+    padding: 16px 18px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.marrison-scanner-report > p:first-child { margin-top: 0; }
+.marrison-scanner-report > p:has(#marrison-scan-limit) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.marrison-cookie-settings [hidden] { display: none !important; }
+.marrison-scanner-report details { margin: 12px 0; }
+.marrison-scan-additional label { display: block; margin: 8px 0; }
+#marrison-engine-samples { padding-left: 18px; list-style: disc; }
+
 .marrison-cookie-settings .marrison-scanner-controls .button {
     min-height: 32px;
     padding: 0 12px;
@@ -1097,9 +1114,25 @@ input[type="color"]:hover {
     .marrison-cookie-settings .marrison-card .form-table th,
     .marrison-cookie-settings .marrison-card .form-table td,
     .marrison-cookie-settings .marrison-scanner-controls,
+    .marrison-cookie-settings .marrison-scanner-report,
     .marrison-cookie-settings .marrison-scanner-filters,
     .marrison-cookie-settings .marrison-cookie-list {
         padding-left: 14px;
         padding-right: 14px;
     }
 }
+/* Shared structured privacy fields, also inside the wizard. */
+.marrison-privacy-profile .marrison-profile-group { border: 1px solid #dcdcde; border-radius: 4px; padding: 12px; margin: 10px 0; }
+.marrison-privacy-profile summary { cursor: pointer; }
+.marrison-profile-field { margin-top: 14px; }
+.marrison-profile-field > label { display: block; margin-bottom: 5px; }
+.marrison-profile-field input:not([type="checkbox"]):not([type="hidden"]), .marrison-profile-field textarea, .marrison-profile-field select { width: 100%; max-width: 760px; box-sizing: border-box; }
+.marrison-profile-field input[type="checkbox"] { width: 16px; margin-right: 6px; }
+.marrison-receipts-view { overflow-x: auto; }
+.marrison-receipts-view td { vertical-align: top; overflow-wrap: anywhere; }
+.marrison-receipts-view p { margin: 5px 0; }
+.marrison-receipt-valid { color: #166534; }
+.marrison-receipt-invalid { color: #a12622; font-weight: 600; }
+#marrison-engine-progress[hidden] { display: none; }
+#marrison-engine-summary.marrison-scan-complete { padding: 10px 12px; border-left: 4px solid #16803d; background: #edf8ef; color: #14532d; font-weight: 600; }
+#marrison-engine-summary.marrison-scan-incomplete { padding: 10px 12px; border-left: 4px solid #b45309; background: #fffbeb; color: #78350f; font-weight: 600; }

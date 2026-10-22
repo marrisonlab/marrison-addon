@@ -6,19 +6,17 @@
     var cookieDescriptor = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie');
     var nativeSetAttribute = Element.prototype.setAttribute;
     var valid = ['necessary', 'functional', 'analytics', 'marketing'];
+    var verifiedState = null;
+    var stateResolved = false;
     function rawCookies() { try { return cookieDescriptor.get.call(document); } catch (error) { return ''; } }
-    function choice(name) {
-        var item = rawCookies().split(';').find(function (part) { return part.trim().indexOf(name + '=') === 0; });
-        if (!item) { return ''; }
-        try { return decodeURIComponent(item.trim().slice(name.length + 1)); } catch (error) { return ''; }
-    }
     function allowed() {
-        if (rules.phase === 'after' || (!rules.phase && choice('marrison_cookie_consent') === 'accept_all')) { return valid; }
-        if (rules.phase === 'before' || choice('marrison_cookie_consent') !== 'custom') { return ['necessary']; }
-        return ['necessary'].concat(choice('marrison_cookie_categories').split('|').filter(function (category) { return valid.indexOf(category) > 0; }));
+        if (rules.phase === 'after') { return valid; }
+        if (rules.phase === 'before' || !verifiedState || !verifiedState.valid || verifiedState.expires * 1000 <= Date.now()) { return ['necessary']; }
+        return valid.filter(function (category) { return category === 'necessary' || verifiedState.categories.indexOf(category) !== -1; });
     }
     function categoryForCookie(name) {
-        if (/^(?:marrison_cookie_(?:consent|categories)|PHPSESSID|woocommerce_cart_hash|woocommerce_items_in_cart|wp_woocommerce_session_.+|wordpress_(?:logged_in|sec)_.+|wordpress_[a-f0-9]{32}|wordpress_test_cookie|wp-settings(?:-time)?-\d+)$/.test(name)) { return 'necessary'; }
+        if (rules.phase && name === 'marrison_cookie_scan_probe') { return 'necessary'; }
+        if (/^(?:marrison_cookie_(?:consent|categories|state)|PHPSESSID|woocommerce_cart_hash|woocommerce_items_in_cart|wp_woocommerce_session_.+|wordpress_(?:logged_in|sec)_.+|wordpress_[a-f0-9]{32}|wordpress_test_cookie|wp-settings(?:-time)?-\d+)$/.test(name)) { return 'necessary'; }
         var rule = (rules.cookies || []).find(function (item) {
             var pattern = String(item.name).split('*').map(function (part) { return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('.*');
             return new RegExp('^' + pattern + '$').test(name);
@@ -125,6 +123,9 @@
     XMLHttpRequest.prototype.open = function (method, url) { this.marrisonConsentCategory = categoryForResource(url); return originalOpen.apply(this, arguments); };
     XMLHttpRequest.prototype.send = function () { if (!permitted(this.marrisonConsentCategory)) { this.abort(); return; } return originalSend.apply(this, arguments); };
     function enforce() {
+        // Pending verification blocks new optional activity, but cannot invalidate a
+        // previous signed choice. A failed request remains pending until a retry.
+        if (!stateResolved && rules.phase !== 'before' && rules.phase !== 'after') { return; }
         var names = rawCookies().split(';').map(function (part) { return part.split('=')[0].trim(); });
         names.forEach(function (name) {
             if (!name || permitted(categoryForCookie(name))) { return; }
@@ -141,6 +142,8 @@
             });
         });
     }
-    window.MarrisonConsentRuntime = { allowed: allowed, enforce: enforce, cookieCategory: categoryForCookie };
+    window.MarrisonConsentRuntime = { allowed: allowed, enforce: enforce, cookieCategory: categoryForCookie,
+        setState: function (state) { stateResolved = true; verifiedState = state && state.valid && Array.isArray(state.categories) ? state : null; enforce(); }
+    };
     enforce();
 }());

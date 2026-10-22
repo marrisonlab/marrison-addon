@@ -45,4 +45,7 @@ assert.strictEqual(run([selectedDynamic], '1|new').length, 0, 'An explicit dynam
 const cached = { ['marrison-bg-webp:1|old:' + base + '.png|400|200|cover|webp']: base + '-old.webp' };
 assert.strictEqual(run([element(base + '.png', false)], '1|old', cached).length, 0, 'A current browser cache entry must be reused.');
 assert.strictEqual(run([element(base + '.png', false)], '1|new', cached).length, 1, 'A new media revision must ignore stale browser resolution.');
+const batches = run(Array.from({ length: 23 }, (_, index) => element(base + index + '.png', false)), '1|batch');
+assert.strictEqual(batches.length, 3, 'Every visible background must be sent in bounded requests of ten items.');
+assert.deepStrictEqual(batches.map(batch => Object.keys(batch).filter(key => /\[url\]$/.test(key)).length), [10, 10, 3], 'The final short batch must preserve all remaining backgrounds.');
 console.log('Image Sizes background hero/session cache: PASS');

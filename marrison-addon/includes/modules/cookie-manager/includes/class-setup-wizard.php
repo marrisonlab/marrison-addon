@@ -6,7 +6,7 @@ class Marrison_Setup_Wizard {
     
     private static $instance = null;
     private $wizard_step = 1;
-    private $total_steps = 5;
+    private $total_steps = 6;
     
     /**
      * Ottieni istanza singleton
@@ -224,6 +224,9 @@ class Marrison_Setup_Wizard {
         if ($step === 4) {
             $this->save_appearance_settings($data);
         }
+        if ($step === 5 && isset($data['privacy_profile']) && is_array($data['privacy_profile'])) {
+            update_option('marrison_cookie_privacy_profile', Marrison_Addon_Cookie_Policy_Content::sanitize_profile($data['privacy_profile']));
+        }
         
         wp_send_json_success(array('message' => 'Step salvato', 'next_step' => $step + 1));
     }
@@ -355,7 +358,7 @@ class Marrison_Setup_Wizard {
      * Testo Cookie Policy completo di elenco aggiornato e accesso alle preferenze.
      */
     public function render_cookie_policy_shortcode() {
-        return '<div class="marrison-cookie-policy-content">' . do_shortcode($this->get_cookie_page_content()) . '</div>';
+        return '<div class="marrison-cookie-policy-content">' . $this->get_cookie_page_content() . Marrison_Cookie_Banner::get_instance()->render_policy_shortcode() . '</div>';
     }
 
     /**
@@ -390,130 +393,16 @@ class Marrison_Setup_Wizard {
      * Ottieni contenuto pagina privacy
      */
     private function get_privacy_page_content() {
-        $site_name = get_bloginfo('name');
-        $site_url = home_url();
-
-        if (function_exists('marrison_cookie_is_english_site') && marrison_cookie_is_english_site()) {
-            return '<h1>Privacy Policy</h1>'
-                . '<p>Last updated: ' . date('d/m/Y') . '</p>'
-                . '<h2>1. Introduction</h2>'
-                . '<p>This Privacy Policy explains how ' . esc_html($site_name) . ' ("we", "us", "our") collects, uses, and protects personal information when you visit our website ' . esc_url($site_url) . '.</p>'
-                . '<h2>2. Information we collect</h2>'
-                . '<p>We may collect personal information that you voluntarily provide, including name, email address, phone number, and other information you choose to submit.</p>'
-                . '<h2>3. Use of cookies</h2>'
-                . '<p>We use cookies to improve your browsing experience. For more details, see our ' . $this->get_policy_page_link('Cookie Policy') . '.</p>'
-                . '<h2>4. Sharing of information</h2>'
-                . '<p>We do not share your personal information with third parties except when required by law or necessary to provide our services.</p>'
-                . '<h2>5. Your rights</h2>'
-                . '<p>You have the right to access, correct, delete, or object to the processing of your personal information.</p>'
-                . '<h2>6. Contact</h2>'
-                . '<p>If you have any questions about this Privacy Policy, contact us by email.</p>';
-        }
-        
-        $content = '<h1>Privacy Policy</h1>';
-        $content .= '<p>Ultimo aggiornamento: ' . date('d/m/Y') . '</p>';
-        $content .= '<h2>1. Introduzione</h2>';
-        $content .= '<p>Questa Privacy Policy spiega come ' . esc_html($site_name) . ' ("noi", "ci", "nostro") raccoglie, utilizza e protegge le informazioni personali quando visiti il nostro sito web ' . esc_url($site_url) . '.</p>';
-        $content .= '<h2>2. Informazioni che raccogliamo</h2>';
-        $content .= '<h3>2.1 Dati personali</h3>';
-        $content .= '<p>Possiamo raccogliere informazioni personali che ci fornisci volontariamente, tra cui:</p>';
-        $content .= '<ul>';
-        $content .= '<li>Nome e cognome</li>';
-        $content .= '<li>Indirizzo email</li>';
-        $content .= '<li>Numero di telefono</li>';
-        $content .= '<li>Altre informazioni che decidi di fornire</li>';
-        $content .= '</ul>';
-        $content .= '<h3>2.2 Dati tecnici</h3>';
-        $content .= '<p>Raccogliamo automaticamente informazioni tecniche, tra cui:</p>';
-        $content .= '<ul>';
-        $content .= '<li>Indirizzo IP</li>';
-        $content .= '<li>Tipo di browser e versione</li>';
-        $content .= '<li>Sistema operativo</li>';
-        $content .= '<li>Siti web di riferimento</li>';
-        $content .= '<li>Tempo di visita e pagine visualizzate</li>';
-        $content .= '</ul>';
-        $content .= '<h2>3. Utilizzo dei cookie</h2>';
-        $content .= '<p>Utilizziamo i cookie per migliorare la tua esperienza di navigazione. Per maggiori dettagli, consulta la nostra ' . $this->get_policy_page_link('Cookie Policy') . '.</p>';
-        $content .= '<h2>4. Condivisione delle informazioni</h2>';
-        $content .= '<p>Non condividiamo le tue informazioni personali con terze parti, tranne quando richiesto dalla legge o necessario per fornire i nostri servizi.</p>';
-        $content .= '<h2>5. I tuoi diritti</h2>';
-        $content .= '<p>Hai il diritto di:</p>';
-        $content .= '<ul>';
-        $content .= '<li>Accedere alle tue informazioni personali</li>';
-        $content .= '<li>Richiedere la correzione delle tue informazioni</li>';
-        $content .= '<li>Richiedere la cancellazione delle tue informazioni</li>';
-        $content .= '<li>Opporre al trattamento delle tue informazioni</li>';
-        $content .= '</ul>';
-        $content .= '<h2>6. Contatti</h2>';
-        $content .= '<p>Per qualsiasi domanda relativa a questa Privacy Policy, contattaci via email.</p>';
-        
-        return $content;
+        return Marrison_Addon_Cookie_Policy_Content::content('privacy');
     }
-    
+
     /**
      * Ottieni contenuto pagina cookie
      */
     private function get_cookie_page_content() {
-        $site_name = get_bloginfo('name');
-        $site_url = home_url();
-
-        if (function_exists('marrison_cookie_is_english_site') && marrison_cookie_is_english_site()) {
-            return '<h1>Cookie Policy</h1>'
-                . '<p>Last updated: ' . date('d/m/Y') . '</p>'
-                . '<h2>1. What cookies are</h2>'
-                . '<p>Cookies are small text files stored on your device when you visit our website. They are used to remember your preferences and improve your browsing experience.</p>'
-                . '<h2>2. Types of cookies we use</h2>'
-                . '<h3>2.1 Necessary cookies</h3>'
-                . '<p>These cookies are essential for the website to function. They cannot be disabled.</p>'
-                . '<h3>2.2 Functional cookies</h3>'
-                . '<p>These cookies improve website functionality by remembering your preferences.</p>'
-                . '<h3>2.3 Analytics cookies</h3>'
-                . '<p>These cookies help us understand how visitors use the website by collecting anonymous information.</p>'
-                . '<h3>2.4 Marketing cookies</h3>'
-                . '<p>These cookies are used to show you relevant advertising based on your interests.</p>'
-                . '<h2>3. Third-party cookies</h2>'
-                . '<p>Our website may use third-party cookies for services such as Google Analytics and Facebook Pixel.</p>'
-                . '<h2>4. Cookie management</h2>'
-                . '<p>You can manage your cookie preferences using the banner that appears when you visit our website, or change your browser settings to block or delete cookies.</p>'
-                . '<h2>5. Useful links</h2>'
-                . '<ul>'
-                . '<li>' . $this->get_policy_page_link('Privacy Policy') . '</li>'
-                . '<li><a href="https://www.allaboutcookies.org/" target="_blank" rel="noopener">All About Cookies</a></li>'
-                . '</ul>'
-                . '<h2>6. Contact</h2>'
-                . '<p>If you have any questions about this Cookie Policy, contact us by email.</p>'
-                . "\n[marrison_cookie_policy]";
-        }
-        
-        $content = '<h1>Cookie Policy</h1>';
-        $content .= '<p>Ultimo aggiornamento: ' . date('d/m/Y') . '</p>';
-        $content .= '<h2>1. Cosa sono i cookie</h2>';
-        $content .= '<p>I cookie sono piccoli file di testo che vengono salvati sul tuo dispositivo quando visiti il nostro sito web. Vengono utilizzati per ricordare le tue preferenze e migliorare la tua esperienza di navigazione.</p>';
-        $content .= '<h2>2. Tipi di cookie che utilizziamo</h2>';
-        $content .= '<h3>2.1 Cookie necessari</h3>';
-        $content .= '<p>Questi cookie sono essenziali per il funzionamento del sito web. Non possono essere disabilitati.</p>';
-        $content .= '<h3>2.2 Cookie funzionali</h3>';
-        $content .= '<p>Questi cookie migliorano le funzionalità del sito web, ricordando le tue preferenze.</p>';
-        $content .= '<h3>2.3 Cookie analitici</h3>';
-        $content .= '<p>Questi cookie ci aiutano a capire come i visitatori utilizzano il sito web, raccogliendo informazioni anonime.</p>';
-        $content .= '<h3>2.4 Cookie di marketing</h3>';
-        $content .= '<p>Questi cookie vengono utilizzati per mostrarti pubblicità pertinente in base ai tuoi interessi.</p>';
-        $content .= '<h2>3. Cookie di terze parti</h2>';
-        $content .= '<p>Il nostro sito web può utilizzare cookie di terze parti per servizi come Google Analytics, Facebook Pixel, ecc.</p>';
-        $content .= '<h2>4. Gestione dei cookie</h2>';
-        $content .= '<p>Puoi gestire le tue preferenze sui cookie utilizzando il banner che appare quando visiti il nostro sito. Puoi anche modificare le impostazioni del tuo browser per bloccare o eliminare i cookie.</p>';
-        $content .= '<h2>5. Link utili</h2>';
-        $content .= '<ul>';
-        $content .= '<li>' . $this->get_policy_page_link('Privacy Policy') . '</li>';
-        $content .= '<li><a href="https://www.allaboutcookies.org/" target="_blank" rel="noopener">All About Cookies</a></li>';
-        $content .= '</ul>';
-        $content .= '<h2>6. Contatti</h2>';
-        $content .= '<p>Per qualsiasi domanda relativa a questa Cookie Policy, contattaci via email.</p>';
-        $content .= "\n[marrison_cookie_policy]";
-        
-        return $content;
+        return Marrison_Addon_Cookie_Policy_Content::content('cookie');
     }
-    
+
     /**
      * AJAX: Completa wizard
      */

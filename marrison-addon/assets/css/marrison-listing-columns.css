@@ -1,0 +1,49 @@
+.marrison-listing-columns {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 8px;
+}
+.marrison-listing-columns[hidden] { display: none !important; }
+.marrison-listing-columns .marrison-listing-columns__button[hidden] { display: none !important; }
+.marrison-listing-columns .marrison-listing-columns__button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-height: 36px;
+	padding: 6px 12px;
+	border: 1px solid #d5d5d5;
+	border-radius: 30px;
+	background: #fff;
+	color: #555;
+	font: inherit;
+	font-size: 13px;
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color .2s, color .2s, border-color .2s, box-shadow .2s;
+}
+.marrison-listing-columns .marrison-listing-columns__button:hover { background: #f3f3f3; border-color: #999; color: #111; }
+.marrison-listing-columns .marrison-listing-columns__button[aria-pressed="true"] { background: #111; border-color: #111; color: #fff; }
+.marrison-listing-columns .marrison-listing-columns__button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.marrison-listing-columns .marrison-listing-columns__button:disabled { opacity: .5; cursor: default; }
+.marrison-listing-columns--after .marrison-listing-columns__button { flex-direction: row-reverse; }
+.marrison-listing-columns--above .marrison-listing-columns__button { flex-direction: column; }
+.marrison-listing-columns__icon { display: inline-flex; align-items: center; justify-content: center; font-size: 24px; line-height: 1; flex-shrink: 0; }
+.marrison-listing-columns__icon svg { display: block; width: 1em; height: 1em; }
+.marrison-listing-columns__icon svg:not(.marrison-listing-columns__grid) { fill: currentColor; }
+.marrison-listing-columns__icon i { font-size: 1em; }
+.jet-listing-grid__items[data-marrison-listing-columns-active="true"] {
+	display: grid !important;
+	grid-template-columns: repeat(var(--marrison-listing-columns), minmax(0, 1fr)) !important;
+}
+.jet-listing-grid__items[data-marrison-listing-columns-active="true"] > .jet-listing-grid__item {
+	width: auto !important;
+	max-width: none !important;
+	min-width: 0;
+	flex: initial !important;
+}
+@media (prefers-reduced-motion: reduce) {
+	.marrison-listing-columns .marrison-listing-columns__button { transition: none; }
+}

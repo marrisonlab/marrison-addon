@@ -1,0 +1,17 @@
+Personalizza le preferenze cookie
+
+Cookie rilevati dalla scansione
+Necessari
+Cookie rilevati: Necessari
+Cookie	Dominio	Scadenza rilevata	Descrizione
+marrison_cookie_state	demo.ceris-srl.it	22/04/2027 20:38	Memorizza la scelta e le categorie del consenso cookie
+marrison_cookie_categories	demo.ceris-srl.it	22/04/2027 20:38	Memorizza la scelta e le categorie del consenso cookie
+marrison_cookie_consent	demo.ceris-srl.it	22/04/2027 20:38	Memorizza la scelta e le categorie del consenso cookie
+Servizi rilevati e cookie documentati
+
+I seguenti servizi sono stati riconosciuti nelle pagine analizzate. I cookie elencati sono documentati dai fornitori: la loro installazione dipende dal consenso, dall’utilizzo e dal browser e non è attestata dalla scansione.
+
+Google Maps
+NID — .google.com · 6 mesi. Preferenze e personalizzazione dei servizi Google; dipende dalle scelte dell’utente.
+
+Documentazione del fornitore

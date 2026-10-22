@@ -1,0 +1,110 @@
+{
+  "banner": {
+    "children": [
+      {
+        "class": "marrison-close-banner",
+        "height": 32,
+        "tag": "BUTTON",
+        "width": 32
+      },
+      {
+        "class": "marrison-banner-container",
+        "height": 518.890625,
+        "tag": "DIV",
+        "width": 1180
+      }
+    ],
+    "columns": "none",
+    "display": "block",
+    "flex": "0 1 auto",
+    "height": 547.890625,
+    "width": 1265,
+    "x": 0,
+    "y": 172.109375
+  },
+  "container": {
+    "children": [
+      {
+        "class": "marrison-banner-content",
+        "height": 518.890625,
+        "tag": "DIV",
+        "width": 0
+      },
+      {
+        "class": "marrison-banner-buttons",
+        "height": 38,
+        "tag": "DIV",
+        "width": 374
+      },
+      {
+        "class": "",
+        "height": 0,
+        "tag": "P",
+        "width": 714
+      }
+    ],
+    "columns": "none",
+    "display": "flex",
+    "flex": "0 1 auto",
+    "height": 518.890625,
+    "width": 1180,
+    "x": 42.5,
+    "y": 187.109375
+  },
+  "content": {
+    "children": [
+      {
+        "class": "marrison-banner-title",
+        "height": 32.5,
+        "tag": "H3",
+        "width": 77.53125
+      },
+      {
+        "class": "marrison-banner-description",
+        "height": 301.5,
+        "tag": "P",
+        "width": 0
+      },
+      {
+        "class": "marrison-banner-close-info",
+        "height": 144,
+        "tag": "P",
+        "width": 77.53125
+      },
+      {
+        "class": "marrison-banner-links",
+        "height": 50,
+        "tag": "DIV",
+        "width": 91.53125
+      }
+    ],
+    "columns": "77.5312px 0px",
+    "display": "grid",
+    "flex": "1 1 0%",
+    "height": 518.890625,
+    "width": 0,
+    "x": 42.5,
+    "y": 187.109375
+  },
+  "description": {
+    "children": [],
+    "columns": "none",
+    "display": "block",
+    "flex": "0 1 auto",
+    "height": 301.5,
+    "width": 0,
+    "x": 134.03125,
+    "y": 187.109375
+  },
+  "status": {
+    "children": [],
+    "columns": "none",
+    "display": "block",
+    "flex": "0 1 auto",
+    "height": 0,
+    "width": 714,
+    "x": 464.5,
+    "y": 446.546875
+  },
+  "viewport": 1280
+}

@@ -28,7 +28,8 @@ $total_steps = $wizard->get_total_steps();
                                 2 => __('Banner', 'marrison-cookie'),
                                 3 => __('Cookie', 'marrison-cookie'),
                                 4 => __('Aspetto', 'marrison-cookie'),
-                                5 => __('Shortcode', 'marrison-cookie')
+                                5 => __('Privacy', 'marrison-cookie'),
+                                6 => __('Shortcode', 'marrison-cookie')
                             );
                             echo esc_html($labels[$i]);
                             ?>
@@ -93,7 +94,7 @@ $total_steps = $wizard->get_total_steps();
             <div class="marrison-wizard-step <?php echo $current_step === 3 ? 'active' : ''; ?>" data-step="3">
                 <h2 class="marrison-step-title"><?php _e('Scansione e Categorizzazione Cookie', 'marrison-cookie'); ?></h2>
                 <p class="marrison-step-description">
-                    <?php _e('Scansiona i cookie presenti sul tuo sito e assegna loro le categorie appropriate.', 'marrison-cookie'); ?>
+                    <?php _e('Avvia la scansione in background: puoi premere Avanti e completare il wizard, oppure chiudere la pagina. Il server continua il lavoro e salva i risultati, consultabili anche in Cookie Manager > Scanner Cookie.', 'marrison-cookie'); ?>
                 </p>
                 
                 <button type="button" id="wizard_scan_button" class="marrison-scan-button">
@@ -101,6 +102,9 @@ $total_steps = $wizard->get_total_steps();
                 </button>
                 
                 <div id="wizard_scan_status" class="marrison-scan-status"></div>
+                <div><h3><?php esc_html_e('Dati del browser', 'marrison-cookie'); ?></h3><p id="wizard_browser_storage_note"><?php esc_html_e('LocalStorage e sessionStorage sono elencati separatamente dai cookie, senza raccoglierne i valori.', 'marrison-cookie'); ?></p>
+                    <table class="widefat"><thead><tr><th><?php esc_html_e('Chiave', 'marrison-cookie'); ?></th><th><?php esc_html_e('Tipo', 'marrison-cookie'); ?></th><th><?php esc_html_e('Origine', 'marrison-cookie'); ?></th><th><?php esc_html_e('Rilevazione', 'marrison-cookie'); ?></th></tr></thead><tbody id="wizard_browser_storage_rows"></tbody></table>
+                </div>
                 
                 <div id="wizard_cookie_results" style="display: none;">
                     <h3><?php _e('Cookie Rilevati', 'marrison-cookie'); ?></h3>
@@ -207,6 +211,11 @@ $total_steps = $wizard->get_total_steps();
             
             <!-- Step 5: Shortcode e collegamenti policy -->
             <div class="marrison-wizard-step <?php echo $current_step === 5 ? 'active' : ''; ?>" data-step="5">
+                <h2 class="marrison-step-title">Genera la Privacy Policy</h2>
+                <p class="marrison-step-description">Passaggio facoltativo. Puoi compilare i dati ora oppure scegliere Salta e completarli in Privacy e policy.</p>
+                <?php $privacy_prefix = 'wizard-privacy-'; include MARRISON_COOKIE_PLUGIN_DIR . 'templates/privacy-fields.php'; ?>
+            </div>
+            <div class="marrison-wizard-step <?php echo $current_step === 6 ? 'active' : ''; ?>" data-step="6">
                 <h2 class="marrison-step-title"><?php echo esc_html(marrison_cookie_site_text('Shortcode delle policy', 'Policy shortcodes')); ?></h2>
                 <p class="marrison-step-description">
                     <?php echo esc_html(marrison_cookie_site_text('Scegli dove mostrare le policy nelle pagine del tuo sito.', 'Choose where to display the policies on your site pages.')); ?>
@@ -249,6 +258,7 @@ $total_steps = $wizard->get_total_steps();
                 <button type="button" id="wizard_prev" class="marrison-btn marrison-btn-secondary" style="<?php echo $current_step === 1 ? 'display: none;' : ''; ?>">
                     <?php _e('Indietro', 'marrison-cookie'); ?>
                 </button>
+                <button type="button" id="wizard_skip_privacy" class="marrison-btn marrison-btn-secondary" style="<?php echo $current_step === 5 ? '' : 'display:none;'; ?>">Salta</button>
                 <button type="button" id="wizard_next" class="marrison-btn marrison-btn-primary">
                     <?php echo $current_step === $total_steps ? __('Completa', 'marrison-cookie') : __('Avanti', 'marrison-cookie'); ?>
                 </button>

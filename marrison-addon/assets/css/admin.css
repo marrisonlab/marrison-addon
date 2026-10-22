@@ -52,6 +52,92 @@
     line-height: 1.55;
 }
 
+.marrison-module-requirements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    font-size: 12px;
+    color: #50575e;
+    margin: 8px 0 0;
+    line-height: 1.5;
+}
+
+.marrison-module-dependency {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.marrison-dependency-flag {
+    font-weight: 700;
+    font-size: 12px;
+}
+.marrison-module-dependency.is-active .marrison-dependency-flag { color: #008a20; }
+.marrison-module-dependency.is-missing .marrison-dependency-flag { color: #b32d2e; }
+
+.marrison-modules-grid .marrison-badge-error {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #b32d2e;
+}
+
+/* Dashboard actions stay in the header, without adding a footer to the card. */
+.marrison-modules-grid .marrison-module-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.marrison-modules-grid .marrison-module-settings {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 26px;
+    height: 26px;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    color: #646970;
+    background: #fff;
+    text-decoration: none;
+    transition: color .15s, border-color .15s, background .15s;
+}
+
+.marrison-modules-grid .marrison-module-settings .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.marrison-modules-grid a.marrison-module-settings:hover {
+    color: #2271b1;
+    border-color: #a7c7df;
+    background: #f0f6fc;
+}
+
+.marrison-modules-grid a.marrison-module-settings:focus-visible {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
+}
+
+.marrison-modules-grid .marrison-module-settings.is-disabled {
+    opacity: .4;
+}
+
+.marrison-module-beta {
+    display: inline-block;
+    padding: 1px 5px;
+    margin-left: 3px;
+    border: 1px solid #e9d8ab;
+    border-radius: 4px;
+    background: #fffbef;
+    color: #796025;
+    font-size: 10px;
+    line-height: 1.5;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
 /* Switch Toggle */
 .marrison-switch {
     position: relative;

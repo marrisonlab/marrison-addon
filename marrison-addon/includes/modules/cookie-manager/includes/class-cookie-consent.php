@@ -63,7 +63,7 @@ class Marrison_Cookie_Consent {
         $html = preg_replace_callback('/<iframe\b([^>]*)>/is', array($this, 'filter_iframe_tag'), $html);
         $html = preg_replace_callback('/<img\b([^>]*)>/is', function($matches) {
             $category = $this->detect_tracking_category($matches[1]);
-            if (!$category || $this->is_category_allowed($category)) { return $matches[0]; }
+            if (!$category || $this->may_render_resource($category)) { return $matches[0]; }
             $attributes = $this->get_blocked_attributes($matches[1], false);
             return '<img data-marrison-cookie-blocked="img" data-marrison-cookie-category="' . esc_attr($category) . '"' . $attributes . '>';
         }, $html);
@@ -81,7 +81,7 @@ class Marrison_Cookie_Consent {
         $haystack = $attributes . "\n" . $body;
         $category = $this->detect_tracking_category($haystack);
 
-        if (!$category || $this->is_category_allowed($category)) {
+        if (!$category || $this->may_render_resource($category)) {
             return $matches[0];
         }
 
@@ -97,7 +97,7 @@ class Marrison_Cookie_Consent {
         $attributes = isset($matches[1]) ? $matches[1] : '';
         $category = $this->detect_tracking_category($attributes);
 
-        if (!$category || $this->is_category_allowed($category)) {
+        if (!$category || $this->may_render_resource($category)) {
             return $matches[0];
         }
 
@@ -205,12 +205,13 @@ class Marrison_Cookie_Consent {
      * Gestisci script in base al consenso
      */
     public function manage_scripts() {
-        if (class_exists('Marrison_Addon_Context') && !Marrison_Addon_Context::is_public_frontend_request()) {
-            return;
-        }
+        // Keep queued resources in the HTML as inert tags, so a cached page can safely
+        // activate them after the browser verifies its own receipt through AJAX.
+    }
 
-        if (!$this->is_category_allowed('analytics')) { $this->block_analytics_scripts(); }
-        if (!$this->is_category_allowed('marketing')) { $this->block_marketing_scripts(); }
+    private function may_render_resource($category) {
+        if ($category === 'necessary') { return true; }
+        return class_exists('Marrison_Addon_Cookie_Scan_Engine', false) && Marrison_Addon_Cookie_Scan_Engine::get_instance()->frame_phase() === 'after';
     }
 
     public function tracking_rules() {
@@ -236,7 +237,7 @@ class Marrison_Cookie_Consent {
         $phase = class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::get_instance()->frame_phase() : null;
         echo '<script id="marrison-cookie-runtime-config">window.marrisonConsentRules=' . wp_json_encode(array('sources' => $this->tracking_rules(), 'cookies' => $cookies, 'phase' => $phase), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';</script>';
         $plugin = dirname(__DIR__, 4) . '/marrison-addon.php';
-        $revision = class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::REVISION : '20261018.1';
+        $revision = class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::REVISION : '20261019.2';
         echo '<script id="marrison-cookie-runtime-js" src="' . esc_url(plugins_url('includes/modules/cookie-manager/assets/js/consent-runtime.js', $plugin)) . '?ver=' . esc_attr($revision) . '"></script>';
     }
     
@@ -244,49 +245,25 @@ class Marrison_Cookie_Consent {
      * Verifica se l'utente ha dato il consenso
      */
     private function has_consent() {
-        return isset($_COOKIE['marrison_cookie_consent']);
+        return (bool) Marrison_Addon_Cookie_Consent_Store::get_instance()->current();
     }
     
     /**
      * Ottieni il consenso dell'utente
      */
     private function get_user_consent() {
-        if (isset($_COOKIE['marrison_cookie_consent'])) {
-            return sanitize_text_field(wp_unslash($_COOKIE['marrison_cookie_consent']));
-        }
-        
-        $user_id = get_current_user_id();
-        if ($user_id) {
-            $consent = get_user_meta($user_id, 'marrison_cookie_consent', true);
-            if ($consent && isset($consent['consent_type'])) {
-                return $consent['consent_type'];
-            }
-        }
-        
-        return false;
+        $state = Marrison_Addon_Cookie_Consent_Store::get_instance()->current();
+        return $state ? $state['type'] : false;
     }
-    
+
     /**
      * Ottieni le categorie accettate
      */
     private function get_consent_categories() {
-        if (isset($_COOKIE['marrison_cookie_categories'])) {
-            $categories = explode('|', sanitize_text_field(wp_unslash($_COOKIE['marrison_cookie_categories'])));
-            return $this->sanitize_categories($categories);
-        }
-
-        $user_id = get_current_user_id();
-        
-        if ($user_id) {
-            $consent = get_user_meta($user_id, 'marrison_cookie_consent', true);
-            if ($consent && isset($consent['categories'])) {
-                return $this->sanitize_categories($consent['categories']);
-            }
-        }
-        
-        return array();
+        $state = Marrison_Addon_Cookie_Consent_Store::get_instance()->current();
+        return $state ? $state['categories'] : array('necessary');
     }
-    
+
     /**
      * Blocca script di analisi
      */
@@ -325,65 +302,8 @@ class Marrison_Cookie_Consent {
      * AJAX: Aggiorna preferenze
      */
     public function ajax_update_preferences() {
-        check_ajax_referer('marrison_cookie_nonce', 'nonce');
-        
         $categories = isset($_POST['categories']) && is_array($_POST['categories']) ? $this->sanitize_categories(wp_unslash($_POST['categories'])) : array();
-        if (!in_array('necessary', $categories, true)) {
-            array_unshift($categories, 'necessary');
-        }
-        
-        // Aggiorna consenso
-        $this->save_user_consent('custom', $categories);
-        
-        // Aggiorna cookie
-        $consent_duration = get_option('marrison_cookie_consent_duration', 30);
-        $expiry = time() + ($consent_duration * DAY_IN_SECONDS);
-        
-        // Il frontend deve poter leggere questi cookie per mantenere nascoste le preferenze tra le pagine.
-        setcookie('marrison_cookie_consent', 'custom', $expiry, '/', COOKIE_DOMAIN, is_ssl(), false);
-        setcookie('marrison_cookie_categories', implode('|', $categories), $expiry, '/', COOKIE_DOMAIN, is_ssl(), false);
-        
-        // Gestisci cookie
-        $banner = Marrison_Cookie_Banner::get_instance();
-        $banner->handle_consent('custom', $categories);
-        
-        wp_send_json_success(array('message' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Preferenze aggiornate con successo', 'Preferences updated successfully') : 'Preferenze aggiornate con successo'));
-    }
-    
-    /**
-     * Salva consenso utente
-     */
-    private function save_user_consent($consent_type, $categories) {
-        $user_id = get_current_user_id();
-        $ip_address = $this->get_user_ip();
-        
-        $consent_data = array(
-            'consent_type' => $consent_type,
-            'categories' => $categories,
-            'timestamp' => current_time('mysql'),
-            'user_id' => $user_id,
-            'ip_address' => $ip_address,
-        );
-        
-        if ($user_id) {
-            update_user_meta($user_id, 'marrison_cookie_consent', $consent_data);
-        } else {
-            set_transient('marrison_consent_' . md5($ip_address), $consent_data, 30 * DAY_IN_SECONDS);
-        }
-    }
-    
-    /**
-     * Ottieni IP utente
-     */
-    private function get_user_ip() {
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            return sanitize_text_field(wp_unslash($_SERVER['HTTP_CLIENT_IP']));
-        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $forwarded_for = explode(',', wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR']));
-            return sanitize_text_field(trim($forwarded_for[0]));
-        } else {
-            return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
-        }
+        Marrison_Addon_Cookie_Consent_Store::get_instance()->save_request('custom', $categories);
     }
 
     /**

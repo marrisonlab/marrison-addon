@@ -1,0 +1,326 @@
+[
+  {
+    "banner": {
+      "bottom": 891.984375,
+      "height": 218.359375,
+      "right": 2490.984375,
+      "width": 420,
+      "x": 2070.984375,
+      "y": 673.625
+    },
+    "bannerClientWidth": 418,
+    "bannerScrollWidth": 418,
+    "buttons": [
+      {
+        "bottom": 840.0189208984375,
+        "height": 34.953125,
+        "right": 2254.984375,
+        "text": "Accetta tutti",
+        "width": 175.875,
+        "x": 2079.109375,
+        "y": 805.0657958984375
+      },
+      {
+        "bottom": 840.90625,
+        "height": 34.953125,
+        "right": 2438.859375,
+        "text": "Rifiuta tutti",
+        "width": 175.875,
+        "x": 2262.984375,
+        "y": 805.953125
+      },
+      {
+        "bottom": 883.859375,
+        "height": 34.953125,
+        "right": 2438.859375,
+        "text": "Personalizza",
+        "width": 359.75,
+        "x": 2079.109375,
+        "y": 848.90625
+      }
+    ],
+    "description": {
+      "bottom": 739.03125,
+      "clientHeight": 35,
+      "height": 34.53125,
+      "right": 2438.859375,
+      "scrollHeight": 35,
+      "width": 359.75,
+      "x": 2079.109375,
+      "y": 704.5
+    },
+    "pageWidth": 2499,
+    "status": "none",
+    "viewport": 2514
+  },
+  {
+    "banner": {
+      "bottom": 880.4375,
+      "height": 243.640625,
+      "right": 1245.4375,
+      "width": 420,
+      "x": 825.4375,
+      "y": 636.796875
+    },
+    "bannerClientWidth": 418,
+    "bannerScrollWidth": 418,
+    "buttons": [
+      {
+        "bottom": 817.9105834960938,
+        "height": 39.75,
+        "right": 1009.4375,
+        "text": "Accetta tutti",
+        "width": 169.46875,
+        "x": 839.96875,
+        "y": 778.1605834960938
+      },
+      {
+        "bottom": 818.15625,
+        "height": 39.75,
+        "right": 1186.90625,
+        "text": "Rifiuta tutti",
+        "width": 169.46875,
+        "x": 1017.4375,
+        "y": 778.40625
+      },
+      {
+        "bottom": 865.90625,
+        "height": 39.75,
+        "right": 1186.90625,
+        "text": "Personalizza",
+        "width": 346.9375,
+        "x": 839.96875,
+        "y": 826.15625
+      }
+    ],
+    "description": {
+      "bottom": 708.609375,
+      "clientHeight": 35,
+      "height": 34.53125,
+      "right": 1186.90625,
+      "scrollHeight": 35,
+      "width": 346.9375,
+      "x": 839.96875,
+      "y": 674.078125
+    },
+    "pageWidth": 1265,
+    "status": "none",
+    "viewport": 1280
+  },
+  {
+    "banner": {
+      "bottom": 876,
+      "height": 253.34375,
+      "right": 985,
+      "width": 420,
+      "x": 565,
+      "y": 622.65625
+    },
+    "bannerClientWidth": 418,
+    "bannerScrollWidth": 418,
+    "buttons": [
+      {
+        "bottom": 809,
+        "height": 42,
+        "right": 749,
+        "text": "Accetta tutti",
+        "width": 167,
+        "x": 582,
+        "y": 767
+      },
+      {
+        "bottom": 809,
+        "height": 42,
+        "right": 924,
+        "text": "Rifiuta tutti",
+        "width": 167,
+        "x": 757,
+        "y": 767
+      },
+      {
+        "bottom": 859,
+        "height": 42,
+        "right": 924,
+        "text": "Personalizza",
+        "width": 342,
+        "x": 582,
+        "y": 817
+      }
+    ],
+    "description": {
+      "bottom": 696.9375,
+      "clientHeight": 35,
+      "height": 34.53125,
+      "right": 924,
+      "scrollHeight": 35,
+      "width": 342,
+      "x": 582,
+      "y": 662.40625
+    },
+    "pageWidth": 1009,
+    "status": "none",
+    "viewport": 1024
+  },
+  {
+    "banner": {
+      "bottom": 876,
+      "height": 137.6875,
+      "right": 729,
+      "width": 723,
+      "x": 6,
+      "y": 738.3125
+    },
+    "bannerClientWidth": 721,
+    "bannerScrollWidth": 721,
+    "buttons": [
+      {
+        "bottom": 859,
+        "height": 44,
+        "right": 235.328125,
+        "text": "Accetta tutti",
+        "width": 212.328125,
+        "x": 23,
+        "y": 815
+      },
+      {
+        "bottom": 859,
+        "height": 44,
+        "right": 451.65625,
+        "text": "Rifiuta tutti",
+        "width": 212.328125,
+        "x": 239.328125,
+        "y": 815
+      },
+      {
+        "bottom": 859,
+        "height": 44,
+        "right": 667.984375,
+        "text": "Personalizza",
+        "width": 212.328125,
+        "x": 455.65625,
+        "y": 815
+      }
+    ],
+    "description": {
+      "bottom": 772.9375,
+      "clientHeight": 18,
+      "height": 17.625,
+      "right": 668,
+      "scrollHeight": 18,
+      "width": 645,
+      "x": 23,
+      "y": 755.3125
+    },
+    "pageWidth": 753,
+    "status": "none",
+    "viewport": 768
+  },
+  {
+    "banner": {
+      "bottom": 890.046875,
+      "height": 153.484375,
+      "right": 365.046875,
+      "width": 359.046875,
+      "x": 6,
+      "y": 736.5625
+    },
+    "bannerClientWidth": 357,
+    "bannerScrollWidth": 357,
+    "buttons": [
+      {
+        "bottom": 880.064208984375,
+        "height": 44,
+        "right": 111.40625,
+        "text": "Accetta tutti",
+        "width": 96.203125,
+        "x": 15.203125,
+        "y": 836.064208984375
+      },
+      {
+        "bottom": 880.84375,
+        "height": 44,
+        "right": 211.625,
+        "text": "Rifiuta tutti",
+        "width": 96.21875,
+        "x": 115.40625,
+        "y": 836.84375
+      },
+      {
+        "bottom": 880.84375,
+        "height": 44,
+        "right": 311.828125,
+        "text": "Personalizza",
+        "width": 96.203125,
+        "x": 215.625,
+        "y": 836.84375
+      }
+    ],
+    "description": {
+      "bottom": 798.640625,
+      "clientHeight": 53,
+      "height": 52.875,
+      "right": 311.84375,
+      "scrollHeight": 53,
+      "width": 296.640625,
+      "x": 15.203125,
+      "y": 745.765625
+    },
+    "pageWidth": 375,
+    "status": "none",
+    "viewport": 390
+  },
+  {
+    "banner": {
+      "bottom": 893.390625,
+      "height": 169.34375,
+      "right": 298.390625,
+      "width": 292.390625,
+      "x": 6,
+      "y": 724.046875
+    },
+    "bannerClientWidth": 290,
+    "bannerScrollWidth": 290,
+    "buttons": [
+      {
+        "bottom": 885.07666015625,
+        "height": 47.03125,
+        "right": 89.234375,
+        "text": "Accetta tutti",
+        "width": 75.90625,
+        "x": 13.328125,
+        "y": 838.04541015625
+      },
+      {
+        "bottom": 886.0625,
+        "height": 47.03125,
+        "right": 168.140625,
+        "text": "Rifiuta tutti",
+        "width": 75.90625,
+        "x": 92.234375,
+        "y": 839.03125
+      },
+      {
+        "bottom": 886.0625,
+        "height": 47.03125,
+        "right": 247.0625,
+        "text": "Personalizza",
+        "width": 75.921875,
+        "x": 171.140625,
+        "y": 839.03125
+      }
+    ],
+    "description": {
+      "bottom": 784.25,
+      "clientHeight": 53,
+      "height": 52.875,
+      "right": 247.0625,
+      "scrollHeight": 53,
+      "width": 233.734375,
+      "x": 13.328125,
+      "y": 731.375
+    },
+    "pageWidth": 305,
+    "status": "none",
+    "viewport": 320
+  }
+]

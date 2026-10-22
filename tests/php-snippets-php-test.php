@@ -48,6 +48,7 @@ function wp_doing_cron() { return false; }
 function did_action() { return 0; }
 function plugin_dir_path( $path ) { return dirname( $path ) . '/'; }
 function plugin_basename( $path ) { return basename( $path ); }
+function register_deactivation_hook( $file, $callback ) { add_action( 'deactivate_' . basename( $file ), $callback ); }
 function wp_unslash( $text ) { return $text; }
 function wp_check_invalid_utf8( $text, $strip = false ) { return preg_match( '//u', $text ) ? $text : ''; }
 function sanitize_text_field( $text ) { return trim( strip_tags( $text ) ); }

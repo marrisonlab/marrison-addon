@@ -6,23 +6,57 @@
     var sent = false;
     var observed = new Map();
     var started = performance.now();
+    var storageAccess = 'unverified';
+    function resources() {
+        var found = new Map();
+        document.querySelectorAll('script[src],iframe[src],img[src],[data-marrison-blocked-src]').forEach(function (element) {
+            if (found.size >= 100) { return; }
+            try {
+                var url = new URL(element.getAttribute('src') || element.getAttribute('data-marrison-blocked-src'), location.href);
+                if (/^https?:$/.test(url.protocol) && url.hostname !== location.hostname) {
+                    var kind = element.tagName.toLowerCase();
+                    if (['script', 'iframe', 'img'].indexOf(kind) >= 0) { found.set(url.origin + url.pathname + ':' + kind, { url: url.origin + url.pathname, kind: kind }); }
+                }
+            } catch (error) { /* Invalid/inert resource URL. */ }
+        });
+        try {
+            performance.getEntriesByType('resource').forEach(function (entry) {
+                if (found.size >= 100) { return; }
+                var url = new URL(entry.name, location.href);
+                if (/^https?:$/.test(url.protocol) && url.hostname !== location.hostname) {
+                    var kind = {script: 'script', iframe: 'iframe', img: 'img', link: 'style', css: 'font', fetch: 'request', xmlhttprequest: 'request', beacon: 'request'}[entry.initiatorType] || 'resource';
+                    found.set(url.origin + url.pathname + ':' + kind, {url: url.origin + url.pathname, kind: kind});
+                }
+            });
+        } catch (error) { /* DOM resources remain available. */ }
+        return Array.from(found.values());
+    }
     function report(error) {
         if (sent) { return; }
         sent = true;
         window.parent.postMessage({ type: 'marrison-cookie-scan', job: config.job, token: config.token,
             url: config.url, phase: config.phase, cookies: Array.from(observed.values()),
-            elapsed: Math.round(performance.now() - started), error: error || '' }, config.origin);
+            storage_access: storageAccess, resources: resources(), elapsed: Math.round(performance.now() - started), error: error || '' }, config.origin);
     }
     if (window.credentialless !== true) {
         report('Il browser non ha isolato la sessione. Nessun cookie amministrativo è stato acquisito.');
         return;
     }
+    if (config.error) { report(config.error); return; }
     function keep(cookie) {
         if (!cookie.cookie_name || !/^[!#$%&'*+.^_`|~0-9a-z-]{1,255}$/i.test(cookie.cookie_name)) { return; }
         var key = cookie.cookie_name + '\0' + cookie.cookie_domain + '\0' + cookie.cookie_path;
         if (!observed.has(key) || cookie.scope_known) { observed.set(key, cookie); }
     }
     var descriptor = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie') || Object.getOwnPropertyDescriptor(HTMLDocument.prototype, 'cookie');
+    // Verify actual read/write access rather than accepting an empty cookie list as proof.
+    try {
+        var probe = 'marrison_cookie_scan_probe';
+        descriptor.set.call(document, probe + '=1; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''));
+        storageAccess = descriptor.get.call(document).split(';').some(function (part) { return part.trim() === probe + '=1'; }) ? 'available' : 'blocked';
+        descriptor.set.call(document, probe + '=; Max-Age=0; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''));
+    } catch (error) { storageAccess = 'blocked'; }
+    if (storageAccess !== 'available') { report('Il browser blocca l’accesso ai cookie nella sessione di scansione.'); return; }
     function names(text) { return String(text || '').split(';').map(function (part) { return part.split('=')[0].trim(); }); }
     function written(text) {
         var parts = String(text).split(';');
@@ -45,7 +79,7 @@
     }
     if (descriptor && descriptor.get && descriptor.set) {
         try {
-            Object.defineProperty(document, 'cookie', { configurable: true,
+            Object.defineProperty(Document.prototype, 'cookie', { configurable: true, enumerable: descriptor.enumerable,
                 get: function () { return descriptor.get.call(document); },
                 set: function (text) { descriptor.set.call(document, text); written(text); }
             });
@@ -60,7 +94,6 @@
                         cookie_path: cookie.path || '/', expires: cookie.expires, secure: !!cookie.secure,
                         same_site: cookie.sameSite || 'unknown', scope_known: true });
                 });
-                return;
             } catch (error) { /* Fall back to names with explicitly unknown scope/expiration. */ }
         }
         names(document.cookie).forEach(function (name) {
@@ -81,7 +114,8 @@
     }
     function settle() {
         if (sent) { return; }
-        if (performance.now() - started > 6500 || performance.now() - lastResource > 900) { finish(); }
+        var elapsed = performance.now() - started;
+        if (elapsed > 10000 || (elapsed >= 4000 && performance.now() - lastResource > 1000)) { finish(); }
         else { finishTimer = setTimeout(settle, 250); }
     }
     function loaded() {
@@ -98,5 +132,5 @@
     }
     if (document.readyState === 'complete') { loaded(); }
     else { window.addEventListener('load', loaded, { once: true }); }
-    setTimeout(finish, 8000);
+    setTimeout(finish, 12000);
 }());
