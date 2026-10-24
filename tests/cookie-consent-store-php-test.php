@@ -33,7 +33,7 @@ $store = Marrison_Addon_Cookie_Consent_Store::get_instance();
 $_SERVER['HTTP_ORIGIN'] = 'https://example.test';
 try {
     $options['marrison_cookie_consent_duration'] = 30;
-    verify($store::duration() === 184, 'Legacy consent duration was not raised');
+    verify($store::duration() === 180, 'Legacy consent duration was not raised');
     $first = $store->record('accept_all', array());
     verify($store->current()['receipt_id'] === $first['receipt_id'], 'Signed receipt is not readable');
     $encoded = $_COOKIE[$store::COOKIE];

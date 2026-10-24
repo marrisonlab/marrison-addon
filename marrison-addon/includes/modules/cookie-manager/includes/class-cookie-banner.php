@@ -96,7 +96,7 @@ class Marrison_Cookie_Banner {
             'privacyPolicy' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Privacy Policy', 'Privacy Policy') : __('Privacy Policy', 'marrison-cookie'),
             'cookiePolicy' => function_exists('marrison_cookie_site_text') ? marrison_cookie_site_text('Cookie Policy', 'Cookie Policy') : __('Cookie Policy', 'marrison-cookie'),
             'hasConsent' => false,
-            'showBanner' => (bool) get_option('marrison_cookie_show_banner', true),
+            'showBanner' => (bool) get_option('marrison_cookie_show_banner', true) && !$this->technical_only(),
             'scanPhase' => class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::get_instance()->frame_phase() : null,
             'closedTriggerModes' => $this->get_closed_trigger_modes(),
         ));
@@ -166,7 +166,7 @@ class Marrison_Cookie_Banner {
         }
         
         // Se l'utente ha già dato il consenso, renderizza il banner nascosto
-        $banner_hidden = !get_option('marrison_cookie_show_banner', true);
+        $banner_hidden = !get_option('marrison_cookie_show_banner', true) || $this->technical_only();
         $is_english = function_exists('marrison_cookie_is_english_site') && marrison_cookie_is_english_site();
         
         $banner_layout = get_option('marrison_cookie_banner_layout', 'bar');
@@ -214,7 +214,12 @@ class Marrison_Cookie_Banner {
             return false;
         }
 
+        if (class_exists('Marrison_Addon_Cookie_Scan_Engine', false) && Marrison_Addon_Cookie_Scan_Engine::get_instance()->technical_only()) { return $this->page_has_policy_shortcode(); }
         return true;
+    }
+
+    private function technical_only() {
+        return class_exists('Marrison_Addon_Cookie_Scan_Engine', false) && Marrison_Addon_Cookie_Scan_Engine::get_instance()->technical_only();
     }
 
     /**

@@ -249,6 +249,7 @@ class Marrison_Cookie_Consent {
 
     public function render_runtime() {
         if (is_admin() || (class_exists('Marrison_Addon_Context') && !Marrison_Addon_Context::is_public_frontend_request())) { return; }
+        if (class_exists('Marrison_Addon_Cookie_Scan_Engine', false) && Marrison_Addon_Cookie_Scan_Engine::get_instance()->technical_only()) { return; }
         $scanner = Marrison_Cookie_Scanner::get_instance();
         $cookies = $scanner->runtime_cookie_rules();
         $phase = class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::get_instance()->frame_phase() : null;
@@ -259,6 +260,7 @@ class Marrison_Cookie_Consent {
         echo '<script id="marrison-cookie-runtime-config">window.marrisonConsentRules=' . wp_json_encode(array('sources' => $this->tracking_rules(), 'cookies' => $cookies, 'phase' => $phase) + $service_rules, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';</script>';
         $plugin = dirname(__DIR__, 4) . '/marrison-addon.php';
         $revision = class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::REVISION : '20261019.2';
+        $revision = (defined('MARRISON_COOKIE_VERSION') ? MARRISON_COOKIE_VERSION : '1.3.82') . '.' . $revision;
         echo '<script id="marrison-cookie-runtime-js" src="' . esc_url(plugins_url('includes/modules/cookie-manager/assets/js/consent-runtime.js', $plugin)) . '?ver=' . esc_attr($revision) . '"></script>';
     }
     

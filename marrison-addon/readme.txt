@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.81
+Stable tag: 1.3.82
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -102,6 +102,9 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.82 =
+* Fase 4: Default consenso 180 giorni, modalità solo tecnici e checklist dichiarativa non bloccante.
 
 = 1.3.81 =
 * Fase 3: Consent Mode v2 base, opzione avanzata esplicita, revoca Meta e caricamento YouTube per singolo contenuto.

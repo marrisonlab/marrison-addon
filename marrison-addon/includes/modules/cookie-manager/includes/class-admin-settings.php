@@ -167,7 +167,7 @@ class Marrison_Cookie_Admin_Settings {
         }
 
         if (isset($_POST['consent_duration'])) {
-            update_option('marrison_cookie_consent_duration', max(184, min(365, intval($_POST['consent_duration']))));
+            update_option('marrison_cookie_consent_duration', max(180, min(365, intval($_POST['consent_duration']))));
         }
         if (isset($_POST['receipt_retention'])) { update_option('marrison_cookie_receipt_retention', max(365, min(1095, (int) $_POST['receipt_retention']))); }
         if (isset($_POST['privacy_profile']) && is_array($_POST['privacy_profile'])) { update_option('marrison_cookie_privacy_profile', Marrison_Addon_Cookie_Policy_Content::sanitize_profile(wp_unslash($_POST['privacy_profile']))); }
@@ -193,6 +193,9 @@ class Marrison_Cookie_Admin_Settings {
         }
         
         if ($behavior_tab) {
+            $checklist = array();
+            foreach (array('private_areas', 'policy_completed', 'manual_services', 'legal_review') as $item) { $checklist[$item] = !empty($_POST['checklist'][$item]); }
+            update_option('marrison_cookie_checklist', $checklist, false);
             foreach (array('local_iframe', 'passive_detection', 'google_advanced') as $field) { update_option('marrison_cookie_' . $field, isset($_POST[$field]), false); }
             if (isset($_POST['local_max_seconds'])) { update_option('marrison_cookie_local_max_seconds', max(10, min(120, (int) $_POST['local_max_seconds'])), false); }
         }
@@ -271,7 +274,7 @@ class Marrison_Cookie_Admin_Settings {
                 update_option($option_key, $this->sanitize_closed_trigger_mode($value));
             } elseif (in_array($key, array('consent_duration', 'scan_interval'), true)) {
                 $max = $key === 'consent_duration' ? 365 : 30;
-                update_option($option_key, max($key === 'consent_duration' ? 184 : 1, min($max, intval($value))));
+                update_option($option_key, max($key === 'consent_duration' ? 180 : 1, min($max, intval($value))));
             } elseif (in_array($key, array('privacy_policy_url', 'cookie_policy_url'), true)) {
                 update_option($option_key, esc_url_raw($value));
             } elseif ($key === 'banner_layout') {

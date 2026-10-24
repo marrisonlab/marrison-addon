@@ -58,7 +58,7 @@ function receipts() {
     const cookies = await context.cookies();
     const stateCookie = cookies.find(cookie => cookie.name === 'marrison_cookie_state');
     assert(stateCookie.httpOnly && stateCookie.sameSite === 'Lax');
-    assert(stateCookie.expires - Date.now() / 1000 >= 184 * 86400 - 15, 'Existing short duration was not raised to six months');
+    assert(stateCookie.expires - Date.now() / 1000 >= 180 * 86400 - 15, 'Existing short duration was not raised to six months');
     assert(!JSON.stringify(first).includes('127.0.0.1') && !JSON.stringify(first).includes('PRIVATE_VALUE'));
     await page.reload();
     await page.waitForFunction(() => window.analyticsRan === true);
@@ -119,6 +119,28 @@ function receipts() {
     assert.equal(csrf.status(), 403, 'Cross-site consent request accepted');
     await custom.close();
 
+    if (process.env.COOKIE_BANNER_ONLY === '1') {
+        setOptions({marrison_cookie_cookie_policy_url: origin + '/cookie-policy'});
+        for (const width of [1280, 390]) {
+            const fresh = await browser.newContext({viewport: {width, height: 900}}), screen = await fresh.newPage();
+            await screen.goto(origin + '/page'); await screen.locator('#marrison-cookie-banner').waitFor({state: 'visible'});
+            const styles = await screen.locator('#marrison-accept-all, #marrison-reject-all').evaluateAll(items => items.map(el => {
+                const css = getComputedStyle(el); return {background: css.backgroundColor, color: css.color, font: css.font, height: el.getBoundingClientRect().height};
+            }));
+            assert.deepEqual(styles[0], styles[1], 'Accept/reject do not have equal prominence');
+            assert.equal(await screen.locator('.marrison-banner-link').filter({hasText: 'Cookie Policy'}).count(), 1);
+            const beforeScroll = receipts().length; await screen.evaluate(() => window.scrollBy(0, 500)); await screen.waitForTimeout(100);
+            assert.equal(receipts().length, beforeScroll, 'Scroll recorded consent');
+            await screen.locator('#marrison-customize').click();
+            assert.equal(await screen.locator('.marrison-category-checkbox:not(:disabled):checked').count(), 0, 'Optional categories preselected');
+            if (process.env.COOKIE_SCREENSHOTS) { await screen.screenshot({path: path.join(process.env.COOKIE_SCREENSHOTS, 'cookie-consent-' + width + '.png')}); }
+            await fresh.close();
+        }
+        await context.close(); assert.deepEqual(errors, []);
+        assert(!/PHP (?:Fatal|Warning|Deprecated)/.test(output), output);
+        console.log('PASS PHP/Chrome banner: signed choices/refusal/custom/revocation/expiry, equal accept/reject at 1280/390, policy link, no scroll consent and no preselected optional categories');
+        return;
+    }
     const admin = await browser.newContext({ extraHTTPHeaders: { 'X-Fixture-Admin': '1' } });
     const exported = await admin.request.post(origin + '/wp-admin/admin-ajax.php', { form: { action: 'marrison_cookie_consent_receipts', nonce: 'valid', date: new Date().toISOString().slice(0, 10), offset: '0' } });
     const exportedData = await exported.json();

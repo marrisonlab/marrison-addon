@@ -15,6 +15,7 @@ class Marrison_Cookie_Scanner {
     public static function get_instance() { return new self(); }
     public function engine_prepare() { return array(); }
     public function engine_store($rows, $categories, $complete) { check_static(!$complete, 'Static scan deleted prior observations'); self::$records = $rows; return true; }
+    public function get_cookies($category) { return array(); }
 }
 require __DIR__ . '/../marrison-addon/includes/modules/cookie-manager/includes/class-scan-engine.php';
 try {
@@ -28,6 +29,13 @@ try {
     check_static($job['status'] === 'completed' && $job['static_scan']['posts'] === 41 && !$job['cookies'] && count($GLOBALS['finished']) === 1, 'Static completion was not truthful');
     check_static(count(Marrison_Cookie_Scanner::$records) === 3, 'Catalog records not handed to existing storage');
     foreach (Marrison_Cookie_Scanner::$records as $row) { check_static($row['observed'] === false && $row['source'] === 'catalogo', 'Declared cookie became observed'); }
+    check_static(!$engine->technical_only(), 'Optional services disabled the banner');
+    $saved_job = $job;
+    $job['services'] = array(); file_put_contents($path, "<?php exit; ?>\n" . json_encode($job));
+    check_static($engine->technical_only(), 'Technical-only completed scan did not disable banner');
+    $job['services'] = array(array('host' => 'unknown.example', 'profiles' => array())); file_put_contents($path, "<?php exit; ?>\n" . json_encode($job));
+    check_static(!$engine->technical_only(), 'Unclassified host falsely became technical');
+    file_put_contents($path, "<?php exit; ?>\n" . json_encode($saved_job));
     $remote = new ReflectionMethod($engine, 'remote_step'); if (PHP_VERSION_ID < 80100) { $remote->setAccessible(true); }
     try { $remote->invoke($engine); throw new RuntimeException('Remote path remained reachable'); }
     catch (RuntimeException $error) { check_static(strpos($error->getMessage(), 'dismessa') !== false, 'Unexpected retirement error'); }

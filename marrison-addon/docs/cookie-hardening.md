@@ -25,3 +25,11 @@ Gli iframe YouTube bloccati mostrano un pulsante testuale: un clic autorizza sol
 Stripe/PayPal/Klarna classificati Necessari non sono neutralizzati dal blocco. L’addon non cambia dove i gateway decidono di caricare gli script: per evitare caricamenti superflui su prodotto/carrello occorre configurare e verificare il gateway stesso. Checkout reale, impostazioni GTM personalizzate e integrazioni non standard restano da verificare.
 
 Fonti: [Google Consent Mode base](https://developers.google.com/tag-platform/security/guides/consent?consentmode=basic), [panoramica base/avanzata](https://developers.google.com/tag-platform/security/concepts/consent-mode). Test: node tests/cookie-consent-mode-js-test.js, oltre ai test catalogo/runtime PHP e Node.
+
+## Fase 4 — 1.3.82
+
+Accetta e Rifiuta mantengono gli stessi stili ed evidenza. I controlli granulari opzionali non sono preselezionati; lo scroll non registra consenso. Il link Cookie Policy usa la pagina configurata dal titolare e deve essere compilato. Widget flottante e shortcode mantengono l’accesso alle preferenze e alla revoca. Default e minimo del consenso: 180 giorni; massimo 365 giorni. Le revisioni sostanziali dell’informativa richiedono una nuova scelta.
+
+Dopo una scansione statica completata, se non risultano servizi o cookie non necessari, host non classificati o regole opzionali, il banner si disattiva automaticamente. L’admin vede Solo cookie tecnici rilevati; non viene caricata la UI su pagine senza necessità di preferenze. Non è una certificazione dell’assenza di servizi nelle aree che la scansione non vede. Le pagine con shortcode conservano l’accesso alle preferenze.
+
+In Comportamento è presente una checklist facoltativa su aree riservate/checkout, informativa, servizi manuali e revisione legale, con disclaimer sulla responsabilità del titolare. Nessuna casella è necessaria per salvare o pubblicare. Fonte di riferimento: [FAQ Cookie del Garante](https://www.garanteprivacy.it/faq/Cookie). Il test PHP/Chrome del banner è separabile con COOKIE_BANNER_ONLY=1; l’intera vecchia suite admin include selettori modificati dal lavoro preesistente su Info Azienda.

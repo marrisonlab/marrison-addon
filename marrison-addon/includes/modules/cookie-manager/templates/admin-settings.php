@@ -328,9 +328,9 @@ $categories = $scanner->get_categories();
                                    id="consent_duration" 
                                    name="consent_duration" 
                                    value="<?php echo esc_attr($settings['consent_duration']); ?>" 
-                                   min="184"
+                                   min="180"
                                    max="365">
-                            <p class="description"><?php echo esc_html(marrison_cookie_site_text('Da 184 a 365 giorni. Il minimo mantiene anche il rifiuto per almeno sei mesi; la cancellazione dei cookie nel browser può rendere irriconoscibile la scelta precedente.', 'From 184 to 365 days. The minimum also preserves a refusal for at least six months; deleting browser cookies can make the previous choice unrecognizable.')); ?></p>
+                            <p class="description"><?php echo esc_html(marrison_cookie_site_text('Da 180 a 365 giorni. Il minimo mantiene anche il rifiuto per almeno sei mesi; la cancellazione dei cookie nel browser può rendere irriconoscibile la scelta precedente.', 'From 180 to 365 days. The minimum also preserves a refusal for at least six months; deleting browser cookies can make the previous choice unrecognizable.')); ?></p>
                         </td>
                     </tr>
                     <tr>
@@ -395,6 +395,12 @@ $categories = $scanner->get_categories();
             <tr><th>Google Consent Mode v2</th><td>Modalità base: tag bloccati prima del consenso.<br><label><input type="checkbox" name="google_advanced" value="1" <?php checked(get_option('marrison_cookie_google_advanced', false)); ?>>Modalità avanzata</label><p>Disattivata per default. Può inviare misurazioni senza cookie prima del consenso e richiede una valutazione legale. Verificare anche i tag configurati nel contenitore GTM.</p></td></tr>
             <tr><th>Rilevamento passivo</th><td><label><input type="checkbox" name="passive_detection" value="1" <?php checked(get_option('marrison_cookie_passive_detection', false)); ?>>Segnala solo gli host bloccati, senza URL, IP o identificatori del visitatore.</label><p>Opzionale e disattivato per default. Se attivato, descriverlo nell’informativa. Massimo 20 host per richiesta, 100 distinti archiviati e 500 richieste al giorno.</p></td></tr>
             </table></div>
+            <div class="marrison-card"><div class="marrison-card-header"><h2>Verifiche dichiarative</h2><p>Il plugin fornisce strumenti tecnici; la conformità resta responsabilità del titolare del sito.</p></div>
+            <?php $declarations = (array) get_option('marrison_cookie_checklist', array()); foreach (array('private_areas' => 'Verificati cookie nelle aree con login e nel checkout', 'policy_completed' => 'Informativa compilata e pubblicata', 'manual_services' => 'Verificati i servizi di terze parti aggiunti a mano', 'legal_review' => 'Revisione legale effettuata') as $check_key => $check_label): ?>
+                <p><label><input type="checkbox" name="checklist[<?php echo esc_attr($check_key); ?>]" value="1" <?php checked(!empty($declarations[$check_key])); ?>><?php echo esc_html($check_label); ?></label></p>
+            <?php endforeach; ?><p>Checklist non bloccante: queste dichiarazioni non sono verificate dal plugin.</p>
+            <?php if (Marrison_Addon_Cookie_Scan_Engine::get_instance()->technical_only()): ?><p><strong>Solo cookie tecnici rilevati: banner disattivato automaticamente.</strong></p><?php endif; ?>
+            </div>
             <?php include MARRISON_COOKIE_PLUGIN_DIR . 'templates/service-catalog.php'; ?>
         <?php elseif ($active_tab === 'policies'): ?>
             <div class="marrison-card">

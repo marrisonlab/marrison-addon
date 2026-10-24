@@ -299,7 +299,7 @@ class Marrison_Addon_Cookie_Manager_Module {
 			'banner_text_color'        => '#333333',
 			'button_background_color'  => '#0073aa',
 			'button_text_color'        => '#ffffff',
-			'consent_duration'         => 184,
+			'consent_duration'         => 180,
 			'show_banner'              => true,
 			'closed_trigger_desktop'   => 'floating',
 			'closed_trigger_tablet'    => 'floating',

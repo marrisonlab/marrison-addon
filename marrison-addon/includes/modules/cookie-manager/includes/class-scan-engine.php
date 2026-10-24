@@ -629,6 +629,22 @@ class Marrison_Addon_Cookie_Scan_Engine {
         catch (Throwable $error) { return array(); }
     }
 
+    public function technical_only() {
+        try { $job = $this->read_job(); } catch (Throwable $error) { return false; }
+        if (!$job || $job['status'] !== 'completed' || empty($job['static_scan']['done'])) { return false; }
+        foreach (array('functional', 'analytics', 'marketing') as $category) {
+            if (trim((string) get_option('marrison_cookie_' . $category . '_sources', '')) !== '') { return false; }
+        }
+        foreach ($job['services'] as $service) {
+            if (empty($service['profiles'])) {
+                if (Marrison_Addon_Cookie_Scan_Services::category(array('id' => Marrison_Addon_Cookie_Scan_Services::host_id($service['host']), 'category' => 'unclassified')) !== 'necessary') { return false; }
+            }
+            foreach ($service['profiles'] ?? array() as $profile) { if (Marrison_Addon_Cookie_Scan_Services::category($profile) !== 'necessary') { return false; } }
+        }
+        foreach (Marrison_Cookie_Scanner::get_instance()->get_cookies('all') as $cookie) { if ($cookie->cookie_category !== 'necessary') { return false; } }
+        return true;
+    }
+
     public function register_scan_proof() {
         register_rest_route('marrison-cookie/v1', '/scan-proof', array('methods' => 'GET', 'permission_callback' => '__return_true',
             'callback' => array($this, 'scan_proof')));

@@ -18,7 +18,7 @@ final class Marrison_Addon_Cookie_Consent_Store {
         add_action('init', array($this, 'schedule_cleanup'));
     }
 
-    public static function duration() { return max(184, min(365, (int) get_option('marrison_cookie_consent_duration', 184))); }
+    public static function duration() { return max(180, min(365, (int) get_option('marrison_cookie_consent_duration', 180))); }
     public static function retention() { return max(365, min(1095, (int) get_option('marrison_cookie_receipt_retention', 365))); }
 
     public static function categories($type, $categories) {
