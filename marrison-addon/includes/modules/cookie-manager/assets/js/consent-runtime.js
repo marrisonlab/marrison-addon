@@ -8,6 +8,17 @@
     var valid = ['necessary', 'functional', 'analytics', 'marketing'];
     var verifiedState = null;
     var stateResolved = false;
+    var singleContents = new Set();
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    window.gtag('consent', 'default', {ad_storage: 'denied', analytics_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', wait_for_update: 500});
+    function updateProviders() {
+        var categories = allowed();
+        var marketing = categories.indexOf('marketing') !== -1;
+        window.gtag('consent', 'update', {ad_storage: marketing ? 'granted' : 'denied', ad_user_data: marketing ? 'granted' : 'denied',
+            ad_personalization: marketing ? 'granted' : 'denied', analytics_storage: categories.indexOf('analytics') !== -1 ? 'granted' : 'denied'});
+        if (typeof window.fbq === 'function') { window.fbq('consent', marketing ? 'grant' : 'revoke'); }
+    }
     var blockedHosts = [], reportTimer = null;
     function reportBlocked(value) {
         if (!rules.passive || !originalFetch || blockedHosts.length >= 20) { return; }
@@ -38,6 +49,7 @@
         return rule && valid.indexOf(rule.category) !== -1 ? rule.category : 'functional';
     }
     function categoryForResource(value, element, hasResource) {
+        if (element && singleContents.has(element)) { return 'necessary'; }
         var explicit = element && element.getAttribute('data-marrison-cookie-category');
         if (explicit && valid.indexOf(explicit) !== -1) { return explicit; }
         value = String(value || '').toLowerCase();
@@ -193,7 +205,25 @@
         });
     }
     window.MarrisonConsentRuntime = { allowed: allowed, enforce: enforce, cookieCategory: categoryForCookie,
-        setState: function (state) { stateResolved = true; verifiedState = state && state.valid && Array.isArray(state.categories) ? state : null; enforce(); }
+        allowContent: function (element) {
+            if (!element || element.tagName !== 'IFRAME') { return false; }
+            try {
+                var url = new URL(element.getAttribute('data-marrison-blocked-src'));
+                if (url.protocol !== 'https:' || !/^(www\.)?youtube(?:-nocookie)?\.com$/.test(url.hostname) || url.pathname.indexOf('/embed/') !== 0) { return false; }
+                url.hostname = 'www.youtube-nocookie.com';
+                nativeSetAttribute.call(element, 'data-marrison-blocked-src', url.href);
+                singleContents.add(element); return true;
+            } catch (error) { return false; }
+        },
+        setState: function (state) {
+            singleContents.forEach(function (frame) {
+                var src = frame.getAttribute('src');
+                if (src) { nativeSetAttribute.call(frame, 'data-marrison-blocked-src', src); frame.removeAttribute('src'); }
+                nativeSetAttribute.call(frame, 'data-marrison-cookie-blocked', 'iframe');
+            });
+            singleContents.clear();
+            stateResolved = true; verifiedState = state && state.valid && Array.isArray(state.categories) ? state : null; updateProviders(); enforce();
+        }
     };
     enforce();
 }());

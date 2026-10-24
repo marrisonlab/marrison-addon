@@ -15,3 +15,13 @@ Le vecchie impostazioni del metodo remoto sono trattate come locale. Un avviso a
 Nuove opzioni: `marrison_cookie_local_iframe` e `marrison_cookie_local_max_seconds`; non rinominano impostazioni precedenti. Il rilevamento statico delle opzioni copre una lista esplicita di integrazioni comuni, non ogni plugin possibile. Percorsi personalizzati e configurazioni costruite dinamicamente richiedono regole amministrative e verifica manuale.
 
 Verifiche: `php tests/cookie-static-scanner-php-test.php`, `php tests/cookie-local-engine-php-test.php`, `php tests/cookie-service-catalog-php-test.php`, `node tests/cookie-service-catalog-js-test.js`. Il vecchio test di orchestrazione remota non descrive più il percorso operativo. Gli altri test di osservazioni, consensi e policy restano applicabili.
+
+## Fase 3 — 1.3.81
+
+Il runtime inserisce i quattro default Google denied e wait_for_update prima dei tag, senza una richiesta di rete. Dopo la verifica della scelta aggiorna analytics_storage dalla categoria Analitici e ad_storage/ad_user_data/ad_personalization da Marketing. GA4 e GTM rimangono bloccati in modalità base; Meta attende Marketing e riceve consent/revoke alla revoca. La modalità avanzata è un opt-in amministrativo, spento per default, che permette ai tag Google di caricarsi con default denied: può inviare ping senza cookie e richiede valutazione legale e verifica dei tag nel contenitore.
+
+Gli iframe YouTube bloccati mostrano un pulsante testuale: un clic autorizza soltanto quel video per la pagina corrente, senza abilitare la categoria Marketing o altri video. Il caricamento usa youtube-nocookie.com, non scarica miniature prima del clic e viene neutralizzato a un nuovo cambio di scelta. Il consenso per contenuto è in memoria e non viene presentato come ricevuta persistente. Le risorse generate dinamicamente vengono intercettate dal runtime e le anteprime sono aggiornate sul DOM.
+
+Stripe/PayPal/Klarna classificati Necessari non sono neutralizzati dal blocco. L’addon non cambia dove i gateway decidono di caricare gli script: per evitare caricamenti superflui su prodotto/carrello occorre configurare e verificare il gateway stesso. Checkout reale, impostazioni GTM personalizzate e integrazioni non standard restano da verificare.
+
+Fonti: [Google Consent Mode base](https://developers.google.com/tag-platform/security/guides/consent?consentmode=basic), [panoramica base/avanzata](https://developers.google.com/tag-platform/security/concepts/consent-mode). Test: node tests/cookie-consent-mode-js-test.js, oltre ai test catalogo/runtime PHP e Node.

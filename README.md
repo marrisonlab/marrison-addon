@@ -3,7 +3,7 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.80
+**Version:** 1.3.81
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -51,6 +51,9 @@ Current stable versions checked on 20 October 2026: [WordPress 7.1.3](https://wo
 Optional server features are reported by their modules: FFmpeg is needed for local video cover extraction; browser cache rules depend on the web server. These features are not prerequisites for unrelated modules.
 
 ## Changelog
+
+### 1.3.81
+* Fase 3: Consent Mode v2 base, opzione avanzata esplicita, revoca Meta e caricamento YouTube per singolo contenuto.
 
 ### 1.3.80
 * Fase 2: Scansione statica locale riprendibile, verifica iframe opzionale limitata e rilevamento passivo degli host su esplicita attivazione.

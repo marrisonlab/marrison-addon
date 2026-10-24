@@ -234,7 +234,7 @@ class Marrison_Cookie_Consent {
     public function tracking_rules() {
         $rules = array(
             'analytics' => array('google-analytics.com', 'googletagmanager.com/gtag/js', 'stats.wp.com', 'matomo', 'plausible.io', 'clarity.ms', 'hotjar'),
-            'marketing' => array('googletagmanager.com/gtm.js', 'connect.facebook.net', 'facebook.com/tr', 'doubleclick.net', 'googleadservices.com', 'googlesyndication.com', 'youtube.com', 'youtube-nocookie.com', 'vimeo.com', 'google.com/maps', 'maps.googleapis.com'),
+            'marketing' => array('fbq(', 'googletagmanager.com/gtm.js', 'connect.facebook.net', 'facebook.com/tr', 'doubleclick.net', 'googleadservices.com', 'googlesyndication.com', 'youtube.com', 'youtube-nocookie.com', 'vimeo.com', 'google.com/maps', 'maps.googleapis.com'),
             'functional' => array(),
         );
         foreach (array_keys($rules) as $category) {

@@ -10,6 +10,8 @@
             $('#marrison-cookie-modal').appendTo('body');
 
             this.bindEvents();
+            this.youtubePlaceholders();
+            if (window.MutationObserver) { new MutationObserver(function () { MarrisonCookie.youtubePlaceholders(); }).observe(document.body, {childList: true, subtree: true}); }
             this.bindResponsiveClosedTrigger();
             this.refreshState();
             this.openPreferencesFromHash();
@@ -80,6 +82,25 @@
 
                 e.preventDefault();
                 MarrisonCookie.openPreferences(this);
+            });
+        },
+
+        youtubePlaceholders: function() {
+            $('iframe[data-marrison-blocked-src]').each(function() {
+                var frame = this, url;
+                try { url = new URL(frame.getAttribute('data-marrison-blocked-src')); } catch (error) { return; }
+                if (!/^(www\.)?youtube(?:-nocookie)?\.com$/.test(url.hostname) || url.pathname.indexOf('/embed/') !== 0 || frame.marrisonPlaceholder) { return; }
+                url.protocol = 'https:'; url.hostname = 'www.youtube-nocookie.com';
+                frame.setAttribute('data-marrison-blocked-src', url.href);
+                var button = document.createElement('button'); button.type = 'button'; button.className = 'marrison-youtube-placeholder';
+                button.textContent = 'Clicca per caricare questo video YouTube';
+                button.setAttribute('aria-label', 'Carica solo questo video: autorizzi il collegamento a YouTube per questa pagina');
+                button.addEventListener('click', function() {
+                    if (window.MarrisonConsentRuntime && window.MarrisonConsentRuntime.allowContent(frame)) {
+                        MarrisonCookie.activateBlockedIframe(frame); button.remove();
+                    }
+                });
+                frame.marrisonPlaceholder = button; frame.parentNode.insertBefore(button, frame);
             });
         },
 
@@ -414,6 +435,7 @@
 
 
         activateAllowedBlockedContent: function() {
+            this.youtubePlaceholders();
             var allowedCategories = MarrisonCookie.getAllowedCategories();
 
             $('[data-marrison-cookie-blocked]').each(function() {
@@ -463,6 +485,9 @@
 
         activateBlockedIframe: function(element) {
             var blockedSrc = element.getAttribute('data-marrison-blocked-src');
+            if (blockedSrc && element.tagName === 'IFRAME') {
+                try { var url = new URL(blockedSrc); if (/^(www\.)?youtube\.com$/.test(url.hostname) && url.pathname.indexOf('/embed/') === 0) { url.hostname = 'www.youtube-nocookie.com'; blockedSrc = url.href; } } catch (error) {}
+            }
             var blockedSrcset = element.getAttribute('data-marrison-blocked-srcset');
 
             if (blockedSrcset) {
@@ -476,6 +501,7 @@
                 element.removeAttribute('data-marrison-cookie-blocked');
             }
             if (blockedSrcset) { element.removeAttribute('data-marrison-cookie-blocked'); }
+            if (element.marrisonPlaceholder) { element.marrisonPlaceholder.remove(); element.marrisonPlaceholder = null; }
         },
 
         getAllowedCategories: function() {

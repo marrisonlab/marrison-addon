@@ -126,7 +126,8 @@ class Marrison_Addon_Cookie_Scan_Services {
             $custom[$category] = is_string($value) ? array_values(array_filter(array_map('trim', array_slice(preg_split('/\R/', $value), 0, 100)))) : array();
         }
         foreach (self::catalog() as $profile) {
-            $services[] = array('category' => self::category($profile), 'patterns' => $profile['patterns']);
+            $profile['category'] = self::category($profile);
+            $services[] = array('category' => self::consent_category($profile), 'patterns' => $profile['patterns']);
         }
         return array('catalog' => $services, 'hosts' => self::discovered_hosts(), 'custom_sources' => $custom, 'unknown_external' => true);
     }
@@ -134,12 +135,21 @@ class Marrison_Addon_Cookie_Scan_Services {
     public static function resource_category($resource) {
         if (is_string($resource) && substr($resource, 0, 1) === '/' && substr($resource, 0, 2) !== '//') { $resource = home_url($resource); }
         $profiles = self::identify($resource);
-        if ($profiles) { return $profiles[0]['category']; }
+        if ($profiles) { return self::consent_category($profiles[0]); }
         $host = strtolower((string) wp_parse_url($resource, PHP_URL_HOST));
         $hosts = self::discovered_hosts();
         if (isset($hosts[$host])) { return $hosts[$host]; }
         $scheme = strtolower((string) wp_parse_url($resource, PHP_URL_SCHEME));
         return $host && in_array($scheme, array('http', 'https'), true) && $host !== strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST)) ? 'unclassified' : null;
+    }
+
+    private static function consent_category($profile) {
+        if ($profile['id'] === 'meta-pixel') { return 'marketing'; }
+        if (in_array($profile['id'], array('google-analytics', 'google-tag-manager'), true)) {
+            if (get_option('marrison_cookie_google_advanced', false)) { return 'necessary'; }
+            return $profile['id'] === 'google-analytics' ? 'analytics' : 'marketing';
+        }
+        return $profile['category'];
     }
 
     private static function pattern_matches($parts, $pattern) {

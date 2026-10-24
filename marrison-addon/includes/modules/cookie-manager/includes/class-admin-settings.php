@@ -193,7 +193,7 @@ class Marrison_Cookie_Admin_Settings {
         }
         
         if ($behavior_tab) {
-            foreach (array('local_iframe', 'passive_detection') as $field) { update_option('marrison_cookie_' . $field, isset($_POST[$field]), false); }
+            foreach (array('local_iframe', 'passive_detection', 'google_advanced') as $field) { update_option('marrison_cookie_' . $field, isset($_POST[$field]), false); }
             if (isset($_POST['local_max_seconds'])) { update_option('marrison_cookie_local_max_seconds', max(10, min(120, (int) $_POST['local_max_seconds'])), false); }
         }
         echo '<div class="notice notice-success"><p>Impostazioni salvate con successo!</p></div>';
