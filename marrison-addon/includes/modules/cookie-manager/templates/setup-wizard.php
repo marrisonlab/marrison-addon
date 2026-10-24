@@ -94,7 +94,7 @@ $total_steps = $wizard->get_total_steps();
             <div class="marrison-wizard-step <?php echo $current_step === 3 ? 'active' : ''; ?>" data-step="3">
                 <h2 class="marrison-step-title"><?php _e('Scansione e Categorizzazione Cookie', 'marrison-cookie'); ?></h2>
                 <p class="marrison-step-description">
-                    <?php _e('Avvia la scansione in background: puoi premere Avanti e completare il wizard, oppure chiudere la pagina. Il server continua il lavoro e salva i risultati, consultabili anche in Cookie Manager > Scanner Cookie.', 'marrison-cookie'); ?>
+                    <?php _e('Avvia l’analisi locale dei servizi. Mantieni aperto il pannello fino al termine oppure riprendi in seguito. I cookie del catalogo sono dichiarati, non osservati.', 'marrison-cookie'); ?>
                 </p>
                 
                 <button type="button" id="wizard_scan_button" class="marrison-scan-button">

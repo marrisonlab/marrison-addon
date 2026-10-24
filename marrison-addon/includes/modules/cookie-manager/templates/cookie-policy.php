@@ -3,6 +3,8 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+$cookies = array_filter($cookies, function($cookie) { return ($cookie->source ?? '') !== 'catalogo'; });
+foreach ($cookies_by_category as $key => $rows) { $cookies_by_category[$key] = array_filter($rows, function($cookie) { return ($cookie->source ?? '') !== 'catalogo'; }); }
 ?>
 <section class="marrison-cookie-policy-details">
     <p><a href="#marrison-cookie-preferences" class="marrison-open-cookie-preferences" aria-haspopup="dialog"><?php echo esc_html(marrison_cookie_site_text('Personalizza le preferenze cookie', 'Customize cookie preferences')); ?></a></p>

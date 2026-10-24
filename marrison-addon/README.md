@@ -11,7 +11,7 @@
 *   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
 *   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
-*   **Stable tag:** 1.3.79
+*   **Stable tag:** 1.3.80
 *   **License:** GPL-3.0-or-later
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -110,7 +110,6 @@ The module dashboard always lists required active plugins. Missing dependencies 
 16. **Cookie Manager:**
     *   Cookie banner, floating widget, preferences modal, and setup wizard. The wizard uses the shared WordPress/Marrison admin style; the floating widget inherits the configured button background and text colors.
     *   After a plugin update, administrators see a compact notice linking to the scanner while Cookie Manager is enabled. It remains until a new scan started with the updated version saves its report and finishes all planned browser measurements without browser errors. An HTTP failure such as a missing test policy page can leave the report partial without falsely claiming that no new scan was performed. Old, cancelled, failed and browser-incomplete jobs do not clear the notice. Turning the module off hides the notice without loading its files, hooks or assets; first installations retain the setup wizard.
-    *   Manual cookie scanning and category management. Automatic scans are disabled until explicitly enabled and saved in Behavior; installations with the previous enabled default must opt in again. Installing the plugin, opening the wizard or viewing the scanner does not start a scan. Changing the scan method saves it and cancels active work without starting another job. Remote scans consume Browserless credits; a request already submitted may still finish after cancellation.
     *   Background consent checks do not add technical diagnostics or retry buttons to the visitor banner. A failed save remains an explicit error and never enables optional tracking. Receipt storage installs the server's access protection (IIS web.config or Apache-compatible .htaccess); an unused IIS configuration cannot block a Unix host. Detailed storage errors remain available in the administrator receipt view.
     *   Every Privacy Policy profile field is optional. Saving and shortcode output work with empty or partial profiles; populated identity details remain visible. Empty details are omitted and unspecified transfers are not presented as declared. The form has no required markers or publication-block messages.
     *   The scanner selects representative samples before making HTTP/browser requests. It groups public posts, announcements and other CPTs by content type, assigned/classic WordPress template, Elementor widget/component structure and saved embedded services/forms/inline scripts. Text, widget IDs, pagination and image IDs alone do not create another visit. Home, configured policies, post-type archives and public taxonomy archives receive their own representatives; unique templates and services keep extra samples. WordPress APIs provide seed routes; internal links, sitemaps and robots.txt identify further candidates without visiting every equivalent page.
@@ -222,6 +221,9 @@ Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, sourc
 
 ## Changelog
 
+### 1.3.80
+* Fase 2: Scansione statica locale riprendibile, verifica iframe opzionale limitata e rilevamento passivo degli host su esplicita attivazione.
+
 ### Unreleased
 * **Listing Columns:** Make minimum, maximum and initial columns responsive across all active Elementor breakpoints, with inherited empty values and independent per-breakpoint browser preferences.
 * **Listing Columns:** Add the optional Colonne Listing Elementor widget with configurable column range, SVG/native icons, responsive activation, browser preferences, AJAX replacement handling and native style controls.
@@ -254,10 +256,8 @@ Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, sourc
 
 ### 1.3.73
 * **Cookie Manager:** Server background processing continues after closing the scanner or wizard. Persistent leases, signed loopbacks, watchdog recovery, pause/resume and dashboard progress notice; wizard may advance immediately without reloading.
-* **Scan coverage:** Observe localStorage/sessionStorage key names and origins separately from cookies, with no values; recover both inventories in new tabs. Requires the small Commander storage patch.
 
 ### 1.3.72
-* **Cookie Manager:** Remote browser scanning through Commander and Browserless observes first-party, third-party and HttpOnly cookies without collecting values. Checks real consent before/after and starts existing YouTube embeds. No Commander license or Browserless key is required on WordPress.
 * **Reliability:** Expiring site proof, provider preflight, independent page requests, bounded quota/concurrency, idempotent retries and explicit errors. Local scanning remains available with limited coverage; disabled Cookie Manager loads no scanner or network hooks.
 
 ### 1.3.71

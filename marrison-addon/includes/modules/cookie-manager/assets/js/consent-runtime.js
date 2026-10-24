@@ -8,6 +8,20 @@
     var valid = ['necessary', 'functional', 'analytics', 'marketing'];
     var verifiedState = null;
     var stateResolved = false;
+    var blockedHosts = [], reportTimer = null;
+    function reportBlocked(value) {
+        if (!rules.passive || !originalFetch || blockedHosts.length >= 20) { return; }
+        var host;
+        try { host = new URL(String(value), location.protocol + '//' + location.hostname).hostname; } catch (error) { return; }
+        if (!host || host === location.hostname || blockedHosts.indexOf(host) !== -1) { return; }
+        blockedHosts.push(host);
+        if (reportTimer) { return; }
+        reportTimer = setTimeout(function () {
+            var body = new URLSearchParams({ action: 'marrison_cookie_blocked_hosts', nonce: rules.passive.nonce });
+            blockedHosts.forEach(function (item) { body.append('hosts[]', item); });
+            originalFetch.call(window, rules.passive.url, {method: 'POST', credentials: 'same-origin', body: body}).catch(function () {});
+        }, 1500);
+    }
     function rawCookies() { try { return cookieDescriptor.get.call(document); } catch (error) { return ''; } }
     function allowed() {
         if (rules.phase === 'after') { return valid; }
@@ -71,6 +85,7 @@
         var hasResource = !!(value || element.getAttribute('src') || element.getAttribute('srcset'));
         var category = categoryForResource((value || element.getAttribute('src') || '') + ' ' + (element.getAttribute('srcset') || '') + ' ' + (element.tagName === 'SCRIPT' ? element.textContent : ''), element, hasResource);
         if (permitted(category)) { return false; }
+        reportBlocked(value || element.getAttribute('src'));
         nativeSetAttribute.call(element, 'data-marrison-cookie-category', category);
         nativeSetAttribute.call(element, 'data-marrison-cookie-blocked', element.tagName.toLowerCase());
         var srcset = attribute === 'srcset' ? value : element.getAttribute('srcset');
@@ -147,7 +162,7 @@
     if (originalFetch) {
         window.fetch = function (input) {
             var url = typeof input === 'string' || input instanceof URL ? String(input) : input && input.url;
-            if (!permitted(categoryForResource(url))) { return Promise.reject(new DOMException('Blocked by cookie consent', 'NotAllowedError')); }
+            if (!permitted(categoryForResource(url))) { reportBlocked(url); return Promise.reject(new DOMException('Blocked by cookie consent', 'NotAllowedError')); }
             return originalFetch.apply(this, arguments);
         };
     }

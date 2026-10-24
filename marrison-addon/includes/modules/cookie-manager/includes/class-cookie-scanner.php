@@ -96,6 +96,10 @@ class Marrison_Cookie_Scanner {
      * Esegue la scansione dei cookie
      */
     public function perform_scan() {
+        if (class_exists('Marrison_Addon_Cookie_Scan_Engine', false)) {
+            try { return Marrison_Addon_Cookie_Scan_Engine::get_instance()->start_local_scan(); }
+            catch (Throwable $error) { $this->set_last_scan_error($error->getMessage()); return 0; }
+        }
         $this->last_scan_error = '';
         $this->last_scan_succeeded = false;
 
@@ -316,13 +320,14 @@ class Marrison_Cookie_Scanner {
         $this->remember_scan_categories($records);
         $unique = array();
         foreach ($records as $record) {
-            if (empty($record->cookie_name) || !isset($record->source) || !in_array($record->source, array('current', 'homepage', 'crawl', 'browser'), true)) {
+            if (empty($record->cookie_name) || !isset($record->source) || !in_array($record->source, array('current', 'homepage', 'crawl', 'browser', 'catalogo'), true)) {
                 continue;
             }
             if ($record->source === 'current' && $this->is_administrative_cookie($record->cookie_name)) {
                 continue;
             }
             $record->cookie_domain = !empty($record->cookie_domain) ? strtolower(ltrim($record->cookie_domain, '.')) : $this->get_cookie_domain();
+            $record->observed = $record->source !== 'catalogo';
             $record->cookie_path = !empty($record->cookie_path) ? $record->cookie_path : '/';
             $default_category = $this->categorize_cookie($record->cookie_name);
             $category = isset($record->cookie_category) ? $record->cookie_category : $default_category;
@@ -665,6 +670,7 @@ class Marrison_Cookie_Scanner {
         }
         
         if ($existing) {
+            if ($source === 'catalogo' && $existing->source !== 'catalogo') { return 1; }
             $data = array('scan_date' => current_time('mysql'));
             if (!in_array($existing->source, array('homepage', 'crawl', 'browser'), true)) {
                 $data['source'] = $source;
@@ -731,6 +737,7 @@ class Marrison_Cookie_Scanner {
             }
 
             if (isset($cookie['cookie_name']) && $this->cookie_record_key($cookie['cookie_name'], isset($cookie['cookie_domain']) ? $cookie['cookie_domain'] : $this->get_cookie_domain(), isset($cookie['cookie_path']) ? $cookie['cookie_path'] : '/') === $key) {
+                if ($source === 'catalogo' && ($cookie['source'] ?? '') !== 'catalogo') { return 1; }
                 $cookies[$index]['scan_date'] = current_time('mysql');
                 if (!isset($cookie['source']) || !in_array($cookie['source'], array('homepage', 'crawl', 'browser'), true)) {
                     $cookies[$index]['source'] = $source;
@@ -763,6 +770,7 @@ class Marrison_Cookie_Scanner {
             'cookie_category' => isset($this->scan_categories[$key]) ? $this->scan_categories[$key] : $category,
             'cookie_description' => $description,
             'source' => $source,
+            'observed' => $source !== 'catalogo',
             'scan_date' => current_time('mysql'),
         );
 
@@ -878,6 +886,8 @@ class Marrison_Cookie_Scanner {
      * Ordina i cookie piu recenti per primi.
      */
     private function sort_cookies_by_scan_date_desc($a, $b) {
+        $declared = (int) (($a->source ?? '') === 'catalogo') <=> (int) (($b->source ?? '') === 'catalogo');
+        if ($declared) { return $declared; }
         $by_date = strcmp(isset($b->scan_date) ? (string) $b->scan_date : '', isset($a->scan_date) ? (string) $a->scan_date : '');
         return $by_date !== 0 ? $by_date : ((isset($b->id) ? (int) $b->id : 0) <=> (isset($a->id) ? (int) $a->id : 0));
     }
@@ -947,8 +957,9 @@ class Marrison_Cookie_Scanner {
         foreach ($records as $record) {
             $observed[$this->cookie_record_key($record['cookie_name'], $record['cookie_domain'], $record['cookie_path'])] = true;
             $classification = $this->classify_cookie($record['cookie_name']);
-            $source = 'crawl';
-            foreach ($record['observations'] as $observation) { if (in_array($observation['method'], array('browser', 'remote_browser'), true)) { $source = 'browser'; break; } }
+            $source = ($record['source'] ?? '') === 'catalogo' ? 'catalogo' : 'crawl';
+            if ($source === 'catalogo') { $classification = array('category' => $record['category'], 'description' => $record['description']); }
+            foreach ($record['observations'] ?? array() as $observation) { if (in_array($observation['method'], array('browser', 'remote_browser'), true)) { $source = 'browser'; break; } }
             if (!$this->save_cookie($record['cookie_name'], $source, $classification['category'], $classification['description'], $record['cookie_domain'], $record['cookie_path'], $record['cookie_expiration'], $record['cookie_expiration_status'])) {
                 return false;
             }

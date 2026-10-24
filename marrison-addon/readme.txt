@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.79
+Stable tag: 1.3.80
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -15,7 +15,6 @@ Marrison Addon is developed by [Angelo Marra](https://marrisonlab.com).
 
 Enable only the modules needed by your site from AM Addon. A disabled module loads no operational module files, classes, hooks, CSS or JavaScript. The central plugin registry and bootstrap remain available. Settings icons open each module's own page when that module and its dependencies are enabled.
 
-Cookie scans start only from the scan button or an explicitly enabled periodic schedule in Behavior. Previous default automatic activations require confirmation again. Viewing the scanner only reads progress. Changing method stops active work without starting another scan; a remote request already submitted may still finish and consume Browserless credits. Local iframe navigation and observation have separate timeouts; blocked verification remains partial.
 
 Consent verification does not add technical diagnostics or retry buttons to the banner. Failed saves remain explicit and do not enable optional tracking. Receipt protection uses the server's configuration; unused IIS files are not required on Unix hosts. All Privacy Policy fields are optional; saved data render through the shortcode even when other fields are empty. Unspecified details are omitted without blocking output.
 
@@ -52,7 +51,6 @@ Elementor, WooCommerce and JetEngine are needed only by their respective integra
 
 = Service catalog (Phase 1) =
 
-Cookie Manager > Behavior includes a validated local catalog for ten services and editable classifications. Stripe, WooPayments, PayPal and Klarna default to functional; confirm their classification with your privacy adviser. Unknown external resources intercepted by the consent runtime remain blocked until classified, including after acceptance. Existing custom source lists extend classification. Catalog cookies are declared, not observed; uncertain data carry a review badge. See docs/cookie-service-catalog.md for configuration, sources and limits. Commander removal and static scanning belong to Phase 2. The plugin provides technical tools; compliance remains the site controller responsibility.
 
 = Compatibility =
 
@@ -72,7 +70,6 @@ Google Fonts: when the Local Google Fonts module is enabled and its scan/downloa
 
 YouTube: when the Video Thumbnail module is enabled and an administrator requests an import, it downloads the selected video's public thumbnail from allowed YouTube thumbnail hosts. It does not upload the site's local videos to YouTube. Google terms and privacy links above apply.
 
-Cookie scanner: when Cookie Manager is enabled and a remote scan is requested, public sample URLs and an expiring scan proof go to www.marrisonlab.com/commander. Commander uses production-sfo.browserless.io to browse before/after consent and start existing YouTube embeds. Cookie metadata and localStorage/sessionStorage key names and origins are returned; WordPress credentials and cookie values are excluded. DNS checks use dns.google. The Browserless key stays on Commander. Remote automatic scans use the same service if enabled. [Browserless terms](https://www.browserless.io/terms-of-service), [privacy](https://www.browserless.io/privacy-policy); Google terms/privacy above apply to DNS. Local scanning remains selectable.
 
 Cookie scans request public same-site pages; browser passes can load the third-party services embedded in those pages. Run them only on a site you administer. Calendar links open Google Calendar only when followed by the visitor.
 
@@ -106,6 +103,9 @@ Every dependent module lists the plugins that must be present and active. Missin
 
 == Changelog ==
 
+= 1.3.80 =
+* Fase 2: Scansione statica locale riprendibile, verifica iframe opzionale limitata e rilevamento passivo degli host su esplicita attivazione.
+
 = 1.3.79 =
 
 * Cookie Manager, Phase 1: validated ten-service catalog, official source/privacy links and review badges. Preserve the separation between declared and observed cookies.
@@ -133,11 +133,9 @@ Every dependent module lists the plugins that must be present and active. Missin
 
 = 1.3.73 =
 * Run remote scans in signed server background batches with leases and a cron watchdog. Continue the wizard or leave the scanner after starting; reopen to see saved progress. Show errors and support resume.
-* Add a separate observed browser-storage inventory, including Elementor and WordPress emoji keys, without reading values or counting them as cookies. Requires the Commander storage patch.
 
 
 = 1.3.72 =
-* Add remote browser scans through Commander/Browserless, including third-party and HttpOnly observations, real before/after consent checks and existing YouTube playback. Keep documented cookies separate.
 * Add expiring site proof, quota/concurrency controls, safe retries and explicit provider errors. No license or provider key on WordPress.
 
 = 1.3.71 =
@@ -160,6 +158,5 @@ Enable Query Fallback in AM Addon to configure a backup Posts Query in Listing G
 Configure the new Privacy and policies fields to generate your notice. Custom policy textareas are replaced; independent policy pages remain user-managed.
 
 = 1.3.73 =
-Remote scans continue in the background. Upload the Commander storage patch to also list localStorage/sessionStorage keys separately from cookies.
 
 

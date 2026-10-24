@@ -355,7 +355,7 @@ $categories = $scanner->get_categories();
                                 <span class="marrison-admin-switch-slider"></span>
                                 <span class="marrison-admin-switch-label"><?php _e('Attiva scansione automatica dei cookie', 'marrison-cookie'); ?></span>
                             </label>
-                            <p class="description"><?php echo esc_html(marrison_cookie_site_text('Disattivata finché non la abiliti e salvi. Usa il metodo scelto nello scanner: quello remoto consuma crediti Browserless a ogni esecuzione. Le precedenti attivazioni predefinite richiedono una nuova conferma.', 'Disabled until you enable it and save. Uses the method selected in the scanner: remote runs consume Browserless credits each time. Previous default activations require confirmation again.')); ?></p>
+                            <p class="description">La scansione periodica locale parte solo dopo abilitazione e salvataggio espliciti.</p>
                         </td>
                     </tr>
                     
@@ -389,6 +389,11 @@ $categories = $scanner->get_categories();
                     <?php endforeach; ?>
                 </table>
             </div>
+            <div class="marrison-card"><div class="marrison-card-header"><h2>Scansione e rilevamento locale</h2></div><table class="form-table">
+            <tr><th>Verifica iframe opzionale</th><td><label><input type="checkbox" name="local_iframe" value="1" <?php checked(get_option('marrison_cookie_local_iframe', false)); ?>>Verifica i cookie accessibili nei campioni; non vede i cookie di terze parti.</label></td></tr>
+            <tr><th><label for="local_max_seconds">Tempo totale iframe</label></th><td><input id="local_max_seconds" name="local_max_seconds" type="number" min="10" max="120" value="<?php echo esc_attr(get_option('marrison_cookie_local_max_seconds', 30)); ?>"> secondi</td></tr>
+            <tr><th>Rilevamento passivo</th><td><label><input type="checkbox" name="passive_detection" value="1" <?php checked(get_option('marrison_cookie_passive_detection', false)); ?>>Segnala solo gli host bloccati, senza URL, IP o identificatori del visitatore.</label><p>Opzionale e disattivato per default. Se attivato, descriverlo nell’informativa. Massimo 20 host per richiesta, 100 distinti archiviati e 500 richieste al giorno.</p></td></tr>
+            </table></div>
             <?php include MARRISON_COOKIE_PLUGIN_DIR . 'templates/service-catalog.php'; ?>
         <?php elseif ($active_tab === 'policies'): ?>
             <div class="marrison-card">
@@ -449,14 +454,14 @@ $categories = $scanner->get_categories();
                     <p><strong><?php echo esc_html(marrison_cookie_site_text('Motore di scansione', 'Scan engine')); ?></strong> <span id="marrison-engine-runtime"><?php echo esc_html(marrison_cookie_site_text('Verifica in corso…', 'Checking…')); ?></span></p>
                     <p>
                         <label for="marrison-scan-limit"><?php echo esc_html(marrison_cookie_site_text('Limite campioni', 'Sample limit')); ?></label>
-                        <input type="number" id="marrison-scan-limit" min="1" max="5000" value="50" class="small-text">
+                        <input type="number" id="marrison-scan-limit" min="1" max="10" value="3" class="small-text">
                         <button type="button" id="marrison-scan-resume" class="button" hidden><?php echo esc_html(marrison_cookie_site_text('Riprendi scansione', 'Resume scan')); ?></button>
                         <button type="button" id="marrison-scan-cancel" class="button" hidden><?php echo esc_html(marrison_cookie_site_text('Interrompi', 'Stop')); ?></button>
                         <button type="button" id="marrison-scan-export" class="button"><?php echo esc_html(marrison_cookie_site_text('Esporta rapporto', 'Export report')); ?></button>
                     </p>
                     <p><label for="marrison-scan-mode"><?php echo esc_html(marrison_cookie_site_text('Metodo di scansione', 'Scan method')); ?></label>
-                        <select id="marrison-scan-mode"><option value="commander" <?php selected(get_option('marrison_cookie_scan_mode', 'commander'), 'commander'); ?>><?php echo esc_html(marrison_cookie_site_text('Browser remoto tramite Commander', 'Remote browser through Commander')); ?></option><option value="local" <?php selected(get_option('marrison_cookie_scan_mode', 'commander'), 'local'); ?>><?php echo esc_html(marrison_cookie_site_text('Locale — solo cookie accessibili dal sito', 'Local — site-accessible cookies only')); ?></option></select></p>
-                    <p class="description"><?php echo esc_html(marrison_cookie_site_text('La scansione parte premendo Avvia; quella periodica richiede un’abilitazione esplicita in Comportamento. Il metodo remoto consuma crediti Browserless e continua in background. Cambiare metodo interrompe il lavoro attivo senza avviarne un altro; una richiesta remota già inviata può comunque terminare. Il metodo locale richiede la pagina aperta e una verifica tramite iframe: se il sito la blocca, i risultati restano parziali.', 'Press Start to scan; periodic scans require explicit activation in Behavior. The remote method consumes Browserless credits and continues in the background. Changing method stops active work without starting another scan; an already submitted remote request may still finish. Local scanning requires this page open and iframe verification: if the site blocks it, results remain partial.')); ?></p>
+                        <input type="hidden" id="marrison-scan-mode" value="local"><strong>Catalogo locale dei servizi</strong></p>
+                    <p class="description">La scansione analizza contenuti e configurazione senza richieste HTTP. La verifica iframe è opzionale e limitata; non vede i cookie di terze parti.</p>
                     <details class="marrison-scan-additional"><summary><?php echo esc_html(marrison_cookie_site_text('Pagine aggiuntive da verificare', 'Additional pages to test')); ?></summary>
                         <label for="marrison-scan-additional"><?php echo esc_html(marrison_cookie_site_text('URL dello stesso sito, uno per riga (massimo 50). Usali per pagine con condizioni o servizi particolari: saranno verificate anche se condividono il template.', 'Same-site URLs, one per line (up to 50). Use these for pages with special conditions or services: they will be checked even when sharing a template.')); ?></label>
                         <textarea id="marrison-scan-additional" rows="3" class="large-text" style="width:100%;box-sizing:border-box"></textarea>

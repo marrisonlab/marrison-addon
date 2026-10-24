@@ -253,6 +253,9 @@ class Marrison_Cookie_Consent {
         $cookies = $scanner->runtime_cookie_rules();
         $phase = class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::get_instance()->frame_phase() : null;
         $service_rules = class_exists('Marrison_Addon_Cookie_Scan_Services', false) ? Marrison_Addon_Cookie_Scan_Services::runtime_config() : array();
+        if (get_option('marrison_cookie_passive_detection', false)) {
+            $service_rules['passive'] = array('url' => admin_url('admin-ajax.php'), 'nonce' => wp_create_nonce('marrison_cookie_nonce'));
+        }
         echo '<script id="marrison-cookie-runtime-config">window.marrisonConsentRules=' . wp_json_encode(array('sources' => $this->tracking_rules(), 'cookies' => $cookies, 'phase' => $phase) + $service_rules, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';</script>';
         $plugin = dirname(__DIR__, 4) . '/marrison-addon.php';
         $revision = class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::REVISION : '20261019.2';

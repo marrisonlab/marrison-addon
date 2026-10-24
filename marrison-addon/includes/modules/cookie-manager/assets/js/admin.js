@@ -354,7 +354,7 @@
         },
 
         renderEvidence: function(cookie) {
-            var html = MarrisonCookieAdmin.escapeHtml(cookie.source);
+            var html = cookie.source === 'catalogo' ? 'Catalogo · dichiarato, non osservato' : MarrisonCookieAdmin.escapeHtml(cookie.source);
             if (!cookie.evidence || !cookie.evidence.observations) { return html; }
             html += '<details><summary>Prove rilevate</summary><ul>';
             cookie.evidence.observations.forEach(function(observation) {

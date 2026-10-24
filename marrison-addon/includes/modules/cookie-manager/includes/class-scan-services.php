@@ -107,6 +107,9 @@ class Marrison_Addon_Cookie_Scan_Services {
                 ? Marrison_Addon_Cookie_Scan_Engine::get_instance()->service_inventory() : array();
         }
         $hosts = array();
+        foreach ((array) get_option('marrison_cookie_passive_hosts', array()) as $host => $present) {
+            if (is_string($host) && self::valid_host($host)) { $hosts[$host] = self::category(array('id' => self::host_id($host), 'category' => 'unclassified')); }
+        }
         foreach (self::$inventory as $service) {
             $host = strtolower($service['host'] ?? '');
             if (!$host || !self::valid_host($host) || !empty($service['profiles'])) { continue; }

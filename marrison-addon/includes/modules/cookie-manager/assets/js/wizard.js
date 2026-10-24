@@ -301,7 +301,7 @@
                                 ${categoryOptions.replace('value="' + cookie.cookie_category + '"', 'value="' + cookie.cookie_category + '" selected')}
                             </select>
                         </td>
-                        <td>${MarrisonWizard.escapeHtml(cookie.source)}</td>
+                        <td>${cookie.source === 'catalogo' ? 'Catalogo · dichiarato, non osservato' : MarrisonWizard.escapeHtml(cookie.source)}</td>
                     </tr>
                 `;
                 $tbody.append(row);

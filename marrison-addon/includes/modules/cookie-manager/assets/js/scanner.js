@@ -37,7 +37,7 @@
             if (job && !active && !this.running) { this.status(this.resultText(job), job.status !== 'completed'); }
             if (job && job.rescan_required === false) { $('[data-marrison-cookie-rescan-notice]').remove(); }
             $('#marrison-scan-cancel').prop('hidden', !job || ['http', 'browser'].indexOf(job.status) < 0);
-            $('#marrison-scan-resume').prop('hidden', !job || this.running || ['http', 'browser'].indexOf(job.status) < 0);
+            $('#marrison-scan-resume').prop('hidden', !job || this.running || !job.static_pending && ['http', 'browser'].indexOf(job.status) < 0);
             $('#marrison-scan-cookies, #wizard_scan_button').prop('disabled', this.running || this.changingMode);
             $('#marrison-scan-mode').prop('disabled', this.starting || this.changingMode);
             if (!job) { $('#marrison-engine-summary').text('Nessuna scansione del nuovo motore.'); return; }
@@ -76,8 +76,7 @@
                 [entry.key, entry.type, entry.origin, 'Chiave osservata · valore escluso'].forEach(function (text) { $('<td>').text(text).appendTo($row); });
                 $row.appendTo($storageRows);
             });
-            $('#marrison-browser-storage-note, #wizard_browser_storage_note').text(job.background && !job.storage_supported && job.remote_requests ? 'Il motore su Commander non verifica ancora localStorage e sessionStorage: aggiorna la patch dello scanner.' :
-                'LocalStorage e sessionStorage sono dati del browser distinti dai cookie. Sono elencate solo le chiavi realmente osservate, senza valori. Voci rilevate: ' + (job.storage_count || 0) + '.');
+            $('#marrison-browser-storage-note, #wizard_browser_storage_note').text('La verifica locale non vede i cookie di terze parti; servizi e cookie dichiarati provengono dal catalogo.');
             var sampling = job.sampling;
             $('#marrison-engine-sampling').text(sampling ? sampling.selected + ' campioni selezionati da ' + sampling.candidates + ' URL · ' + sampling.equivalents + ' URL equivalenti non ripetuti' + (sampling.unselected ? ' · ' + sampling.unselected + ' gruppi oltre il limite' : '') : '');
             var $samples = $('#marrison-engine-samples').empty();
@@ -92,7 +91,7 @@
         },
         resultText: function (job) {
             if (job.status === 'completed') {
-                return 'Scansione completata: ' + job.cookie_count + ' cookie osservati.' + (job.documented_cookie_count ? ' Cookie documentati dei servizi rilevati: ' + job.documented_cookie_count + '.' : '');
+                return 'Questa scansione non può vedere i cookie di terze parti; i servizi rilevati e i loro cookie arrivano dal catalogo. Scansione completata: ' + job.cookie_count + ' cookie osservati.' + (job.documented_cookie_count ? ' Cookie documentati dei servizi rilevati: ' + job.documented_cookie_count + '.' : '');
             }
             if (job.status === 'partial') {
                 var issue = job.issues && job.issues[0];
@@ -117,7 +116,7 @@
             this.render(this.job);
             this.status('Preparazione della scansione…');
             try {
-                var data = await this.request('start', { mode: $('#marrison-scan-mode').val() || 'commander', limit: $('#marrison-scan-limit').val() || 50, additional_urls: $('#marrison-scan-additional').val() || '' });
+                var data = await this.request('start', { mode: 'local', limit: $('#marrison-scan-limit').val() || 3, additional_urls: $('#marrison-scan-additional').val() || '' });
                 if (data.job.background) {
                     this.render(data.job); this.watchBackground();
                     $(document).trigger('marrison-cookie-scan-started', [data.job, !!wizard]);
@@ -144,7 +143,7 @@
                 this.changingMode = false;
                 this.render(data.job);
                 this.status((data.interrupted ? 'Scansione precedente interrotta. ' : '') + 'Metodo salvato. Premi Avvia scansione per iniziare.' +
-                    (data.interrupted && previousMode === 'commander' ? ' Una richiesta remota già inviata può terminare e consumare crediti; non saranno inviate altre pagine per questa scansione.' : ''));
+                    'La scansione usa soltanto il motore locale.');
             } catch (error) {
                 this.changingMode = false;
                 this.fail(error);
@@ -159,6 +158,7 @@
                     data = await this.request('resume', { job: data.job.id });
                     this.render(data.job); this.watchBackground(); return;
                 }
+                if (data.job && data.job.static_pending) { data = await this.request('resume', {job: data.job.id}); }
                 this.running = true;
                 this.generation++;
                 this.render(data.job);
@@ -204,14 +204,6 @@
                     this.render(data.job);
                     this.timer = setTimeout(function () { engine.advance(); }, 150);
                 } else if (this.job.status === 'browser') {
-                    if (this.job.mode === 'commander') {
-                        this.status('Browser remoto: verifica prima e dopo il consenso…');
-                        var remote = await this.request('remote', { job: this.job.id });
-                        if (generation !== this.generation) { return; }
-                        this.render(remote.job);
-                        this.timer = setTimeout(function () { engine.advance(); }, 300);
-                        return;
-                    }
                     if (!('credentialless' in HTMLIFrameElement.prototype)) { throw new Error('La parte HTTP è salvata. Per la scansione JavaScript isolata apri questo pannello in Chrome o Edge aggiornato e premi Riprendi.'); }
                     this.measure(this.job.next);
                 } else {
@@ -251,11 +243,11 @@
             this.frame = frame;
             this.status('Analisi in background delle pagine campione…');
             // Navigation must not consume the agent's own 12-second observation window.
-            this.timer = setTimeout(function () { engine.browserResult({ error: 'La pagina non ha avviato la verifica locale entro 30 secondi (caricamento lento, iframe bloccato o script non caricato).' }); }, 30000);
+            this.timer = setTimeout(function () { engine.browserResult({ error: 'La pagina non ha avviato la verifica locale entro 8 secondi (caricamento lento, iframe bloccato o script non caricato).' }); }, 8000);
             frame.addEventListener('load', function () {
                 if (engine.frame !== frame) { return; }
                 clearTimeout(engine.timer);
-                engine.timer = setTimeout(function () { engine.browserResult({ error: 'La pagina caricata non ha completato la verifica locale entro 15 secondi (script bloccato, cache della pagina o timeout).' }); }, 15000);
+                engine.timer = setTimeout(function () { engine.browserResult({ error: 'La pagina caricata non ha completato la verifica locale entro 5 secondi (script bloccato, cache della pagina o timeout).' }); }, 5000);
             }, { once: true });
             frame.src = next.frame_url;
             host.appendChild(frame);

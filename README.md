@@ -3,7 +3,7 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.79
+**Version:** 1.3.80
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -18,7 +18,6 @@ Modules include Wrapped Link, Content Ticker, Steps, Product Discount, Heading A
 
 Elementor, WooCommerce and JetEngine are required only for their related modules. Cookie Manager provides representative HTTP/browser scans, signed consent choices and policy shortcodes. PHP Snippets requires both WordPress `manage_options` and `unfiltered_html` capabilities.
 
-Cookie scans start from the scan button or an explicitly enabled periodic schedule. Previous default automatic activations require confirmation again in Behavior. Viewing the scanner only reads progress. Changing method cancels active work without starting a replacement; remote requests already submitted may still consume Browserless credits.
 
 Cookie consent checks keep technical diagnostics out of the visitor banner; failed saves remain visible and do not enable tracking. Receipt protection uses the actual server's configuration. All Privacy Policy profile fields are optional. The shortcode renders saved data even when other fields are empty, omitting unspecified details without blocking publication.
 
@@ -53,6 +52,9 @@ Optional server features are reported by their modules: FFmpeg is needed for loc
 
 ## Changelog
 
+### 1.3.80
+* Fase 2: Scansione statica locale riprendibile, verifica iframe opzionale limitata e rilevamento passivo degli host su esplicita attivazione.
+
 ### Unreleased
 * Add Listing Columns, an optional Elementor widget for JetEngine grids with a 1–12 column range, CSS target selector, browser preference, responsive activation, SVG/native icons and Elementor style controls.
 
@@ -83,10 +85,8 @@ Optional server features are reported by their modules: FFmpeg is needed for loc
 
 ### 1.3.73
 * Remote Cookie Manager scans continue in server background batches after closing the page or continuing the wizard. Persistent progress, signed workers, pause/resume and a cron watchdog.
-* Browser-storage key names/origins are inventoried separately from cookies; values are excluded. Requires the Commander storage patch.
 
 ### 1.3.72
-* **Cookie Manager:** Remote browser scanning through Commander and Browserless observes first-party, third-party and HttpOnly cookies without collecting values. Checks real consent before/after and starts existing YouTube embeds. No Commander license or Browserless key is required on WordPress.
 * **Reliability:** Expiring site proof, provider preflight, independent page requests, bounded quota/concurrency, idempotent retries and explicit errors. Local scanning remains available with limited coverage; disabled Cookie Manager loads no scanner or network hooks.
 
 ### 1.3.71

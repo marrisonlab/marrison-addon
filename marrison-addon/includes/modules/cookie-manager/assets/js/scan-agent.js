@@ -115,7 +115,7 @@
     function settle() {
         if (sent) { return; }
         var elapsed = performance.now() - started;
-        if (elapsed > 10000 || (elapsed >= 4000 && performance.now() - lastResource > 1000)) { finish(); }
+        if (elapsed > 3000 || (elapsed >= 800 && performance.now() - lastResource > 300)) { finish(); }
         else { finishTimer = setTimeout(settle, 250); }
     }
     function loaded() {
@@ -126,9 +126,9 @@
             steps++;
             if (steps >= 10 || scrollY + innerHeight >= document.documentElement.scrollHeight) {
                 clearInterval(scroll);
-                finishTimer = setTimeout(settle, 1000);
+                finishTimer = setTimeout(settle, 300);
             }
-        }, 180);
+        }, 80);
     }
     if (document.readyState === 'complete') { loaded(); }
     else { window.addEventListener('load', loaded, { once: true }); }

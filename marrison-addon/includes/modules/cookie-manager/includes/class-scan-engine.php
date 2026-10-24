@@ -2,9 +2,10 @@
 /** Representative same-site HTTP samples and isolated browser measurements. */
 require_once __DIR__ . '/class-scan-sampler.php';
 require_once __DIR__ . '/class-scan-services.php';
+require_once __DIR__ . '/class-static-scanner.php';
 class Marrison_Addon_Cookie_Scan_Engine {
     const PROTOCOL = 2;
-    const REVISION = '20261024.1';
+    const REVISION = '20261024.2';
     private static $instance;
     private $frame = null;
     private $sampler = null;
@@ -22,6 +23,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
         add_action('wp_ajax_marrison_addon_cookie_engine_worker', array($this, 'ajax_worker'));
         add_action('wp_ajax_nopriv_marrison_addon_cookie_engine_worker', array($this, 'ajax_worker'));
         add_action('admin_notices', array($this, 'background_notice'));
+        add_action('admin_notices', array($this, 'retired_notice'));
         add_action('rest_api_init', array($this, 'register_scan_proof'));
         $this->frame = $this->frame_context();
         if ($this->frame) {
@@ -44,6 +46,12 @@ class Marrison_Addon_Cookie_Scan_Engine {
             'engine_hash' => hash_file('sha256', __FILE__),
             'compatible' => $loaded === $expected && $class->hasMethod('engine_prepare'),
         );
+    }
+
+    public function retired_notice() {
+        if (!current_user_can('manage_options') || get_option('marrison_cookie_scan_mode', 'local') !== 'commander') { return; }
+        update_option('marrison_cookie_scan_mode', 'local');
+        echo '<div class="notice notice-info"><p>' . esc_html('La scansione remota è stata dismessa. È attiva la scansione locale dei servizi con catalogo; nessun lavoro remoto viene avviato.') . '</p></div>';
     }
 
     private function authorize() {
@@ -105,7 +113,8 @@ class Marrison_Addon_Cookie_Scan_Engine {
 
     public function ajax_start() {
         $this->respond(function() {
-            if (isset($_POST['mode']) && $_POST['mode'] === 'commander') {
+            // Deprecated remote implementation below is intentionally unreachable.
+            if (false && isset($_POST['mode']) && $_POST['mode'] === 'commander') {
                 $check = wp_safe_remote_get($this->commander_endpoint(), array('timeout' => 8, 'redirection' => 0, 'limit_response_size' => 4096));
                 $configuration = is_wp_error($check) ? null : json_decode(wp_remote_retrieve_body($check), true);
                 if (is_wp_error($check) || wp_remote_retrieve_response_code($check) !== 200 || empty($configuration['enabled']) || ($configuration['protocol'] ?? null) !== 1) {
@@ -113,16 +122,17 @@ class Marrison_Addon_Cookie_Scan_Engine {
                 }
             }
             $result = $this->locked(function() {
-                $limit = isset($_POST['limit']) ? max(1, min(5000, (int) $_POST['limit'])) : 50;
+                $limit = isset($_POST['limit']) ? max(1, min(10, (int) $_POST['limit'])) : 3;
                 if (isset($_POST['additional_urls']) && is_string($_POST['additional_urls']) && strlen($_POST['additional_urls']) > 20000) { throw new RuntimeException('Elenco delle pagine aggiuntive troppo lungo.'); }
                 $additional = isset($_POST['additional_urls']) && is_string($_POST['additional_urls']) ? preg_split('/\R/', wp_unslash($_POST['additional_urls'])) : array();
-                $mode = isset($_POST['mode']) && $_POST['mode'] === 'commander' ? 'commander' : 'local';
+                $mode = 'local';
                 $job = $this->new_job($limit, $additional, $mode);
                 if (isset($_POST['mode'])) { update_option('marrison_cookie_scan_mode', $mode); }
                 $this->write_job($job);
                 return array('job' => $this->summary($job));
             });
             $this->wake_background();
+            if (!wp_next_scheduled('marrison_addon_cookie_engine_tick')) { wp_schedule_single_event(time() + 10, 'marrison_addon_cookie_engine_tick'); }
             return $result;
         });
     }
@@ -136,6 +146,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
     public function ajax_mode() {
         $this->respond(function() {
             $mode = isset($_POST['mode']) && is_string($_POST['mode']) ? $_POST['mode'] : '';
+            if ($mode === 'commander') { $mode = 'local'; }
             if (!in_array($mode, array('local', 'commander'), true)) { throw new RuntimeException('Metodo di scansione non valido.'); }
             return $this->locked(function() use ($mode) {
                 $job = $this->read_job();
@@ -156,6 +167,9 @@ class Marrison_Addon_Cookie_Scan_Engine {
         $this->respond(function() {
             $this->locked(function() {
                 $job = $this->require_job();
+                if (isset($job['static_scan']) && empty($job['static_scan']['done'])) {
+                    $job['status'] = 'http'; unset($job['static_scan']['memory_limited']); $this->write_job($job);
+                }
                 if (!$this->background_active($job)) { return; }
                 $job['worker']['state'] = 'queued';
                 $job['worker']['error'] = '';
@@ -253,12 +267,25 @@ class Marrison_Addon_Cookie_Scan_Engine {
             'browser_cursor' => 0, 'browser_failed' => 0, 'cookies' => array(), 'services' => array(), 'issues' => array(), 'issues_total' => 0, 'saved_categories' => $categories,
             'sampling' => array('strategy' => 'templates', 'candidates' => 0, 'equivalents' => 0, 'excluded' => 0, 'groups' => array(), 'unselected' => array()), 'additional_urls' => $extra);
         $this->sampler = new Marrison_Addon_Cookie_Scan_Sampler();
+        $job['mode'] = 'local';
+        $job['static_scan'] = array('page' => 1, 'posts' => 0, 'done' => false);
+        $job['local_iframe'] = (bool) get_option('marrison_cookie_local_iframe', false);
+        $job['local_max_seconds'] = max(10, min(120, (int) get_option('marrison_cookie_local_max_seconds', 30)));
         $this->enqueue($job, $home, 'page');
         foreach (array_keys($job['additional_urls']) as $url) { $this->enqueue($job, $url, 'page'); }
         foreach ($this->sampler->seeds() as $url) { $this->enqueue($job, $url, 'page'); }
-        $this->enqueue($job, home_url('/wp-sitemap.xml'), 'sitemap');
-        $this->enqueue($job, home_url('/robots.txt'), 'robots');
+        $job['pages'] = array_column($job['queue'], 'url');
+        $job['queue'] = array();
         return $job;
+    }
+
+    public function start_local_scan() {
+        return $this->locked(function() {
+            $job = $this->new_job(3);
+            $this->http_step($job); $this->write_job($job);
+            if ($job['status'] === 'http' && !wp_next_scheduled('marrison_addon_cookie_engine_tick')) { wp_schedule_single_event(time() + 10, 'marrison_addon_cookie_engine_tick'); }
+            return count(Marrison_Addon_Cookie_Static_Scanner::declared_cookies($job['services']));
+        });
     }
 
     /** Same-origin URL normalization also excludes administrative/action endpoints. */
@@ -347,6 +374,19 @@ class Marrison_Addon_Cookie_Scan_Engine {
 
     private function http_step(&$job) {
         if ($job['status'] !== 'http') { return; }
+        if (isset($job['static_scan'])) {
+            (new Marrison_Addon_Cookie_Static_Scanner())->step($job['static_scan'], $job['services']);
+            $job['http_done'] = $job['static_scan']['posts']; $job['updated'] = time();
+            if (!empty($job['static_scan']['memory_limited'])) {
+                $job['status'] = 'partial'; $this->issue($job, '', 'Limite di memoria: scansione statica sospesa e riprendibile.');
+            } elseif (!empty($job['static_scan']['done'])) {
+                $job['status'] = !empty($job['local_iframe']) && $job['pages'] ? 'browser' : 'completed';
+                $job['local_started'] = time();
+            }
+            $this->commit($job);
+            if ($job['status'] === 'completed') { do_action('marrison_addon/cookie_scan_finished', $job); }
+            return;
+        }
         while ($job['queue'] && $job['http_done'] + $job['http_failed'] >= $job['limit'] && $job['queue'][0]['kind'] === 'page') {
             array_shift($job['queue']);
             $job['limit_reached'] = true;
@@ -507,7 +547,9 @@ class Marrison_Addon_Cookie_Scan_Engine {
 
     private function commit(&$job) {
         $scanner = Marrison_Cookie_Scanner::get_instance();
-        if (!$scanner->engine_store(array_values($job['cookies']), $job['saved_categories'], $job['status'] === 'completed')) {
+        $records = array_merge(Marrison_Addon_Cookie_Static_Scanner::declared_cookies($job['services']), array_values($job['cookies']));
+        // Static declarations cannot disprove earlier observations. Never delete those here.
+        if (!$scanner->engine_store($records, $job['saved_categories'], false)) {
             $job['status'] = 'failed';
             $this->issue($job, '', $scanner->get_last_scan_error());
             try { $this->write_job($job); } catch (Throwable $error) { /* Preserve the original storage failure. */ }
@@ -523,6 +565,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
     private function browser_next($job) {
         $count = count($job['pages']);
         if (!$count || $job['status'] !== 'browser' || $job['browser_cursor'] >= $count * 2) { return null; }
+        if (isset($job['local_started']) && time() - $job['local_started'] >= ($job['local_max_seconds'] ?? 30)) { return null; }
         if (($job['mode'] ?? 'local') === 'commander') { return array('url' => $job['pages'][(int) floor($job['browser_cursor'] / 2)], 'phase' => 'both'); }
         $phase = $job['browser_cursor'] < $count ? 'before' : 'after';
         $url = $job['pages'][$job['browser_cursor'] % $count];
@@ -538,7 +581,8 @@ class Marrison_Addon_Cookie_Scan_Engine {
             'browser_done' => $job['browser_cursor'], 'browser_total' => count($job['pages']) * 2, 'browser_failed' => $job['browser_failed'],
             'response_pages' => count($job['response_pages'] ?? array()), 'skipped_missing' => $job['skipped_missing'] ?? array(),
             'remote_error' => $job['remote_error'] ?? '',
-            'background' => ($job['mode'] ?? 'local') === 'commander', 'worker' => $job['worker'] ?? array(),
+            'background' => false, 'worker' => $job['worker'] ?? array(),
+            'static_pending' => isset($job['static_scan']) && empty($job['static_scan']['done']),
             'storage' => array_values($job['storage'] ?? array()), 'storage_count' => count($job['storage'] ?? array()), 'storage_supported' => $job['storage_supported'] ?? false,
             'sampling' => isset($job['sampling']) ? array('strategy' => 'templates', 'candidates' => $job['sampling']['candidates'], 'equivalents' => $job['sampling']['equivalents'],
                 'selected' => count($job['sampling']['groups']), 'unselected' => count($job['sampling']['unselected']), 'groups' => array_values($job['sampling']['groups'])) : null,
@@ -608,6 +652,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
     }
 
     public function ajax_remote() {
+        throw new RuntimeException('Scansione remota dismessa. Avvia una scansione locale.'); // Deprecated implementation below.
         $this->respond(function() { return array('job' => $this->summary($this->remote_step())); });
     }
 
@@ -616,6 +661,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
     }
 
     private function remote_step($scheduled = false, $expected_id = '') {
+        throw new RuntimeException('Scansione remota dismessa.'); // Deprecated, unreachable.
         $claim = bin2hex(random_bytes(16));
         $work = $this->locked(function() use ($claim, $scheduled, $expected_id) {
             $job = $scheduled ? $this->read_job() : $this->require_job();
@@ -714,6 +760,10 @@ class Marrison_Addon_Cookie_Scan_Engine {
                 $job = $this->require_job();
                 if (($job['mode'] ?? 'local') === 'commander') { throw new RuntimeException('Questa scansione richiede il browser remoto di Commander.'); }
                 $next = $this->browser_next($job);
+                if (!$next && $job['status'] === 'browser' && isset($job['static_scan'])) {
+                    $job['status'] = 'partial'; $this->issue($job, '', 'Tempo massimo della verifica locale raggiunto; catalogo e risultati disponibili sono salvati.');
+                    $this->commit($job); $this->write_job($job); return array('job' => $this->summary($job));
+                }
                 $raw = isset($_POST['result']) && is_string($_POST['result']) ? wp_unslash($_POST['result']) : '';
                 if (!$next || strlen($raw) > 262144) { throw new RuntimeException('Risultato browser non previsto.'); }
                 $data = json_decode($raw, true);
@@ -949,7 +999,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
         try {
             $this->locked(function() {
                 $job = $this->read_job();
-                if (!$job || ($job['revision'] ?? '') !== self::REVISION || !in_array($job['status'], array('http', 'browser'), true) || $job['expires'] < time()) { $this->write_job($this->new_job(50, array(), get_option('marrison_cookie_scan_mode', 'local') === 'commander' ? 'commander' : 'local')); }
+                if (!$job || ($job['revision'] ?? '') !== self::REVISION || !in_array($job['status'], array('http', 'browser'), true) || $job['expires'] < time()) { $this->write_job($this->new_job(3, array(), 'local')); }
             });
             $job = $this->read_job();
             if ($this->background_active($job)) { $this->wake_background(); }

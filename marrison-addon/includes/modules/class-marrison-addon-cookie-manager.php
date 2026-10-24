@@ -81,6 +81,9 @@ class Marrison_Addon_Cookie_Manager_Module {
 	private function load_dependencies() {
 		require_once __DIR__ . '/cookie-manager/includes/class-policy-content.php';
 		require_once __DIR__ . '/cookie-manager/includes/class-consent-store.php';
+		require_once __DIR__ . '/cookie-manager/includes/class-request-limits.php';
+		require_once __DIR__ . '/cookie-manager/includes/class-passive-detection.php';
+		new Marrison_Addon_Cookie_Passive_Detection();
 		$dependency_map = array(
 			'Marrison_Cookie_Scanner'        => MARRISON_COOKIE_PLUGIN_DIR . 'includes/class-cookie-scanner.php',
 			'Marrison_Cookie_Banner'         => MARRISON_COOKIE_PLUGIN_DIR . 'includes/class-cookie-banner.php',
