@@ -8,6 +8,8 @@ class Marrison_Addon_Updater {
 	private const VERSION_TRANSIENT = 'marrison_addon_github_version';
 	private const VERSION_FAILURE_TRANSIENT = 'marrison_addon_github_version_failure';
 	private const INFO_TRANSIENT = 'marrison_addon_github_info_v3';
+	private const CHECKSUM_TRANSIENT = 'marrison_addon_github_checksum';
+	private const PACKAGE_TRANSIENT = 'marrison_addon_github_verified_package';
 
 	private $slug; // plugin slug (e.g., marrison-addon/marrison-addon.php)
 	private $plugin_file; // __FILE__ of our plugin
@@ -30,6 +32,8 @@ class Marrison_Addon_Updater {
 
 		// Fix GitHub folder name issue
 		add_filter( 'upgrader_source_selection', [ $this, 'fix_folder_name' ], 10, 4 );
+		add_filter('upgrader_pre_download', array($this, 'verify_download'), 20, 4);
+		add_action('admin_notices', array($this, 'checksum_notice'));
 	}
 
 	public function fix_folder_name( $source, $remote_source, $upgrader, $hook_extra = null ) {
@@ -79,13 +83,16 @@ class Marrison_Addon_Updater {
 		delete_transient( self::VERSION_TRANSIENT );
 		delete_transient( self::VERSION_FAILURE_TRANSIENT );
 		delete_transient( self::INFO_TRANSIENT );
+		delete_transient(self::CHECKSUM_TRANSIENT);
+		delete_transient(self::PACKAGE_TRANSIENT);
+		delete_transient('marrison_addon_checksum_notice');
 		delete_transient( 'marrison_addon_github_info' );
 	}
 
 	private function get_github_version() {
 		$cached = get_transient( self::VERSION_TRANSIENT );
 		if ( $cached !== false ) {
-			return $cached;
+			return is_string($cached) && preg_match('/^\d+\.\d+\.\d+(?:\.\d+)?$/D', $cached) ? $cached : false;
 		}
 
 		if ( false !== get_transient( self::VERSION_FAILURE_TRANSIENT ) ) {
@@ -119,6 +126,9 @@ class Marrison_Addon_Updater {
 		}
 
 		$version = ltrim( (string) $body['tag_name'], 'vV' );
+		if (!preg_match('/^\d+\.\d+\.\d+(?:\.\d+)?$/D', $version)) { $this->cache_github_version_failure(); return false; }
+		$checksum = self::release_checksum(isset($body['body']) && is_string($body['body']) ? $body['body'] : '');
+		set_transient(self::CHECKSUM_TRANSIENT, array('version' => $version, 'sha256' => $checksum), 6 * HOUR_IN_SECONDS);
 		set_transient( self::VERSION_TRANSIENT, $version, 6 * HOUR_IN_SECONDS );
 		delete_transient( self::VERSION_FAILURE_TRANSIENT );
 
@@ -127,6 +137,67 @@ class Marrison_Addon_Updater {
 
 	private function cache_github_version_failure() {
 		set_transient( self::VERSION_FAILURE_TRANSIENT, 1, 30 * MINUTE_IN_SECONDS );
+	}
+
+	public static function release_checksum($body) {
+		return is_string($body) && preg_match('/^Marrison-Archive-SHA256:\s*([a-f0-9]{64})\s*$/mi', $body, $match) ? strtolower($match[1]) : '';
+	}
+
+	private function expected_checksum($version) {
+		$metadata = get_transient(self::CHECKSUM_TRANSIENT);
+		return is_array($metadata) && ($metadata['version'] ?? '') === $version && preg_match('/^[a-f0-9]{64}$/D', $metadata['sha256'] ?? '') ? $metadata['sha256'] : '';
+	}
+
+	private function checksum_failure($message) {
+		set_transient('marrison_addon_checksum_notice', $message, 6 * HOUR_IN_SECONDS);
+		return new WP_Error('marrison_checksum', $message);
+	}
+
+	private function archive_url($version) {
+		return "https://github.com/{$this->username}/{$this->repo}/archive/refs/tags/v{$version}.zip";
+	}
+
+	private function download_checked($url, $expected, $existing = false) {
+		if (!function_exists('download_url')) { require_once ABSPATH . 'wp-admin/includes/file.php'; }
+		$file = is_string($existing) ? $existing : download_url($url, 30);
+		if (is_wp_error($file)) { return $this->checksum_failure('Pacchetto Marrison Addon non verificabile: download non riuscito.'); }
+		$actual = is_string($file) && is_file($file) ? hash_file('sha256', $file) : false;
+		if (!$actual || !hash_equals($expected, $actual)) {
+			if ($existing === false && is_string($file) && is_file($file)) { wp_delete_file($file); }
+			return $this->checksum_failure('Aggiornamento Marrison Addon bloccato: checksum SHA-256 non corrispondente.');
+		}
+		return $file;
+	}
+
+	private function verified_release($version) {
+		$hash = $this->expected_checksum($version);
+		if (!$hash) { $this->checksum_failure('Aggiornamento Marrison Addon non offerto: checksum SHA-256 della release assente.'); return false; }
+		$verified = get_transient(self::PACKAGE_TRANSIENT);
+		if (is_array($verified) && ($verified['version'] ?? '') === $version && ($verified['sha256'] ?? '') === $hash) { return !empty($verified['valid']); }
+		$file = $this->download_checked($this->archive_url($version), $hash);
+		$valid = !is_wp_error($file);
+		if ($valid) { wp_delete_file($file); delete_transient('marrison_addon_checksum_notice'); }
+		set_transient(self::PACKAGE_TRANSIENT, array('version' => $version, 'sha256' => $hash, 'valid' => $valid), 6 * HOUR_IN_SECONDS);
+		return $valid;
+	}
+
+	public function verify_download($reply, $package, $upgrader, $extra = array()) {
+		$prefix = "https://github.com/{$this->username}/{$this->repo}/archive/refs/tags/v";
+		$ours = ($extra['plugin'] ?? '') === $this->slug || (is_string($package) && strpos($package, $prefix) === 0);
+		if (!$ours || is_wp_error($reply)) { return $reply; }
+		if (!is_string($package) || !preg_match('~^' . preg_quote($prefix, '~') . '(\d+\.\d+\.\d+(?:\.\d+)?)\.zip$~D', $package, $match)) {
+			return $this->checksum_failure('Pacchetto Marrison Addon non riconosciuto: aggiornamento bloccato.');
+		}
+		$this->get_github_version();
+		$hash = $this->expected_checksum($match[1]);
+		if (!$hash) { return $this->checksum_failure('Checksum SHA-256 della release assente: aggiornamento bloccato.'); }
+		return $this->download_checked($package, $hash, $reply);
+	}
+
+	public function checksum_notice() {
+		if (!current_user_can('update_plugins')) { return; }
+		$message = get_transient('marrison_addon_checksum_notice');
+		if (is_string($message) && $message !== '') { echo '<div class="notice notice-warning"><p>' . esc_html($message) . '</p></div>'; }
 	}
 
 	public function check_update( $transient ) {
@@ -160,6 +231,11 @@ class Marrison_Addon_Updater {
 		$remote_version  = $this->get_github_version();
 
 		if ( ! $remote_version ) {
+			unset($transient->response[$this->slug]);
+			return $transient;
+		}
+		if (version_compare($current_version, $remote_version, '<') && !$this->verified_release($remote_version)) {
+			unset($transient->response[$this->slug], $transient->no_update[$this->slug]);
 			return $transient;
 		}
 
@@ -211,6 +287,7 @@ class Marrison_Addon_Updater {
 		if ( ! $remote_version ) {
 			return $res;
 		}
+		if (!$this->verified_release($remote_version)) { return $res; }
 
 		// Fetch full release info for description/changelog
 		// We use a separate transient for this to avoid heavy API calls

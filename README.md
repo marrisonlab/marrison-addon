@@ -3,7 +3,7 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.83
+**Version:** 1.3.84
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -51,6 +51,9 @@ Current stable versions checked on 20 October 2026: [WordPress 7.1.3](https://wo
 Optional server features are reported by their modules: FFmpeg is needed for local video cover extraction; browser cache rules depend on the web server. These features are not prerequisites for unrelated modules.
 
 ## Changelog
+
+### 1.3.84
+* Fase 6: Firme e riautenticazione PHP Snippets, log, recupero file, costanti WordPress e verifica checksum updater.
 
 ### 1.3.83
 * Fase 5: Hardening endpoint e output, rate limit, ricevute limitate e non indovinabili, controllo HTTP Site Health.
@@ -118,3 +121,5 @@ Optional server features are reported by their modules: FFmpeg is needed for loc
 - Adds the WordPress-format readme, aligns version/license/requirement metadata, and documents the release workflow.
 
 [Complete changelog](marrison-addon/README.md#changelog)
+
+Cookie Manager and PHP Snippets hardening is documented in [the phase guide](marrison-addon/docs/cookie-hardening.md): local service scans, Consent Mode v2, banner controls, private receipt limits and snippet signatures. Existing unsigned snippets require explicit review and re-signing. Release bodies must publish the SHA-256 of the exact tag archive before the updater offers it.

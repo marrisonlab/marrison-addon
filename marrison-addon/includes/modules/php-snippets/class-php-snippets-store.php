@@ -3,9 +3,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/class-php-snippets-security.php';
+
 final class Marrison_Addon_PHP_Snippets_Store {
 	const SCHEMA_OPTION = 'marrison_addon_php_snippets_schema';
-	const SCHEMA_VERSION = '1';
+	const SCHEMA_VERSION = '2';
 
 	public function table() {
 		global $wpdb;
@@ -31,6 +33,7 @@ final class Marrison_Addon_PHP_Snippets_Store {
 			scope varchar(20) NOT NULL DEFAULT 'everywhere',
 			active tinyint(1) NOT NULL DEFAULT 0,
 			revision varchar(64) NOT NULL,
+			signature varchar(64) NOT NULL DEFAULT '',
 			last_error text NOT NULL,
 			PRIMARY KEY  (id),
 			KEY active (active)
@@ -38,6 +41,7 @@ final class Marrison_Addon_PHP_Snippets_Store {
 		if ( $table !== $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) ) {
 			return new WP_Error( 'storage', __( 'Impossibile creare la tabella PHP Snippets.', 'marrison-addon' ) );
 		}
+		if ($wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM $table LIKE %s", 'signature')) !== 'signature') { return new WP_Error('signature_schema', __('Migrazione firma non riuscita. Nessun codice eliminato; verificare i permessi DB.', 'marrison-addon')); }
 		update_option( self::SCHEMA_OPTION, self::SCHEMA_VERSION, true );
 		return true;
 	}
@@ -82,12 +86,12 @@ final class Marrison_Addon_PHP_Snippets_Store {
 			return [];
 		}
 		// No persistent cache: a quarantined revision must disappear on the next request.
-		return $wpdb->get_results( $wpdb->prepare( "SELECT id, code, scope, revision FROM {$this->table()} WHERE active = 1 AND scope IN ('everywhere', %s) ORDER BY id", is_admin() ? 'backend' : 'frontend' ), ARRAY_A );
+		return $wpdb->get_results( $wpdb->prepare( "SELECT id, code, scope, revision, signature FROM {$this->table()} WHERE active = 1 AND scope IN ('everywhere', %s) ORDER BY id", is_admin() ? 'backend' : 'frontend' ), ARRAY_A );
 	}
 
 	public function listing() {
 		global $wpdb;
-		return $wpdb->get_results( "SELECT id, name, scope, active, revision, last_error FROM {$this->table()} ORDER BY id", ARRAY_A );
+		return $wpdb->get_results( "SELECT id, name, code, scope, active, revision, signature, last_error FROM {$this->table()} ORDER BY id", ARRAY_A );
 	}
 
 	public function get( $id ) {
@@ -96,6 +100,7 @@ final class Marrison_Addon_PHP_Snippets_Store {
 	}
 
 	public function save( $id, $name, $code, $scope, $expected_revision = '' ) {
+		if (is_string($code) && strlen($code) > Marrison_Addon_PHP_Snippets_Security::MAX_CODE_BYTES) { return new WP_Error('size', __('Codice troppo lungo: massimo 256 KiB.', 'marrison-addon')); }
 		$valid = self::validate( $code );
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
@@ -105,11 +110,17 @@ final class Marrison_Addon_PHP_Snippets_Store {
 		}
 		global $wpdb;
 		$data = [ 'name' => $name, 'code' => $code, 'scope' => $scope, 'active' => 0, 'last_error' => '', 'revision' => self::new_revision() ];
+		if (Marrison_Addon_PHP_Snippets_Security::signature(array_merge($data, array('id' => $id))) === '') { return new WP_Error('signing_key', __('Configura i salt WordPress o una MARRISON_ADDON_SNIPPETS_KEY di almeno 32 caratteri.', 'marrison-addon')); }
 		if ( $id ) {
+			$data['signature'] = Marrison_Addon_PHP_Snippets_Security::signature(array_merge($data, array('id' => $id)));
 			$result = $wpdb->update( $this->table(), $data, [ 'id' => $id, 'revision' => $expected_revision ] );
 		} else {
 			$result = $wpdb->insert( $this->table(), $data );
 			$id = (int) $wpdb->insert_id;
+			if (1 === $result) {
+				$signature = Marrison_Addon_PHP_Snippets_Security::signature(array_merge($data, array('id' => $id)));
+				$result = $wpdb->update($this->table(), array('signature' => $signature), array('id' => $id, 'revision' => $data['revision']));
+			}
 		}
 		return 1 === $result ? $id : $this->write_error();
 	}
@@ -121,13 +132,15 @@ final class Marrison_Addon_PHP_Snippets_Store {
 			return $this->write_error();
 		}
 		if ( 'duplicate' === $operation ) {
+			if (!Marrison_Addon_PHP_Snippets_Security::verify($row)) { return new WP_Error('signature', __('Verifica e firma lo snippet prima di duplicarlo.', 'marrison-addon')); }
 			return $this->save( 0, wp_html_excerpt( $row['name'], 170, '' ) . ' (copia)', $row['code'], $row['scope'] );
 		}
 		$where = [ 'id' => $id, 'revision' => $revision ];
 		if ( 'delete' === $operation ) {
 			$result = $wpdb->delete( $this->table(), $where );
 		} else {
-			if ( 'activate' === $operation ) {
+			if (in_array($operation, array('activate', 'sign_reactivate'), true)) {
+				if ($operation === 'activate' && !Marrison_Addon_PHP_Snippets_Security::verify($row)) { return new WP_Error('signature', __('Firma assente o non valida. Verifica il codice e usa Firma e riattiva.', 'marrison-addon')); }
 				$valid = self::validate( $row['code'] );
 				if ( is_wp_error( $valid ) ) {
 					$this->quarantine( $id, $revision, $valid->get_error_message() );
@@ -136,13 +149,17 @@ final class Marrison_Addon_PHP_Snippets_Store {
 			} elseif ( 'deactivate' !== $operation ) {
 				return new WP_Error( 'operation', __( 'Operazione non valida.', 'marrison-addon' ) );
 			}
-			$result = $wpdb->update( $this->table(), [ 'active' => 'activate' === $operation ? 1 : 0, 'last_error' => '', 'revision' => self::new_revision() ], $where );
+			$data = array('active' => in_array($operation, array('activate', 'sign_reactivate'), true) ? 1 : 0, 'last_error' => '', 'revision' => self::new_revision());
+			$data['signature'] = $operation === 'sign_reactivate' || Marrison_Addon_PHP_Snippets_Security::verify($row) ? Marrison_Addon_PHP_Snippets_Security::signature(array_merge($row, $data)) : '';
+			if ($data['active'] && $data['signature'] === '') { return new WP_Error('signature', __('Chiave di firma non disponibile.', 'marrison-addon')); }
+			$result = $wpdb->update($this->table(), $data, $where);
 		}
 		return 1 === $result ? $id : $this->write_error();
 	}
 
 	public function quarantine( $id, $revision, $message ) {
 		global $wpdb;
+		$logged_row = $this->get($id);
 		// A failing concurrent request must never disable a newer edit/reactivation.
 		$message = wp_check_invalid_utf8( substr( $message, 0, 4000 ), true );
 		$data = [ 'active' => 0, 'last_error' => $message ?: 'Errore PHP: diagnostica non disponibile.', 'revision' => self::new_revision() ];
@@ -153,13 +170,16 @@ final class Marrison_Addon_PHP_Snippets_Store {
 			$data['last_error'] = 'Errore PHP: diagnostica non salvabile nel database.';
 			$result = $wpdb->update( $this->table(), $data, $where );
 		}
+		Marrison_Addon_PHP_Snippets_Security::audit('quarantine', $logged_row ?: array('id' => $id), $result === false ? 'failed' : ($result === 0 ? 'stale_nochange' : 'suspended'));
 		return $result;
 	}
 
 	public function deactivate_all() {
-		global $wpdb;
-		return false !== $wpdb->query( $wpdb->prepare( "UPDATE {$this->table()} SET active = 0, revision = %s WHERE active = 1", self::new_revision() ) );
-	}
+        foreach ((array) $this->listing() as $row) {
+            if (!empty($row['active']) && is_wp_error($this->change_state($row['id'], $row['revision'], 'deactivate'))) { return false; }
+        }
+        return true;
+    }
 
 	private function write_error() {
 		return new WP_Error( 'storage', __( 'Operazione non completata: errore database oppure snippet modificato da un’altra richiesta. Ricarica la pagina.', 'marrison-addon' ) );

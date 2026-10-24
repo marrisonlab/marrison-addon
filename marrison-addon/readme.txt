@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.83
+Stable tag: 1.3.84
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -58,9 +58,9 @@ Minimum requirements: WordPress 6.0 and PHP 7.4. Current compatibility targets c
 
 = Cookie scans after updates =
 
-If Cookie Manager is enabled, administrators see a compact notice requesting a new scan after a plugin update. Open AM Addon > Cookie Manager > Scanner Cookie and start the remote scan; you may then leave the panel or continue the wizard. The notice clears after a scan started with the updated version saves its report and completes the planned browser measurements without browser errors. Old, cancelled, failed and incomplete jobs do not clear it. HTTP failures can leave an explicitly partial report after all available browser measurements finish. First installations use the setup wizard; turning the module off hides the notice.
+If Cookie Manager is enabled, the post-update notice clears after a current-version static scan completes and saves its results. Optional iframe checks are required only when explicitly enabled. Old, cancelled, failed or incomplete work does not confirm a completed scan.
 
-Cookie observations never store cookie values. Scans sample representative templates and services instead of visiting every equivalent URL. Remote scanning can observe third-party and HttpOnly cookies; local scanning cannot. Form submissions, sign-ins and conditional cookies require separate verification. Insert policy shortcodes into your own pages; the plugin does not create policy pages automatically.
+Cookie observations never store values. The local scanner finds services in published content/configuration; their catalog cookies are declared, not observed. Optional iframe checks cannot see third-party cookies. Verify login, checkout and conditional interactions manually. Policy shortcodes do not create pages automatically.
 
 = External services =
 
@@ -102,6 +102,9 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.84 =
+* Fase 6: Firme e riautenticazione PHP Snippets, log, recupero file, costanti WordPress e verifica checksum updater.
 
 = 1.3.83 =
 * Fase 5: Hardening endpoint e output, rate limit, ricevute limitate e non indovinabili, controllo HTTP Site Health.
@@ -169,3 +172,11 @@ Configure the new Privacy and policies fields to generate your notice. Custom po
 = 1.3.73 =
 
 
+
+= PHP Snippets security =
+
+Unsigned snippets are preserved but not executed. Review them and use Firma e riattiva with both capabilities, nonce and recent authentication. The emergency file wp-content/uploads/marrison-snippets-off suspends execution. Read-only WordPress constants, code size/rate limits and a metadata-only audit log are respected. See docs/cookie-hardening.md.
+
+= Release checksum =
+
+Publish Marrison-Archive-SHA256: DIGEST in the GitHub release body for the exact existing tag archive URL. Missing/mismatched checksums block offers and installation; six-hour caching is unchanged. This is an integrity check, not an independent signature of the publisher.

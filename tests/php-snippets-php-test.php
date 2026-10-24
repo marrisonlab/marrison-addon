@@ -3,18 +3,23 @@
 error_reporting( E_ALL );
 define( 'ABSPATH', __DIR__ . '/' );
 define( 'ARRAY_A', 'ARRAY_A' );
+define('AUTH_SALT', 'fixture-secret-for-snippets-signing-at-least-32');
+unset($_SERVER['SCRIPT_FILENAME']);
+$GLOBALS['fixture_options'] = $GLOBALS['fixture_transients'] = array();
 $child = isset( $argv[1] ) && '--child' === $argv[1];
 $scenario = $child ? $argv[2] : '';
 $state_file = $child ? $argv[3] : null;
 $GLOBALS['modules'] = $child && 'disabled' !== $scenario ? [ 'php_snippets' => 1 ] : [];
 $GLOBALS['caps'] = [ 'manage_options' => true, 'unfiltered_html' => true ];
 $GLOBALS['hooks'] = $GLOBALS['shortcodes'] = $GLOBALS['trace'] = [];
-$GLOBALS['admin'] = in_array( $scenario, [ 'backend', 'recovery', 'dashboard', 'toggle' ], true );
+$GLOBALS['admin'] = in_array( $scenario, [ 'backend', 'recovery', 'dashboard', 'toggle', 'anonymous-page' ], true );
 $_SERVER['SCRIPT_NAME'] = 'login' === $scenario ? '/wp-login.php' : '/index.php';
 $_SERVER['REQUEST_METHOD'] = 'GET';
+if (in_array($scenario, array('recovery', 'dashboard'), true)) { $_SERVER['SCRIPT_NAME'] = '/wp-admin/admin.php'; }
 if ( 'recovery' === $scenario ) { $_GET['page'] = 'marrison_addon_php_snippets'; }
 if ( 'dashboard' === $scenario ) { $_GET['page'] = 'marrison_addon_panel'; }
 if ( 'toggle' === $scenario ) { $_SERVER['SCRIPT_NAME'] = '/wp-admin/admin-ajax.php'; $_POST['action'] = 'marrison_save_option'; }
+if ($scenario === 'anonymous-page') { $_SERVER['SCRIPT_NAME'] = '/wp-admin/admin-ajax.php'; $_GET['page'] = 'marrison_addon_panel'; $GLOBALS['fixture_logged_in'] = false; }
 if ( 'safe' === $scenario ) { define( 'MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE', true ); }
 if ( in_array( $scenario, [ 'memory', 'dependency-memory' ], true ) ) { ini_set( 'memory_limit', '24M' ); }
 
@@ -45,7 +50,19 @@ function current_user_can( $cap ) { return ! empty( $GLOBALS['caps'][ $cap ] ); 
 function is_admin() { return $GLOBALS['admin']; }
 function wp_is_recovery_mode() { return 'native-recovery' === $GLOBALS['scenario']; }
 function wp_doing_cron() { return false; }
-function did_action() { return 0; }
+function did_action($hook = '') { return $GLOBALS['did_hooks'][$hook] ?? 0; }
+function get_current_user_id() { return 1; }
+function is_user_logged_in() { return $GLOBALS['fixture_logged_in'] ?? true; }
+function wp_get_session_token() { return 'session-token'; }
+function wp_get_current_user() { return (object) array('ID' => 1, 'user_pass' => 'hash'); }
+function wp_check_password($password, $hash, $id) { return $password === 'correct'; }
+class WP_Session_Tokens { public static function get_instance($id) { return new self(); } public function get($token) { return array('login' => time()); } }
+function get_transient($key) { return $GLOBALS['fixture_transients'][$key] ?? false; }
+function set_transient($key, $value, $ttl) { $GLOBALS['fixture_transients'][$key] = $value; }
+function update_option($key, $value, $autoload = null) { $GLOBALS['fixture_options'][$key] = $value; return true; }
+function delete_option($key) { unset($GLOBALS['fixture_options'][$key]); return true; }
+function add_option($key, $value, $unused = '', $autoload = false) { if (isset($GLOBALS['fixture_options'][$key])) { return false; } return update_option($key, $value); }
+function sanitize_key($value) { return strtolower(preg_replace('/[^a-z0-9_-]/i', '', $value)); }
 function plugin_dir_path( $path ) { return dirname( $path ) . '/'; }
 function plugin_basename( $path ) { return basename( $path ); }
 function register_deactivation_hook( $file, $callback ) { add_action( 'deactivate_' . basename( $file ), $callback ); }
@@ -57,12 +74,13 @@ function absint( $value ) { return abs( (int) $value ); }
 function wp_verify_nonce( $nonce, $action ) { return hash_equals( 'valid-' . $action, $nonce ); }
 function get_option( $name, $default = false ) {
 	if ( 'marrison_addon_modules' === $name ) { return $GLOBALS['modules']; }
-	if ( 'marrison_addon_php_snippets_schema' === $name ) { return '1'; }
-	return $default;
+	if ( 'marrison_addon_php_snippets_schema' === $name ) { return '2'; }
+	return $GLOBALS['fixture_options'][$name] ?? $default;
 }
 function add_action( $hook, $callback, $priority = 10, $args = 1 ) { $GLOBALS['hooks'][ $hook ][ $priority ][] = $callback; }
 function add_filter( $hook, $callback, $priority = 10, $args = 1 ) { add_action( $hook, $callback, $priority, $args ); }
 function do_action( $hook ) {
+    $GLOBALS['did_hooks'][$hook] = ($GLOBALS['did_hooks'][$hook] ?? 0) + 1;
 	$callbacks = $GLOBALS['hooks'][ $hook ] ?? [];
 	ksort( $callbacks );
 	foreach ( $callbacks as $items ) { foreach ( $items as $callback ) { call_user_func( $callback ); } }
@@ -129,6 +147,7 @@ $plugin = dirname( __DIR__ ) . '/marrison-addon/';
 require $plugin . 'marrison-addon.php';
 
 if ( $child ) {
+    if ($scenario === 'anonymous-page') { do_action('init'); }
 	if ( in_array( $scenario, [ 'bootstrap', 'frontend', 'backend' ], true ) ) {
 		new Marrison_Addon_PHP_Snippets(); // Idempotent, despite an additional instance.
 		if ( 'bootstrap' === $scenario ) {
@@ -218,7 +237,7 @@ $_GET['page'] = 'marrison_addon_php_snippets'; $_GET['edit'] = $copy;
 $fresh_admin = new Marrison_Addon_PHP_Snippets_Admin( $store );
 ob_start(); $fresh_admin->render(); $html = ob_get_clean();
 check( false === strpos( $html, '<script>name</script>' ) && false === strpos( $html, '<img src=x onerror=alert(1)>' ) && false !== strpos( $html, '&lt;/textarea&gt;&lt;script&gt;' ), 'Stored code/name/error escaped incorrectly in the admin page.' );
-check( 5 === substr_count( $html, '<form ' ) && false !== strpos( $html, 'MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE' ), 'CRUD/recovery controls missing from rendered page.' );
+check( 7 === substr_count( $html, '<form ' ) && false !== strpos( $html, 'MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE' ), 'CRUD/recovery controls missing from rendered page.' );
 $GLOBALS['styles'] = $GLOBALS['inline_scripts'] = [];
 $_GET['page'] = 'unrelated'; $fresh_admin->assets();
 check( [] === $GLOBALS['styles'] && [] === $GLOBALS['inline_scripts'], 'Assets leaked onto another screen.' );
@@ -235,7 +254,8 @@ check( is_wp_error( post_action( $admin, 'save', 0, [ 'name' => 'Failed write', 
 $wpdb->fail = false;
 
 function snippet_row( $id, $code, $scope = 'everywhere', $active = 1 ) {
-	return [ 'id' => $id, 'name' => 'Fixture ' . $id, 'code' => $code, 'scope' => $scope, 'active' => $active, 'revision' => str_repeat( dechex( $id ), 32 ), 'last_error' => '' ];
+	$row = [ 'id' => $id, 'name' => 'Fixture ' . $id, 'code' => $code, 'scope' => $scope, 'active' => $active, 'revision' => str_repeat( dechex( $id ), 32 ), 'last_error' => '' ];
+    $row['signature'] = Marrison_Addon_PHP_Snippets_Security::signature($row); return $row;
 }
 function run_child( $scenario, $rows ) {
 	$file = tempnam( sys_get_temp_dir(), 'marrison-snippets-' );

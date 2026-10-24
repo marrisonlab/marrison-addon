@@ -45,3 +45,35 @@ Site Health verifica con un file di prova temporaneo se il server risponde 200: 
 La revisione del consenso include categorie dei servizi e modalità Google, così una modifica sostanziale delle scelte richiede nuova verifica. Output cookie e descrizioni sono sottoposti a escaping; la lista HTML nelle preferenze viene ricostruita con un piccolo insieme di elementi e testo, senza attributi eseguibili. I sink usati soltanto per leggere testo già escapato o intercettare il DOM non erano vulnerabilità confermate e sono rimasti. Le query di statistiche e la verifica tabella usano prepare; nomi tabella derivano dal prefisso WordPress e le liste IN usano segnaposto.
 
 Test aggiuntivo: php tests/cookie-security-php-test.php (migrazione file, 200/403/errore rete, rimozione probe, quote e limiti). Nessun nginx o sito remoto è stato modificato.
+
+## Fase 6 — 1.3.84
+
+### PHP Snippets
+
+Lo schema aggiunge soltanto signature, senza riscrivere il codice. Gli snippet senza firma o con firma non valida non vengono eseguiti; quelli attivi vengono sospesi con un messaggio. La pagina distingue Attivo da Da firmare: non eseguibile. Apri il codice di ogni snippet preesistente, verificalo e usa Firma e riattiva: l’azione richiede entrambe le capability, nonce per operazione e autenticazione recente. Salvataggi e duplicazioni restano inattivi. Non esiste una firma automatica del codice trovato nel database.
+
+La firma HMAC lega codice, ambito, revisione e ID. La chiave deriva dai secret/salt WordPress definiti in wp-config.php, disponibili già al bootstrap precoce; può includere anche MARRISON_ADDON_SNIPPETS_KEY (almeno 32 caratteri). In assenza di secret validi, il plugin rifiuta di firmare ed eseguire. Conserva i secret con i backup: ruotarli invalida le firme, senza eliminare gli snippet, e richiede nuova revisione e firma amministrativa. La firma non è una sandbox e non rende sicuro il PHP scelto dall’amministratore.
+
+Il bypass delle pagine di recupero è limitato al vero script admin.php. admin-ajax.php e admin-post.php rinviano la decisione a init: utente autenticato, manage_options + unfiltered_html e nonce specifico sono necessari. Parametri page/action anonimi non disattivano più gli snippet. Sulle richieste normali il bootstrap resta prima di plugins_loaded; sulle richieste AJAX/admin-post gli snippet partono a init, dopo l’autenticazione, quindi gli hook già trascorsi non vengono rieseguiti.
+
+Salvataggio, attivazione, firma e duplicazione richiedono una sessione autenticata negli ultimi 15 minuti, leggendo login da WP_Session_Tokens. In alternativa si verifica di nuovo la password, con conferma legata soltanto alla sessione corrente. Password non salvate o registrate. MARRISON_ADDON_SNIPPETS_REAUTH_MINUTES può impostare da 1 a 60 minuti. Limite di 20 tentativi/modifiche al minuto per utente, anche per tentativi di riautenticazione non riusciti; codice nuovo fino a 256 KiB. Non sono presenti import/export da URL remoti.
+
+DISALLOW_FILE_EDIT o DISALLOW_FILE_MODS rendono l’editor e i comandi di modifica in sola lettura e bloccano i POST corrispondenti; gli snippet già firmati possono continuare a funzionare. Disattivazione e recupero restano disponibili. Il tokenizer controlla la sintassi; funzioni come eval/exec/system producono un avviso non bloccante, visibile anche durante la scrittura in CodeMirror. L’avviso non garantisce sicurezza e non tenta di sostituire una revisione del codice.
+
+Il registro amministrativo conserva utente, data, azione, ID, hash SHA-256 del codice ed esito, mai il codice completo. Retention configurabile tra 7 e 365 giorni (default 90), massimo 2.000 eventi, ultimi 100 visibili. WP-Cron pulisce giornalmente quando il modulo è attivo; il job viene rimosso alla disattivazione. Gli aggiornamenti del registro hanno un lock con scadenza. Non è un registro indipendente dal database o a prova di manomissione.
+
+Recupero: definisci MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE=true in wp-config.php oppure crea il file vuoto wp-content/uploads/marrison-snippets-off. Rimuovi il flag per ripristinare gli snippet validamente firmati. Il flag usa il percorso standard sotto WP_CONTENT_DIR, condiviso nei casi Multisite; percorsi uploads diversi non vengono dedotti dal frontend.
+
+### Updater
+
+Una release deve pubblicare nel corpo una riga nel formato esatto:
+
+```text
+Marrison-Archive-SHA256: <64 cifre esadecimali del pacchetto>
+```
+
+Il digest deve corrispondere ai byte scaricati dall’URL GitHub archive/refs/tags/vVERSION.zip già usato dall’updater, non allo ZIP allegato della sola directory plugin. Dopo il tag, scarica quell’archivio, calcola SHA-256 e pubblica il valore nella release. URL e cache versione di sei ore rimangono invariati. Anche metadati checksum ed esito del primo controllo hanno durata di sei ore. Un aggiornamento senza digest o con pacchetto differente non viene offerto e compare un avviso in admin; il pacchetto viene ricontrollato prima dell’installazione. I file temporanei verificati vengono eliminati dal controllo dell’offerta; il normale flusso WordPress gestisce quelli destinati all’installazione.
+
+Un checksum pubblicato nello stesso account GitHub protegge l’integrità dei byte, non fornisce autenticità indipendente: chi compromette l’account potrebbe sostituire sia pacchetto sia checksum. Una firma con chiave esterna alla release sarebbe un ulteriore progetto; non viene dichiarata implementata qui. Nessuna release, tag o aggiornamento live è stato pubblicato da questa attività.
+
+Test: php tests/php-snippets-security-test.php; php tests/php-snippets-auth-test.php; php tests/php-snippets-php-test.php; php tests/updater-checksum-test.php; php tests/updater-layout-test.php. Il test browser PHP Snippets usa il vero template e CodeMirror WordPress a 1280/390 px, verifica sincronizzazione del form e avviso prima del salvataggio; resta una fixture isolata.

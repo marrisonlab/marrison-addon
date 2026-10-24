@@ -91,29 +91,39 @@ final class Marrison_Addon_PHP_Snippets_Runtime {
 	}
 
 	public static function bypass_request() {
-		if ( defined( 'MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE' ) && MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE ) {
+        if ( Marrison_Addon_PHP_Snippets_Security::safe_mode() ) {
 			return true;
 		}
 		if ( function_exists( 'wp_is_recovery_mode' ) && wp_is_recovery_mode() ) {
 			return true;
 		}
-		$script = isset( $_SERVER['SCRIPT_NAME'] ) ? basename( $_SERVER['SCRIPT_NAME'] ) : '';
+        $script = basename((string) ($_SERVER['SCRIPT_FILENAME'] ?? $_SERVER['SCRIPT_NAME'] ?? ''));
 		if ( 'wp-login.php' === $script ) {
 			return true;
 		}
 		if ( ! is_admin() ) {
 			return false;
 		}
-		// These requests execute no snippets, even before pluggable authentication
-		// exists. Bypass never changes storage; every write is authenticated later.
+        // A query string cannot turn admin-ajax.php/admin-post.php into admin.php.
 		$page = isset( $_GET['page'] ) && is_string( $_GET['page'] ) ? $_GET['page'] : '';
 		$action = isset( $_POST['action'] ) && is_string( $_POST['action'] ) ? $_POST['action'] : '';
-		return in_array( $page, [ 'marrison_addon_panel', 'marrison_addon_php_snippets' ], true )
-			|| 'marrison_php_snippets' === $action
-			|| ( 'admin-ajax.php' === $script && 'marrison_save_option' === $action );
+        if ($script === 'admin.php') { return in_array($page, array('marrison_addon_panel', 'marrison_addon_php_snippets'), true); }
+        if (!in_array($script, array('admin-ajax.php', 'admin-post.php'), true) || !did_action('init')
+            || !function_exists('is_user_logged_in') || !is_user_logged_in() || !Marrison_Addon_PHP_Snippets_Store::can_manage()) { return false; }
+        if ($action === 'marrison_save_option') {
+            return isset($_POST['nonce']) && is_string($_POST['nonce']) && wp_verify_nonce(wp_unslash($_POST['nonce']), 'marrison_save_option_nonce');
+        }
+        $operation = isset($_POST['operation']) && is_string($_POST['operation']) ? sanitize_key(wp_unslash($_POST['operation'])) : '';
+        $id = isset($_POST['id']) && is_scalar($_POST['id']) ? absint($_POST['id']) : 0;
+        return $action === 'marrison_php_snippets' && isset($_POST['_wpnonce']) && is_string($_POST['_wpnonce'])
+            && wp_verify_nonce(wp_unslash($_POST['_wpnonce']), 'marrison_php_snippets_' . $operation . '_' . $id);
 	}
 
 	public function run() {
+        $script = basename((string) ($_SERVER['SCRIPT_FILENAME'] ?? $_SERVER['SCRIPT_NAME'] ?? ''));
+        if (!self::$started && is_admin() && in_array($script, array('admin-ajax.php', 'admin-post.php'), true) && !did_action('init')) {
+            add_action('init', array($this, 'run'), -9999); return;
+        }
 		if ( self::$started || self::bypass_request() ) {
 			return;
 		}
@@ -125,6 +135,10 @@ final class Marrison_Addon_PHP_Snippets_Runtime {
 		$this->reserve = str_repeat( 'x', 524288 );
 		register_shutdown_function( [ $this, 'shutdown' ] );
 		foreach ( $rows as $row ) {
+            if (!Marrison_Addon_PHP_Snippets_Security::verify($row)) {
+                $this->store->quarantine($row['id'], $row['revision'], 'Firma assente o non valida: codice non eseguito. Verifica lo snippet e usa Firma e riattiva con riautenticazione.');
+                continue;
+            }
 			if ( ! in_array( $row['scope'], [ 'everywhere', 'frontend', 'backend' ], true ) ) {
 				$this->store->quarantine( $row['id'], $row['revision'], 'Ambito di esecuzione non valido.' );
 				continue;
