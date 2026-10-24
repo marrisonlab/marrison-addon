@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.84
+Stable tag: 1.3.85
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -102,6 +102,10 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.85 =
+* Nuova scansione: elimina il vecchio inventario cookie e salva soltanto i risultati del job corrente, anche parziale. Ricevute e impostazioni invariate.
+* Distingue i rapporti del vecchio metodo remoto e ne impedisce la ripresa.
 
 = 1.3.84 =
 * Fase 6: Firme e riautenticazione PHP Snippets, log, recupero file, costanti WordPress e verifica checksum updater.

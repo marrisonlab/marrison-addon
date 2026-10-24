@@ -236,7 +236,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
         $job = $this->read_job();
         $id = isset($_POST['job']) && is_string($_POST['job']) ? wp_unslash($_POST['job']) : '';
         if (!$job || !hash_equals($job['id'], $id)) { throw new RuntimeException('La scansione è cambiata. Ricarica lo stato.'); }
-        if (($job['revision'] ?? '') !== self::REVISION) { throw new RuntimeException('La scansione appartiene al metodo precedente. Avvia una nuova scansione a campioni.'); }
+        if ($this->legacy_job($job)) { throw new RuntimeException('Il rapporto appartiene al metodo precedente. Avvia una nuova scansione locale per sostituire il vecchio inventario.'); }
         if ($job['expires'] < time()) { throw new RuntimeException('Scansione scaduta. Avvia una nuova scansione.'); }
         return $job;
     }
@@ -274,6 +274,8 @@ class Marrison_Addon_Cookie_Scan_Engine {
         foreach ($this->sampler->seeds() as $url) { $this->enqueue($job, $url, 'page'); }
         $job['pages'] = array_column($job['queue'], 'url');
         $job['queue'] = array();
+        // A new run replaces the cookie inventory; consent receipts and settings are separate.
+        if (!$scanner->engine_store(array(), $categories, true)) { throw new RuntimeException($scanner->get_last_scan_error()); }
         return $job;
     }
 
@@ -548,8 +550,8 @@ class Marrison_Addon_Cookie_Scan_Engine {
     private function commit(&$job) {
         $scanner = Marrison_Cookie_Scanner::get_instance();
         $records = array_merge(Marrison_Addon_Cookie_Static_Scanner::declared_cookies($job['services']), array_values($job['cookies']));
-        // Static declarations cannot disprove earlier observations. Never delete those here.
-        if (!$scanner->engine_store($records, $job['saved_categories'], false)) {
+        // Every batch replaces the inventory with this job's cumulative results, including partial runs.
+        if (!$scanner->engine_store($records, $job['saved_categories'], true)) {
             $job['status'] = 'failed';
             $this->issue($job, '', $scanner->get_last_scan_error());
             try { $this->write_job($job); } catch (Throwable $error) { /* Preserve the original storage failure. */ }
@@ -572,9 +574,14 @@ class Marrison_Addon_Cookie_Scan_Engine {
         return array('url' => $url, 'phase' => $phase, 'token' => $this->signature($job, $url, $phase), 'frame_url' => add_query_arg(array('marrison_scan' => $job['id'], 'marrison_scan_phase' => $phase, 'marrison_scan_token' => $this->signature($job, $url, $phase)), $url));
     }
 
+    private function legacy_job($job) {
+        return ($job['revision'] ?? '') !== self::REVISION || ($job['mode'] ?? 'local') !== 'local'
+            || !is_array($job['static_scan'] ?? null);
+    }
+
     private function summary($job) {
         if (!$job) { return null; }
-        $stale = ($job['revision'] ?? '') !== self::REVISION;
+        $stale = $this->legacy_job($job);
         if ($stale && in_array($job['status'], array('http', 'browser'), true)) { $job['status'] = 'cancelled'; }
         return array('revision' => $job['revision'] ?? '', 'mode' => $job['mode'] ?? 'local', 'remote_requests' => count($job['remote_requests'] ?? array()), 'stale' => $stale, 'rescan_required' => (bool) get_option('marrison_cookie_rescan_required_version'), 'id' => $job['id'], 'status' => $job['status'], 'created' => $job['created'], 'updated' => $job['updated'], 'limit' => $job['limit'],
             'limit_reached' => $job['limit_reached'], 'queued' => count($job['queue']), 'http_done' => $job['http_done'], 'http_failed' => $job['http_failed'],
@@ -582,14 +589,14 @@ class Marrison_Addon_Cookie_Scan_Engine {
             'response_pages' => count($job['response_pages'] ?? array()), 'skipped_missing' => $job['skipped_missing'] ?? array(),
             'remote_error' => $job['remote_error'] ?? '',
             'background' => false, 'worker' => $job['worker'] ?? array(),
-            'static_pending' => isset($job['static_scan']) && empty($job['static_scan']['done']),
+            'static_pending' => !$stale && empty($job['static_scan']['done']),
             'storage' => array_values($job['storage'] ?? array()), 'storage_count' => count($job['storage'] ?? array()), 'storage_supported' => $job['storage_supported'] ?? false,
             'sampling' => isset($job['sampling']) ? array('strategy' => 'templates', 'candidates' => $job['sampling']['candidates'], 'equivalents' => $job['sampling']['equivalents'],
                 'selected' => count($job['sampling']['groups']), 'unselected' => count($job['sampling']['unselected']), 'groups' => array_values($job['sampling']['groups'])) : null,
-            'cookie_count' => count($job['cookies']), 'documented_cookie_count' => $this->documented_cookie_count($job), 'services' => $this->display_services($job['services'] ?? array()), 'issues' => $job['issues'], 'issues_total' => $job['issues_total'], 'next' => $this->browser_next($job),
-            'coverage' => (isset($job['sampling']) ? 'Campioni per tipologia, template e servizi incorporati: non vengono visitati tutti i contenuti equivalenti. ' : '') . (($job['mode'] ?? 'local') === 'commander'
-                ? 'Browser remoto tramite Commander: cookie effettivamente osservati anche sui domini esterni e HttpOnly. Due fasi per pagina, prima e dopo il consenso. Cookie condizionati ad altre interazioni o bloccati dal browser possono non comparire.'
-                : 'Cookie HTTP del sito e cookie JavaScript leggibili dal browser. I cookie HttpOnly di domini terzi non sono accessibili dal plugin e non vengono inventati.'));
+            'cookie_count' => count($job['cookies']), 'documented_cookie_count' => $this->documented_cookie_count($job), 'services' => $this->display_services($job['services'] ?? array()), 'issues' => $job['issues'], 'issues_total' => $job['issues_total'], 'next' => $stale ? null : $this->browser_next($job),
+            'coverage' => $stale
+                ? 'Rapporto del metodo precedente. Avvia una nuova scansione locale per sostituire il vecchio inventario.'
+                : 'Scansione statica dei servizi e cookie dichiarati dal catalogo.' . (!empty($job['local_iframe']) ? ' Verifica iframe opzionale: non vede i cookie di terze parti.' : ' Nessuna navigazione del browser richiesta.'));
     }
 
     private function documented_cookie_count($job) {
@@ -631,7 +638,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
 
     public function technical_only() {
         try { $job = $this->read_job(); } catch (Throwable $error) { return false; }
-        if (!$job || $job['status'] !== 'completed' || empty($job['static_scan']['done'])) { return false; }
+        if (!$job || $this->legacy_job($job) || $job['status'] !== 'completed' || empty($job['static_scan']['done'])) { return false; }
         foreach (Marrison_Addon_Cookie_Scan_Services::discovered_hosts() as $category) { if ($category !== 'necessary') { return false; } }
         foreach (array('functional', 'analytics', 'marketing') as $category) {
             if (trim((string) get_option('marrison_cookie_' . $category . '_sources', '')) !== '') { return false; }
@@ -891,8 +898,8 @@ class Marrison_Addon_Cookie_Scan_Engine {
     public function frame_phase() { return $this->frame ? $this->frame['phase'] : null; }
 
     private function background_active($job) {
-        return $job && ($job['mode'] ?? '') === 'commander' && ($job['revision'] ?? '') === self::REVISION
-            && $job['expires'] >= time() && in_array($job['status'], array('http', 'browser'), true);
+        // Deprecated: persisted remote jobs must never restart a retired worker.
+        return false;
     }
 
     private function worker_token($job) {
@@ -1034,7 +1041,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
             if ($this->background_active($current)) { $this->background_batch($current['id']); return; }
             $job = $this->locked(function() {
                 $job = $this->read_job();
-                if ($job && ($job['revision'] ?? '') !== self::REVISION && in_array($job['status'], array('http', 'browser'), true)) { $job['status'] = 'cancelled'; $this->write_job($job); }
+                if ($job && $this->legacy_job($job) && in_array($job['status'], array('http', 'browser'), true)) { $job['status'] = 'cancelled'; $this->write_job($job); }
                 if ($job && $job['status'] === 'http') { $this->http_step($job); $this->write_job($job); }
                 return $job;
             });

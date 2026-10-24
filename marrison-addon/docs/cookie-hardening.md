@@ -4,7 +4,7 @@
 
 La scansione dei servizi analizza localmente i contenuti pubblicati senza password, `_elementor_data`, script/stili registrati, widget, opzioni note e gateway abilitati. Usa batch di 20 ID con `WP_Query`, nessuna ricerca SQL LIKE non indicizzata, due secondi per batch e un limite di memoria. Il cursore è nel job già esistente: è possibile interrompere/riprendere; WP-Cron completa i batch avviati esplicitamente. Nessun contenuto viene trasmesso a un servizio remoto.
 
-I cookie dei servizi entrano nello storage esistente con `source = catalogo`. `observed` è false (derivato dalla fonte nei record SQL, esplicito nei nuovi record JSON). Un catalogo non sovrascrive una vera osservazione e una scansione statica non cancella osservazioni precedenti. I cookie documentati restano distinti nell'admin e nella policy.
+I cookie dei servizi entrano nello storage esistente con `source = catalogo`. `observed` è false (derivato dalla fonte nei record SQL, esplicito nei nuovi record JSON). All’interno dello stesso job un catalogo non sovrascrive una vera osservazione. Da 1.3.85, su richiesta esplicita, ogni nuova scansione cancella l’inventario precedente e conserva soltanto i risultati cumulativi del nuovo job, anche se parziale. I cookie documentati restano distinti nell'admin e nella policy.
 
 L'iframe è opzionale, spento per default, e usa soltanto i campioni del sampler (default 3, massimo 10). Il tempo totale è configurabile tra 10 e 120 secondi, default 30; caricamento 8 secondi, agente 4 secondi. La verifica può contattare i servizi incorporati ma non vede i cookie di terze parti; non sostituisce prove su login, checkout o interazioni reali. Le rilevazioni statiche indicano una presenza potenziale, non l'effettiva esecuzione della risorsa.
 
@@ -77,3 +77,11 @@ Il digest deve corrispondere ai byte scaricati dall’URL GitHub archive/refs/ta
 Un checksum pubblicato nello stesso account GitHub protegge l’integrità dei byte, non fornisce autenticità indipendente: chi compromette l’account potrebbe sostituire sia pacchetto sia checksum. Una firma con chiave esterna alla release sarebbe un ulteriore progetto; non viene dichiarata implementata qui. Nessuna release, tag o aggiornamento live è stato pubblicato da questa attività.
 
 Test: php tests/php-snippets-security-test.php; php tests/php-snippets-auth-test.php; php tests/php-snippets-php-test.php; php tests/updater-checksum-test.php; php tests/updater-layout-test.php. Il test browser PHP Snippets usa il vero template e CodeMirror WordPress a 1280/390 px, verifica sincronizzazione del form e avviso prima del salvataggio; resta una fixture isolata.
+
+## Correzione 1.3.85 — inventario nuovo e rapporti precedenti
+
+I rapporti Commander o appartenenti al vecchio metodo sono indicati come precedenti, senza ripresa o avanzamento automatico. Il vecchio avviso sulle navigazioni fuori sito non viene attribuito al nuovo scanner locale. I dettagli del rapporto restano nel file fino alla prossima scansione, che lo sostituisce.
+
+Ogni avvio di una nuova scansione svuota l’inventario cookie precedente, sia su tabella SQL sia nel fallback JSON, dopo avere conservato le categorie amministrative. Ogni batch salva soltanto i risultati cumulativi del job corrente: un esito parziale mostra i dati trovati fino a quel punto; un esito vuoto non recupera cookie precedenti. Cookie del catalogo e osservazioni del nuovo job mantengono etichette distinte. Ricevute di consenso e impostazioni non vengono cancellate. I file di ricevuta delle informative storiche conservano le prove originarie.
+
+Test: cookie-engine-php-test.php, cookie-local-engine-php-test.php, cookie-catalog-storage-php-test.php e cookie-background-ui-js-test.js. Verificati reset SQL/JSON, osservazioni precedenti rimosse, risultati parziali cumulativi, scansione vuota e rifiuto della ripresa di un job remoto. La frase segnalata è generata dal vecchio worker in audit/2026-10-21/cookie-background/commander/app/Services/cookie-scan.js; il sito segnalato non è stato verificabile da questo ambiente per errore di risoluzione DNS.

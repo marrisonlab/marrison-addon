@@ -31,18 +31,19 @@
         },
         render: function (job) {
             this.job = job;
-            var active = !!job && ['http', 'browser'].indexOf(job.status) >= 0;
+            var stale = !!job && !!job.stale;
+            var active = !!job && !stale && ['http', 'browser'].indexOf(job.status) >= 0;
             $('#marrison-engine-progress').prop('hidden', !active);
-            $('#marrison-engine-summary').toggleClass('marrison-scan-complete', !!job && job.status === 'completed').toggleClass('marrison-scan-incomplete', !!job && ['partial', 'failed', 'cancelled'].indexOf(job.status) >= 0);
-            if (job && !active && !this.running) { this.status(this.resultText(job), job.status !== 'completed'); }
+            $('#marrison-engine-summary').toggleClass('marrison-scan-complete', !!job && !stale && job.status === 'completed').toggleClass('marrison-scan-incomplete', !!job && !stale && ['partial', 'failed', 'cancelled'].indexOf(job.status) >= 0);
+            if (job && !active && !this.running) { this.status(this.resultText(job), !stale && job.status !== 'completed'); }
             if (job && job.rescan_required === false) { $('[data-marrison-cookie-rescan-notice]').remove(); }
-            $('#marrison-scan-cancel').prop('hidden', !job || ['http', 'browser'].indexOf(job.status) < 0);
-            $('#marrison-scan-resume').prop('hidden', !job || this.running || !job.static_pending && ['http', 'browser'].indexOf(job.status) < 0);
+            $('#marrison-scan-cancel').prop('hidden', !job || stale || ['http', 'browser'].indexOf(job.status) < 0);
+            $('#marrison-scan-resume').prop('hidden', !job || stale || this.running || !job.static_pending && ['http', 'browser'].indexOf(job.status) < 0);
             $('#marrison-scan-cookies, #wizard_scan_button').prop('disabled', this.running || this.changingMode);
             $('#marrison-scan-mode').prop('disabled', this.starting || this.changingMode);
             if (!job) { $('#marrison-engine-summary').text('Nessuna scansione del nuovo motore.'); return; }
             var names = { http: 'Scansione delle pagine', browser: 'Analisi nel browser', completed: 'Scansione completata', partial: 'Scansione parziale', cancelled: 'Scansione interrotta', failed: 'Scansione non riuscita' };
-            $('#marrison-engine-summary').text((names[job.status] || 'Stato non disponibile') + ' · ' + job.http_done + ' pagine campione · ' + job.browser_done + '/' + job.browser_total + ' verifiche · ' + job.cookie_count + ' cookie osservati' + (job.documented_cookie_count ? ' · ' + job.documented_cookie_count + (job.documented_cookie_count === 1 ? ' documentato' : ' documentati') : ''));
+            $('#marrison-engine-summary').text(stale ? 'Rapporto precedente · ' + job.cookie_count + ' cookie rilevati allora. Avvia una nuova scansione locale.' : (names[job.status] || 'Stato non disponibile') + ' · ' + job.http_done + ' pagine campione · ' + job.browser_done + '/' + job.browser_total + ' verifiche · ' + job.cookie_count + ' cookie osservati' + (job.documented_cookie_count ? ' · ' + job.documented_cookie_count + (job.documented_cookie_count === 1 ? ' documentato' : ' documentati') : ''));
             $('#marrison-engine-progress').prop('max', job.status === 'http' ? Math.max(1, job.http_done + job.http_failed + job.queued) : Math.max(1, job.browser_total)).val(job.status === 'http' ? job.http_done + job.http_failed : job.browser_done);
             $('#marrison-engine-current').text(job.next ? 'Verifica in background: ' + job.next.url : (job.queued ? job.queued + ' indirizzi da verificare' : ''));
             var services = job.services || [];
@@ -87,9 +88,10 @@
                 $item.appendTo($samples);
             });
             $('#marrison-engine-details').text(JSON.stringify({ runtime: this.runtime, method: job.mode, coverage: job.coverage, skipped_missing: job.skipped_missing || [], remote_requests: job.remote_requests, remote_error: job.remote_error, response_pages: job.response_pages, issues: job.issues, issues_total: job.issues_total, services: services, sampling: sampling }, null, 2));
-            if (job.remote_error && !this.running) { this.status(job.remote_error, true); }
+            if (job.remote_error && !job.stale && !this.running) { this.status(job.remote_error, true); }
         },
         resultText: function (job) {
+            if (job.stale) { return 'Rapporto del metodo precedente. Avvia una nuova scansione locale: sostituisce i vecchi risultati.'; }
             if (job.status === 'completed') {
                 return 'Questa scansione non può vedere i cookie di terze parti; i servizi rilevati e i loro cookie arrivano dal catalogo. Scansione completata: ' + job.cookie_count + ' cookie osservati.' + (job.documented_cookie_count ? ' Cookie documentati dei servizi rilevati: ' + job.documented_cookie_count + '.' : '');
             }
@@ -154,6 +156,7 @@
             if (this.running || this.changingMode) { return; }
             try {
                 var data = await this.request('state');
+                if (data.job && data.job.stale) { this.running = false; this.render(data.job); this.status(this.resultText(data.job)); return; }
                 if (data.job && data.job.background) {
                     data = await this.request('resume', { job: data.job.id });
                     this.render(data.job); this.watchBackground(); return;
@@ -299,7 +302,7 @@
                 var data = await this.request('state');
                 if (generation !== this.generation) { return; }
                 this.render(data.job);
-                if (data.job && data.job.stale) { this.status('La scansione precedente usa un altro metodo. Avvia una nuova scansione a campioni.'); return; }
+                if (data.job && data.job.stale) { this.status(this.resultText(data.job)); return; }
                 if (data.job && data.job.background && ['http', 'browser'].indexOf(data.job.status) >= 0) {
                     if ((data.job.worker || {}).state === 'paused') { this.status(data.job.worker.error || 'Scansione in pausa. Premi Riprendi.', true); }
                     else { this.watchBackground(); }

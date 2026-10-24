@@ -3,7 +3,7 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.84
+**Version:** 1.3.85
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -23,7 +23,7 @@ Cookie consent checks keep technical diagnostics out of the visitor banner; fail
 
 [Full documentation and release history](marrison-addon/README.md) · [WordPress-format readme](marrison-addon/readme.txt)
 
-Cookie Manager 1.3.79 adds a local declarative service catalog, editable service categories and default blocking for unclassified external resources. Catalog declarations remain separate from observed cookies. See [configuration and limits](marrison-addon/docs/cookie-service-catalog.md). Scanner replacement is scheduled for Phase 2.
+Cookie Manager 1.3.79 adds a local declarative service catalog, editable service categories and default blocking for unclassified external resources. Catalog declarations remain separate from observed cookies. See [configuration and limits](marrison-addon/docs/cookie-service-catalog.md). Scanning uses the local static service inventory. Each new run replaces the previous cookie inventory; consent receipts and settings remain unchanged.
 
 ## Installation
 
@@ -51,6 +51,10 @@ Current stable versions checked on 20 October 2026: [WordPress 7.1.3](https://wo
 Optional server features are reported by their modules: FFmpeg is needed for local video cover extraction; browser cache rules depend on the web server. These features are not prerequisites for unrelated modules.
 
 ## Changelog
+
+### 1.3.85
+* Ogni nuova scansione sostituisce il vecchio inventario cookie, anche con risultati parziali o vuoti. Ricevute e impostazioni restano invariate.
+* Rapporti remoti precedenti distinti e non riprendibili.
 
 ### 1.3.84
 * Fase 6: Firme e riautenticazione PHP Snippets, log, recupero file, costanti WordPress e verifica checksum updater.

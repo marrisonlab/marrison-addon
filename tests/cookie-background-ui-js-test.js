@@ -73,5 +73,25 @@ const job={id:'server-job',background:true,mode:'commander',status:'http',worker
     visual.render({...job,status:'http',services:[],storage:[]});
     assert.equal(visual.states.get('#marrison-engine-progress').props.hidden,false);
     assert.equal(visual.states.get('#marrison-engine-summary').classes['marrison-scan-complete'],false);
+    const historical = fixture();
+    const stale = {...job, stale:true, status:'partial', cookie_count:4, http_done:1, browser_done:2, browser_total:2, services:[], storage:[], static_pending:true,
+        remote_error:'Errore remoto precedente', issues:[{message:'Richieste non pubbliche o navigazioni fuori sito bloccate: 2.',url:'https://example.test/hello-world/'}]};
+    assert.ok(historical.engine.resultText(stale).includes('nuova scansione locale'));
+    assert.ok(!historical.engine.resultText(stale).includes('Scansione incompleta'));
+    historical.render(stale);
+    assert.equal(historical.states.get('#marrison-scan-resume').props.hidden,true);
+    assert.equal(historical.states.get('#marrison-scan-cancel').props.hidden,true);
+    assert.equal(historical.states.get('#marrison-engine-progress').props.hidden,true);
+    assert.ok(historical.statuses.at(-1)[0].includes('nuova scansione locale'));
+    assert.ok(historical.states.get('#marrison-engine-summary').text.includes('Rapporto precedente'));
+    historical.render({...stale,status:'completed'});
+    assert.equal(historical.states.get('#marrison-engine-summary').classes['marrison-scan-complete'],false);
+    historical.engine.request=async action=>{historical.actions.push(action);return {job:stale};};
+    await historical.engine.init();
+    await historical.engine.resume();
+    assert.equal(historical.actions.join(','),'state,state'); // Reads only: no resume/step/remote dispatch.
+    assert.equal(historical.engine.running,false);
+    assert.equal(historical.timers.length,0);
+    assert.ok(historical.engine.resultText({...stale,stale:false,mode:'local'}).includes('Scansione incompleta'), 'Current partial errors hidden');
     console.log('PASS background UI: wizard can continue, no reload or sessionStorage dependency, server-only progress, new-tab recovery, terminal inventory refresh and paused-job resume.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
