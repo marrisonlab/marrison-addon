@@ -149,6 +149,9 @@ class Marrison_Addon_Cookie_Manager_Module {
 		$required_version = get_option( 'marrison_cookie_rescan_required_version' );
 		if ( ! $required_version || ( $job['plugin_version'] ?? '' ) !== $required_version || ! in_array( $job['status'] ?? '', array( 'completed', 'partial' ), true ) ) { return; }
 		$pages = isset( $job['pages'] ) && is_array( $job['pages'] ) ? count( $job['pages'] ) : 0;
+		if (!empty($job['static_scan']['done']) && empty($job['local_iframe']) && $job['status'] === 'completed') {
+			delete_option('marrison_cookie_rescan_required_version'); return;
+		}
 		if ( ! $pages || empty( $job['http_done'] ) || ! empty( $job['browser_failed'] ) || (int) ( $job['browser_cursor'] ?? 0 ) < $pages * 2 ) { return; }
 		delete_option( 'marrison_cookie_rescan_required_version' );
 	}

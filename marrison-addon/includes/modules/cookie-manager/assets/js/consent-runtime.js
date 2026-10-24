@@ -179,11 +179,11 @@
         };
     }
     var originalBeacon = navigator.sendBeacon;
-    if (originalBeacon) { navigator.sendBeacon = function (url) { return permitted(categoryForResource(url)) ? originalBeacon.apply(this, arguments) : false; }; }
+    if (originalBeacon) { navigator.sendBeacon = function (url) { if (!permitted(categoryForResource(url))) { reportBlocked(url); return false; } return originalBeacon.apply(this, arguments); }; }
     var originalOpen = XMLHttpRequest.prototype.open;
     var originalSend = XMLHttpRequest.prototype.send;
-    XMLHttpRequest.prototype.open = function (method, url) { this.marrisonConsentCategory = categoryForResource(url); return originalOpen.apply(this, arguments); };
-    XMLHttpRequest.prototype.send = function () { if (!permitted(this.marrisonConsentCategory)) { this.abort(); return; } return originalSend.apply(this, arguments); };
+    XMLHttpRequest.prototype.open = function (method, url) { this.marrisonConsentCategory = categoryForResource(url); this.marrisonConsentUrl = url; return originalOpen.apply(this, arguments); };
+    XMLHttpRequest.prototype.send = function () { if (!permitted(this.marrisonConsentCategory)) { reportBlocked(this.marrisonConsentUrl); this.abort(); return; } return originalSend.apply(this, arguments); };
     function enforce() {
         // Pending verification blocks new optional activity, but cannot invalidate a
         // previous signed choice. A failed request remains pending until a retry.

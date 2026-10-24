@@ -13,7 +13,7 @@ function wp_salt() { global $cookie_salt; return $cookie_salt; }
 function home_url() { return 'https://example.test'; }
 function wp_parse_url($url, $component = -1) { return parse_url($url, $component); }
 function wp_unslash($value) { return $value; }
-function wp_upload_dir() { global $test_dir; return array('basedir' => $test_dir); }
+function wp_upload_dir() { global $test_dir; return array('basedir' => $test_dir, 'baseurl' => 'https://example.test/uploads'); }
 function wp_mkdir_p($path) { return is_dir($path) || mkdir($path, 0777, true); }
 function is_ssl() { return true; }
 function check_ajax_referer($action, $key) { if (($_POST[$key] ?? '') !== 'valid') { throw new LogicException('Invalid nonce'); } }
@@ -57,7 +57,7 @@ try {
     $other = $store->record('reject_all', array());
     verify($other['visitor_id'] !== $first['visitor_id'], 'Independent visitors were merged');
     $archive = $test_dir . '/marrison-cookie/consent/';
-    $log = $archive . 'receipts-' . gmdate('Y-m-d') . '.php';
+    $log = glob($archive . 'receipts-' . gmdate('Y-m-d') . '-*.php')[0];
     $body = file_get_contents($log);
     verify(strpos($body, $store::PREFIX) === 0 && strpos($body, 'ip_address') === false && strpos($body, 'user_agent') === false, 'Journal privacy/protection failed');
     $response = invoke_ajax($store, 'ajax_receipts');
@@ -70,7 +70,7 @@ try {
     file_put_contents($log, $tampered);
     verify(!invoke_ajax($store, 'ajax_receipts')->data['receipts'][0]['integrity_valid'], 'Altered journal record was not detected');
     file_put_contents($log, $body);
-    $policy = $archive . 'policy-' . $first['revision'] . '.php';
+    $policy = glob($archive . 'policy-' . $first['revision'] . '-*.php')[0];
     $original = file_get_contents($policy);
     file_put_contents($policy, $store::PREFIX . '{}');
     verify(invoke_ajax($store, 'ajax_receipts')->data['snapshot_integrity'][$first['revision']] === false, 'Altered policy snapshot was not detected');
@@ -119,6 +119,7 @@ try {
     if (is_dir($test_dir . '/marrison-cookie/consent/web.config')) { rmdir($test_dir . '/marrison-cookie/consent/web.config'); }
     foreach (glob($test_dir . '/marrison-cookie/consent/*') ?: array() as $file) { unlink($file); }
     foreach (array('.htaccess', 'web.config') as $file) { if (is_file($test_dir . '/marrison-cookie/consent/' . $file)) { unlink($test_dir . '/marrison-cookie/consent/' . $file); } }
+    if (is_file($test_dir . '/marrison-cookie/request-limits.php')) { unlink($test_dir . '/marrison-cookie/request-limits.php'); }
     if (is_dir($test_dir . '/marrison-cookie/consent')) { rmdir($test_dir . '/marrison-cookie/consent'); rmdir($test_dir . '/marrison-cookie'); rmdir($test_dir); }
     ob_end_flush();
 }

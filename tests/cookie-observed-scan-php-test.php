@@ -20,8 +20,8 @@ function scan_json($callback) {
 require __DIR__ . '/../marrison-addon/includes/modules/cookie-manager/includes/class-setup-wizard.php';
 $wizard = Marrison_Setup_Wizard::get_instance();
 define('DB_NAME', 'cookie_fixture');
-$test_directory = sys_get_temp_dir() . '/marrison-observed-scan-' . uniqid();
-define('ABSPATH', $test_directory . '/');
+$test_directory = rtrim(ABSPATH, '/');
+if (!defined('ABSPATH')) { define('ABSPATH', $test_directory . '/'); }
 mkdir(ABSPATH . 'wp-admin/includes', 0777, true);
 file_put_contents(ABSPATH . 'wp-admin/includes/upgrade.php', '<?php function dbDelta($sql) {}');
 class ObservedCookieDatabase extends CookieDatabase {

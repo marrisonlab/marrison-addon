@@ -66,6 +66,9 @@ try {
     }
     do_action( 'marrison_addon/cookie_scan_finished', $finished );
     verify_notice( ! get_option( 'marrison_cookie_rescan_required_version' ), 'A newly completed scan did not clear the notice.' );
+    update_option('marrison_cookie_rescan_required_version', '2.0.0');
+    do_action('marrison_addon/cookie_scan_finished', array('plugin_version' => '2.0.0', 'status' => 'completed', 'static_scan' => array('done' => true), 'local_iframe' => false));
+    verify_notice(!get_option('marrison_cookie_rescan_required_version'), 'A completed static scan required an optional iframe before clearing the notice');
     update_option( 'marrison_cookie_rescan_required_version', '2.0.0' );
     do_action( 'marrison_addon/cookie_scan_finished', array_replace( $finished, array( 'status' => 'partial', 'http_failed' => 1 ) ) );
     verify_notice( ! get_option( 'marrison_cookie_rescan_required_version' ), 'A finished scan with an HTTP 404 must retain its partial result without leaving a false not-scanned notice.' );

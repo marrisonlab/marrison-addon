@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 /**
  * Classe per le impostazioni di amministrazione
  */

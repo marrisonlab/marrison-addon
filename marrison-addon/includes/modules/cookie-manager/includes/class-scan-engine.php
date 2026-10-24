@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 /** Representative same-site HTTP samples and isolated browser measurements. */
 require_once __DIR__ . '/class-scan-sampler.php';
 require_once __DIR__ . '/class-scan-services.php';
@@ -16,15 +17,12 @@ class Marrison_Addon_Cookie_Scan_Engine {
     }
 
     private function __construct() {
-        foreach (array('start', 'step', 'state', 'resume', 'browser', 'remote', 'inventory', 'cancel', 'mode', 'export') as $action) {
+        foreach (array('start', 'step', 'state', 'resume', 'browser', 'inventory', 'cancel', 'mode', 'export') as $action) {
             add_action('wp_ajax_marrison_addon_cookie_engine_' . $action, array($this, 'ajax_' . $action));
         }
         add_action('marrison_addon_cookie_engine_tick', array($this, 'scheduled_step'));
-        add_action('wp_ajax_marrison_addon_cookie_engine_worker', array($this, 'ajax_worker'));
-        add_action('wp_ajax_nopriv_marrison_addon_cookie_engine_worker', array($this, 'ajax_worker'));
         add_action('admin_notices', array($this, 'background_notice'));
         add_action('admin_notices', array($this, 'retired_notice'));
-        add_action('rest_api_init', array($this, 'register_scan_proof'));
         $this->frame = $this->frame_context();
         if ($this->frame) {
             if (!defined('DONOTCACHEPAGE')) { define('DONOTCACHEPAGE', true); }
@@ -380,7 +378,9 @@ class Marrison_Addon_Cookie_Scan_Engine {
             if (!empty($job['static_scan']['memory_limited'])) {
                 $job['status'] = 'partial'; $this->issue($job, '', 'Limite di memoria: scansione statica sospesa e riprendibile.');
             } elseif (!empty($job['static_scan']['done'])) {
-                $job['status'] = !empty($job['local_iframe']) && $job['pages'] ? 'browser' : 'completed';
+                $incomplete = !empty($job['static_scan']['skipped']) || !empty($job['static_scan']['config_incomplete']);
+                if ($incomplete) { $this->issue($job, '', 'Alcuni contenuti superano i limiti di analisi: inventario statico parziale.'); }
+                $job['status'] = !empty($job['local_iframe']) && $job['pages'] ? 'browser' : ($incomplete ? 'partial' : 'completed');
                 $job['local_started'] = time();
             }
             $this->commit($job);
@@ -632,6 +632,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
     public function technical_only() {
         try { $job = $this->read_job(); } catch (Throwable $error) { return false; }
         if (!$job || $job['status'] !== 'completed' || empty($job['static_scan']['done'])) { return false; }
+        foreach (Marrison_Addon_Cookie_Scan_Services::discovered_hosts() as $category) { if ($category !== 'necessary') { return false; } }
         foreach (array('functional', 'analytics', 'marketing') as $category) {
             if (trim((string) get_option('marrison_cookie_' . $category . '_sources', '')) !== '') { return false; }
         }
@@ -646,12 +647,14 @@ class Marrison_Addon_Cookie_Scan_Engine {
     }
 
     public function register_scan_proof() {
-        register_rest_route('marrison-cookie/v1', '/scan-proof', array('methods' => 'GET', 'permission_callback' => '__return_true',
+        return; // Deprecated: remote proof route is no longer exposed.
+        register_rest_route('marrison-cookie/v1', '/scan-proof', array('methods' => 'GET', 'permission_callback' => '__return_false',
             'callback' => array($this, 'scan_proof')));
     }
 
     /** Expiring proof of an administrator-started scan, without a Commander license. */
     public function scan_proof($request) {
+        return new WP_Error('scan_proof_retired', 'Scansione remota dismessa.', array('status' => 410)); // Deprecated below.
         try {
             $job = $this->read_job();
             $id = $request->get_param('job'); $proof = $request->get_param('proof'); $url = $request->get_param('url');
@@ -929,6 +932,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
     }
 
     public function ajax_worker() {
+        wp_send_json_error(array('message' => 'Worker remoto dismesso.'), 410); return; // Deprecated below.
         try {
             $job = $this->read_job();
         } catch (Throwable $error) {

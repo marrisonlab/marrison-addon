@@ -48,7 +48,7 @@ const job={id:'server-job',background:true,mode:'commander',status:'http',worker
     changed.engine.request=async(action,data)=>{changed.actions.push(action);assert.equal(data.mode,'local');return {job:{...job,status:'cancelled'},interrupted:true};};
     await changed.engine.changeMode('local');
     assert.equal(changed.actions.join(','),'mode');assert.equal(changed.engine.running,false);assert.equal(changed.engine.job.status,'cancelled');
-    assert.ok(changed.statuses.at(-1)[0].includes('non saranno inviate altre pagine'));
+    assert.ok(changed.statuses.at(-1)[0].includes('motore locale'));
     assert.equal(changed.timers.length,0);
     const race=fixture();let deliverState;
     race.engine.request=async action=>action==='state'?await new Promise(resolve=>{deliverState=resolve;}):{job:{...job,status:'cancelled'},interrupted:true};
@@ -59,11 +59,11 @@ const job={id:'server-job',background:true,mode:'commander',status:'http',worker
     // A slow navigation gets its own budget; load grants a full agent window.
     const local=fixture();local.engine.running=true;local.engine.job={id:'local',mode:'local',status:'browser'};
     local.engine.measure({url:'https://example.test/',frame_url:'https://example.test/?signed=fixture'});
-    assert.equal(local.delays.at(-1),30000);
+    assert.equal(local.delays.at(-1),8000);
     const navigationTimer=local.engine.timer;
-    local.frames[0].listeners.load();assert.ok(local.cleared.includes(navigationTimer));assert.equal(local.delays.at(-1),15000);
+    local.frames[0].listeners.load();assert.ok(local.cleared.includes(navigationTimer));assert.equal(local.delays.at(-1),5000);
     let timeoutResult;local.engine.browserResult=result=>{timeoutResult=result;};local.timers.at(-1)();
-    assert.ok(timeoutResult.error.includes('verifica locale entro 15 secondi'));
+    assert.ok(timeoutResult.error.includes('verifica locale entro 5 secondi'));
     local.engine.removeFrame();const timersBefore=local.timers.length;local.frames[0].listeners.load();assert.equal(local.timers.length,timersBefore);
     const visual=fixture();
     visual.render({...job,status:'completed',cookie_count:3,http_done:10,browser_done:20,browser_total:20,services:[],storage:[]});

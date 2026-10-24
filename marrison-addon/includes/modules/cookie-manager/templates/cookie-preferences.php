@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 /**
  * Template per le preferenze cookie
  */

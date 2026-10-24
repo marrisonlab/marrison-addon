@@ -6,7 +6,7 @@ final class Marrison_Addon_Cookie_Static_Scanner {
         $state += array('page' => 1, 'posts' => 0, 'done' => false, 'options_done' => false, 'skipped' => 0);
         if ($state['done']) { return; }
         $deadline = microtime(true) + 2;
-        if (!$state['options_done']) { $this->configuration($services); $state['options_done'] = true; }
+        if (!$state['options_done']) { $state['config_incomplete'] = !$this->configuration($services); $state['options_done'] = true; }
         $query = new WP_Query(array('post_type' => 'any', 'post_status' => 'publish', 'has_password' => false,
             'fields' => 'ids', 'posts_per_page' => 20, 'paged' => max(1, (int) $state['page']), 'orderby' => 'ID', 'order' => 'ASC',
             'no_found_rows' => true, 'update_post_meta_cache' => false, 'update_post_term_cache' => false));
@@ -16,8 +16,8 @@ final class Marrison_Addon_Cookie_Static_Scanner {
             if (memory_get_usage(true) > $this->memory_budget()) { $state['memory_limited'] = true; return; }
             $post = get_post($id);
             if ($post && $post->post_status === 'publish' && empty($post->post_password)) {
-                $this->content($post->post_content, $services);
-                $this->content(get_post_meta($id, '_elementor_data', true), $services);
+                if (!$this->content($post->post_content, $services)) { $state['skipped']++; }
+                if (!$this->content(get_post_meta($id, '_elementor_data', true), $services)) { $state['skipped']++; }
             }
             $state['posts']++; $state['offset'] = ++$offset;
             if (microtime(true) >= $deadline) { return; }
@@ -32,13 +32,15 @@ final class Marrison_Addon_Cookie_Static_Scanner {
     }
 
     public function content($value, &$services) {
-        $nodes = 0; $stack = array($value);
+        $nodes = 0; $stack = array($value); $complete = true;
         while ($stack && $nodes++ < 2000) {
             $item = array_pop($stack);
-            if (is_array($item)) { foreach (array_slice($item, 0, 200) as $child) { $stack[] = $child; } continue; }
-            if (!is_string($item) || strlen($item) > 2097152) { continue; }
+            if (is_array($item)) { if (count($item) > 200) { $complete = false; } foreach (array_slice($item, 0, 200) as $child) { $stack[] = $child; } continue; }
+            if (!is_string($item)) { continue; }
+            if (strlen($item) > 2097152) { $complete = false; continue; }
             $item = html_entity_decode(str_replace(array('\\/', '\\u0026'), array('/', '&'), $item), ENT_QUOTES, 'UTF-8');
             if (preg_match_all('~(?:https?:)?//[^\s"\'<>\\\\()]+~i', $item, $matches)) {
+                if (count($matches[0]) > 200) { $complete = false; }
                 foreach (array_slice($matches[0], 0, 200) as $url) { $this->resource($url, $services); }
             }
             // Elementor video/map widgets can store a short URL or an API key instead of an embed URL.
@@ -47,12 +49,14 @@ final class Marrison_Addon_Cookie_Static_Scanner {
                 foreach (array_unique($ids[1]) as $id) { $this->resource('https://www.googletagmanager.com/' . (strpos($id, 'GTM-') === 0 ? 'gtm.js' : 'gtag/js') . '?id=' . $id, $services); }
             }
         }
+        return $complete && !$stack;
     }
 
     public function resource($url, &$services) {
         if (strpos($url, '//') === 0) { $url = 'https:' . $url; }
         $parts = wp_parse_url($url); $host = strtolower($parts['host'] ?? '');
         if (!$host || !in_array(strtolower($parts['scheme'] ?? ''), array('http', 'https'), true)) { return; }
+        if ($host === 'youtu.be' || (in_array($host, array('youtube.com', 'www.youtube.com'), true) && preg_match('~^/(?:watch|shorts/)~', $parts['path'] ?? ''))) { $url = 'https://www.youtube-nocookie.com/embed/catalog-detection'; }
         $profiles = Marrison_Addon_Cookie_Scan_Services::identify($url);
         if (!$profiles && $host === strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST))) { return; }
         if (!isset($services[$host]) && count($services) >= 100) { return; }
@@ -62,6 +66,7 @@ final class Marrison_Addon_Cookie_Static_Scanner {
 
     private function configuration(&$services) {
         global $wp_scripts, $wp_styles;
+        $complete = true;
         foreach (array($wp_scripts, $wp_styles) as $registry) {
             foreach (isset($registry->registered) ? $registry->registered : array() as $dependency) {
                 $src = $dependency->src ?? '';
@@ -71,7 +76,7 @@ final class Marrison_Addon_Cookie_Static_Scanner {
         $keys = array('widget_text', 'widget_custom_html', 'monsterinsights_settings', 'googlesitekit_analytics-4_settings',
             'googlesitekit_tagmanager_settings', 'gtm4wp-options', 'pixelyoursite', 'woocommerce_google_analytics_settings');
         if (function_exists('get_stylesheet')) { $keys[] = 'theme_mods_' . get_stylesheet(); }
-        foreach ($keys as $key) { $this->content(get_option($key, array()), $services); }
+        foreach ($keys as $key) { if (!$this->content(get_option($key, array()), $services)) { $complete = false; } }
         foreach (array('woocommerce_stripe_settings' => 'stripe', 'woocommerce_woocommerce_payments_settings' => 'woopayments',
             'woocommerce_ppcp-gateway_settings' => 'paypal', 'woocommerce_klarna_payments_settings' => 'klarna') as $key => $id) {
             $option = get_option($key, array());
@@ -80,6 +85,7 @@ final class Marrison_Addon_Cookie_Static_Scanner {
         if (class_exists('WooCommerce', false)) { $this->declare_service('woocommerce', $services); }
         $pixel = get_option('facebook_config', array());
         if (is_array($pixel) && !empty($pixel['pixel_id'])) { $this->resource('https://connect.facebook.net/en_US/fbevents.js', $services); }
+        return $complete;
     }
 
     private function declare_service($id, &$services) {

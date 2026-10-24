@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 /**
  * Classe per la visualizzazione del banner cookie
  */
@@ -313,7 +314,7 @@ class Marrison_Cookie_Banner {
      * AJAX: Ottieni elenco cookie scansionati
      */
     public function ajax_get_cookie_list() {
-        check_ajax_referer('marrison_cookie_nonce', 'nonce');
+        Marrison_Addon_Cookie_Consent_Store::get_instance()->authorize_public();
         
         $scanner = Marrison_Cookie_Scanner::get_instance();
         $cookies = $scanner->get_cookies('all');
@@ -366,6 +367,9 @@ class Marrison_Cookie_Banner {
     }
 
     public function ajax_refresh_nonce() {
+        Marrison_Addon_Cookie_Consent_Store::get_instance()->authorize_origin();
+        require_once __DIR__ . '/class-request-limits.php';
+        if (!Marrison_Addon_Cookie_Request_Limits::allow('nonce-refresh:' . gmdate('Y-m-d'), 20000, DAY_IN_SECONDS)) { wp_send_json_error(array('message' => 'Limite raggiunto.'), 429); }
         wp_send_json_success(array(
             'nonce' => wp_create_nonce('marrison_cookie_nonce'),
         ));

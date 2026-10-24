@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { define('ABSPATH', __DIR__ . '/'); }
 /** Valid HTML attribute forms must be inert before consent. */
 function add_action() {}
 function add_shortcode() {}

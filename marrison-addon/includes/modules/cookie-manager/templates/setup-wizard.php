@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 /**
  * Template per il wizard di configurazione iniziale (Popup Modal)
  */

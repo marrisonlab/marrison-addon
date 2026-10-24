@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 /** Configured policy content and stable evidence of the information offered to visitors. */
 final class Marrison_Addon_Cookie_Policy_Content {
     public static function snapshot() {
@@ -20,6 +21,9 @@ final class Marrison_Addon_Cookie_Policy_Content {
                     'elementor' => function_exists('get_post_meta') ? (string) get_post_meta($id, '_elementor_data', true) : '');
             }
         }
+        $snapshot['service_categories'] = (array) get_option('marrison_cookie_service_categories', array());
+        ksort($snapshot['service_categories']);
+        $snapshot['google_advanced'] = (bool) get_option('marrison_cookie_google_advanced', false);
         return $snapshot;
     }
 
@@ -32,6 +36,8 @@ final class Marrison_Addon_Cookie_Policy_Content {
         // The controller changes the revision for significant processing changes.
         // Formatting/layout corrections alone must not solicit a new choice.
         $contract = array('revision_label' => $snapshot['revision_label']);
+        $contract['service_categories'] = $snapshot['service_categories'] ?? array();
+        $contract['google_advanced'] = !empty($snapshot['google_advanced']);
         foreach (array('functional_sources', 'analytics_sources', 'marketing_sources') as $key) {
             $rules = array_values(array_unique(array_filter(array_map('trim', preg_split('/[\r\n]+/', strtolower($snapshot[$key]))))));
             sort($rules, SORT_STRING);

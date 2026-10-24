@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 /**
  * Classe per la scansione dei cookie
  */
@@ -222,7 +223,7 @@ class Marrison_Cookie_Scanner {
         }
 
         $quoted_table_name = $this->quote_identifier($table_name);
-        $described = $wpdb->get_var("SHOW TABLES LIKE '" . esc_sql($wpdb->esc_like($table_name)) . "'");
+        $described = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table_name)));
 
         if ($described === $table_name) {
             $wpdb->last_error = $previous_error;

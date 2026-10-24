@@ -11,7 +11,7 @@
 *   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
 *   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
-*   **Stable tag:** 1.3.82
+*   **Stable tag:** 1.3.83
 *   **License:** GPL-3.0-or-later
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -220,6 +220,9 @@ Updates use the latest published stable GitHub Release from `marrisonlab/marriso
 Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, source/review badges, service category overrides in Behavior, custom domain/path rules and default blocking for unclassified external resources. Payment classification must be confirmed by the privacy adviser. Catalog cookies are declarations, never observations; PayPal/Klarna lists remain empty where integration-specific data are unconfirmed. No scanner provider is replaced in this phase. See [configuration, limitations and tests](docs/cookie-service-catalog.md).
 
 ## Changelog
+
+### 1.3.83
+* Fase 5: Hardening endpoint e output, rate limit, ricevute limitate e non indovinabili, controllo HTTP Site Health.
 
 ### 1.3.82
 * Fase 4: Default consenso 180 giorni, modalità solo tecnici e checklist dichiarativa non bloccante.
@@ -628,3 +631,15 @@ Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, sourc
 *   Initial release.
 *   Added Wrapped Link functionality to Elementor Containers (Advanced Tab).
 *   Implemented dependency check for Elementor.
+
+## Protezione ricevute su nginx
+
+Bloccare il percorso reale dell’archivio nel server nginx, adattando il prefisso se uploads o WordPress hanno un percorso diverso:
+
+```nginx
+location ^~ /wp-content/uploads/marrison-cookie/consent/ {
+    deny all;
+}
+```
+
+Il controllo Site Health prova a leggere un file temporaneo innocuo e lo elimina sempre: HTTP 200 segnala un problema, un errore di rete lascia la verifica da completare. I file esistenti vengono migrati a nomi con suffisso HMAC senza cancellare dati. Vedere [hardening e limiti](docs/cookie-hardening.md).

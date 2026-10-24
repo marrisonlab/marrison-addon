@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const source = fs.readFileSync(require('node:path').join(__dirname, '../marrison-addon/includes/modules/cookie-manager/assets/js/consent-runtime.js'), 'utf8');
 
 function fixture(phase, serviceRules = {}) {
-    const writes = [], requests = [];
+    const writes = [], requests = [], requestBodies = [];
     const cookies = new Map([['_ga', 'existing-id'], ['functional_pref', 'saved'], ['woocommerce_cart_hash', 'cart']]);
     class Node {
         appendChild(node) { return node; }
@@ -37,10 +37,10 @@ function fixture(phase, serviceRules = {}) {
     class HTMLImageElement extends Element {}
     class XMLHttpRequest { open() {} send() {} abort() {} }
     const document = new Document();
-    const window = { marrisonConsentRules: { phase, cookies: [{ name: '_ga*', category: 'analytics' }, { name: 'functional_pref', category: 'functional' }], sources: { analytics: ['/tracking/'] }, ...serviceRules }, fetch(url) { requests.push(url); return Promise.resolve('loaded'); } };
-    const context = vm.createContext({ window, document, Node, Element, Document, DocumentFragment, HTMLScriptElement, HTMLIFrameElement, HTMLImageElement, XMLHttpRequest, navigator: {}, location: { pathname: '/shop/item', hostname: 'example.test', protocol: 'https:' }, URL, DOMException });
+    const window = { marrisonConsentRules: { phase, cookies: [{ name: '_ga*', category: 'analytics' }, { name: 'functional_pref', category: 'functional' }], sources: { analytics: ['/tracking/'] }, ...serviceRules }, fetch(url, args) { requests.push(url); requestBodies.push(args && args.body); return Promise.resolve('loaded'); } };
+    const context = vm.createContext({ window, document, Node, Element, Document, DocumentFragment, HTMLScriptElement, HTMLIFrameElement, HTMLImageElement, XMLHttpRequest, navigator: {}, location: { pathname: '/shop/item', hostname: 'example.test', protocol: 'https:' }, URL, URLSearchParams, setTimeout, DOMException });
     vm.runInContext(source, context);
-    return { window, document, writes, requests, cookies, Element, context, Document };
+    return { window, document, writes, requests, requestBodies, cookies, Element, context, Document };
 }
 
 module.exports = { fixture };

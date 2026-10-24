@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { define('ABSPATH', __DIR__ . '/'); }
 /** WP-Cron fixture for automatic scan interval, lifecycle and manual independence. */
 define('DAY_IN_SECONDS', 86400);
 $options = array();

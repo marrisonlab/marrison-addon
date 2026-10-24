@@ -1,4 +1,6 @@
 <?php
+if (!defined('ABSPATH')) { define('ABSPATH', __DIR__ . '/'); }
+if (!function_exists('add_filter')) { function add_filter() {} }
 /** Minimal WP service fixtures shared by focused Cookie Manager tests. */
 if (!defined('DAY_IN_SECONDS')) { define('DAY_IN_SECONDS', 86400); }
 if (!function_exists('wp_json_encode')) { function wp_json_encode($value, $flags = 0) { return json_encode($value, $flags); } }

@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 /**
  * Classe per la gestione del consenso dei cookie
  */
@@ -353,10 +354,10 @@ class Marrison_Cookie_Consent {
         global $wpdb;
         
         // Conta consensi da user meta
-        $user_consents = $wpdb->get_var("
+        $user_consents = $wpdb->get_var($wpdb->prepare("
             SELECT COUNT(*) FROM {$wpdb->usermeta}
-            WHERE meta_key = 'marrison_cookie_consent'
-        ");
+            WHERE meta_key = %s
+        ", 'marrison_cookie_consent'));
         
         // Conta consensi da transients (approssimazione)
         // Nota: i transients non sono facilmente queryabili, quindi questo è un'approssimazione

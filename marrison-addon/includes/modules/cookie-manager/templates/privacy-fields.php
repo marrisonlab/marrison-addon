@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 /** Shared structured profile, rendered in settings and in the optional wizard step. */
 $privacy_profile = Marrison_Addon_Cookie_Policy_Content::profile();
 $privacy_prefix = isset($privacy_prefix) ? $privacy_prefix : 'privacy-profile-';

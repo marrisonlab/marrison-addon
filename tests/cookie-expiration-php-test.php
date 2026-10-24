@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { define('ABSPATH', __DIR__ . '/.cookie-wp-' . uniqid() . '/'); }
 /** Scanner fixture: observed headers, existing DB records and real JSON file persistence. */
 function add_action() {}
 function home_url($path = '') { return 'https://example.test' . $path; }

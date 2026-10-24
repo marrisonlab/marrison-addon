@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 /** Select representative public routes locally, before making HTTP/browser requests. */
 final class Marrison_Addon_Cookie_Scan_Sampler {
     private $archives = array();

@@ -108,7 +108,7 @@
     async function finish() {
         clearTimeout(finishTimer);
         if (sent) { return; }
-        try { await Promise.race([snapshot(), new Promise(function (resolve) { setTimeout(resolve, 1200); })]); }
+        try { await Promise.race([snapshot(), new Promise(function (resolve) { setTimeout(resolve, 500); })]); }
         catch (error) { report('Cookie non leggibili nel contesto isolato.'); return; }
         report('');
     }
@@ -132,5 +132,5 @@
     }
     if (document.readyState === 'complete') { loaded(); }
     else { window.addEventListener('load', loaded, { once: true }); }
-    setTimeout(finish, 12000);
+    setTimeout(finish, 4000);
 }());

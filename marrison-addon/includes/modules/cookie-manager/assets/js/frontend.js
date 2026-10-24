@@ -366,7 +366,18 @@
                 var $target = $('.marrison-category-cookie-list[data-cookie-list="' + category + '"]');
 
                 if (html && $target.length) {
-                    $target.html(html).addClass('has-cookies');
+                    // The server emits escaped markup. Keep only the tiny display vocabulary here too.
+                    var parsed = new DOMParser().parseFromString(String(html), 'text/html');
+                    var copy = function(node, parent) {
+                        if (node.nodeType === 3) { parent.appendChild(document.createTextNode(node.textContent)); return; }
+                        if (node.nodeType !== 1 || ['DIV', 'UL', 'LI', 'STRONG', 'SPAN'].indexOf(node.tagName) < 0) { return; }
+                        var child = document.createElement(node.tagName.toLowerCase());
+                        if (/^marrison-[a-z-]+$/.test(node.className)) { child.className = node.className; }
+                        Array.from(node.childNodes).forEach(function(item) { copy(item, child); }); parent.appendChild(child);
+                    };
+                    var fragment = document.createDocumentFragment();
+                    Array.from(parsed.body.childNodes).forEach(function(node) { copy(node, fragment); });
+                    $target.empty().append(fragment).addClass('has-cookies');
                     hasAnyCookie = true;
                 }
             });

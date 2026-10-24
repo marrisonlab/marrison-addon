@@ -27,13 +27,13 @@ async function measure(phase, blocked = false, delayed = false) {
         page.document.cookie = 'PHPSESSID=PRIVATE_VALUE; Path=/';
         page.document.cookie = '_ga_fixture=PRIVATE_VALUE; Max-Age=120; Path=/';
         if (delayed) {
-            onLoad(); intervals[0](); clock = 1500;
-            timers.find(timer => timer.delay === 1000).fn();
+            onLoad(); intervals[0](); clock = 600;
+            timers.find(timer => timer.delay === 300).fn();
             assert.equal(reports.length, 0, 'A quiet page finished before delayed services could run');
-            clock = 3000; page.document.cookie = 'marrison_scan_test_delayed=PRIVATE_VALUE; Max-Age=120; Path=/';
-            clock = 4000; timers.find(timer => timer.delay === 250).fn();
+            clock = 800; page.document.cookie = 'marrison_scan_test_delayed=PRIVATE_VALUE; Max-Age=120; Path=/';
+            clock = 1200; timers.find(timer => timer.delay === 250).fn();
             await new Promise(resolve => setImmediate(resolve));
-        } else { await timers.find(timer => timer.delay === 12000).fn(); }
+        } else { await timers.find(timer => timer.delay === 4000).fn(); }
     }
     assert.equal(reports.length, 1);
     assert(!page.cookies.has('marrison_cookie_scan_probe'), 'Probe was left in the cookie jar');
@@ -57,6 +57,6 @@ async function measure(phase, blocked = false, delayed = false) {
     assert.equal(blocked.storage_access, 'blocked');
     assert(blocked.error.includes('blocca'), 'Blocked storage was reported as an empty successful scan');
     const delayed = await measure('after', false, true);
-    assert(delayed.cookies.some(cookie => cookie.cookie_name === 'marrison_scan_test_delayed'), 'A cookie written after three seconds was missed');
+    assert(delayed.cookies.some(cookie => cookie.cookie_name === 'marrison_scan_test_delayed'), 'A cookie written during the short observation window was missed');
     console.log('PASS scan agent: read/write probe, blocked access, empty Cookie Store fallback, consent before/after, probe cleanup and no values/query disclosure');
 })().catch(error => { console.error(error); process.exitCode = 1; });
