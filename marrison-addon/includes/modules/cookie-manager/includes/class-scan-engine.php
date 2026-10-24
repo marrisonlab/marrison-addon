@@ -124,7 +124,9 @@ class Marrison_Addon_Cookie_Scan_Engine {
                 if (isset($_POST['additional_urls']) && is_string($_POST['additional_urls']) && strlen($_POST['additional_urls']) > 20000) { throw new RuntimeException('Elenco delle pagine aggiuntive troppo lungo.'); }
                 $additional = isset($_POST['additional_urls']) && is_string($_POST['additional_urls']) ? preg_split('/\R/', wp_unslash($_POST['additional_urls'])) : array();
                 $mode = 'local';
-                $job = $this->new_job($limit, $additional, $mode);
+                $browser = in_array($_POST['browser'] ?? null, array('1', 1), true);
+                $seconds = isset($_POST['max_seconds']) && is_scalar($_POST['max_seconds']) ? (int) $_POST['max_seconds'] : 30;
+                $job = $this->new_job($limit, $additional, $mode, $browser, $seconds);
                 if (isset($_POST['mode'])) { update_option('marrison_cookie_scan_mode', $mode); }
                 $this->write_job($job);
                 return array('job' => $this->summary($job));
@@ -241,7 +243,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
         return $job;
     }
 
-    private function new_job($limit, $additional = array(), $mode = 'local') {
+    private function new_job($limit, $additional = array(), $mode = 'local', $browser = null, $seconds = null) {
         $additional = array_values(array_filter(array_map('trim', $additional), 'strlen'));
         if (count($additional) > 50) { throw new RuntimeException('Puoi indicare al massimo 50 pagine aggiuntive.'); }
         $extra = array();
@@ -264,15 +266,17 @@ class Marrison_Addon_Cookie_Scan_Engine {
             'limit' => $limit, 'limit_reached' => false, 'queue' => array(), 'seen' => array(), 'pages' => array(), 'http_done' => 0, 'http_failed' => 0,
             'browser_cursor' => 0, 'browser_failed' => 0, 'cookies' => array(), 'services' => array(), 'issues' => array(), 'issues_total' => 0, 'saved_categories' => $categories,
             'sampling' => array('strategy' => 'templates', 'candidates' => 0, 'equivalents' => 0, 'excluded' => 0, 'groups' => array(), 'unselected' => array()), 'additional_urls' => $extra);
-        $this->sampler = new Marrison_Addon_Cookie_Scan_Sampler();
         $job['mode'] = 'local';
         $job['static_scan'] = array('page' => 1, 'posts' => 0, 'done' => false);
-        $job['local_iframe'] = (bool) get_option('marrison_cookie_local_iframe', false);
-        $job['local_max_seconds'] = max(10, min(120, (int) get_option('marrison_cookie_local_max_seconds', 30)));
-        $this->enqueue($job, $home, 'page');
-        foreach (array_keys($job['additional_urls']) as $url) { $this->enqueue($job, $url, 'page'); }
-        foreach ($this->sampler->seeds() as $url) { $this->enqueue($job, $url, 'page'); }
-        $job['pages'] = array_column($job['queue'], 'url');
+        $job['local_iframe'] = $browser === null ? (bool) get_option('marrison_cookie_local_iframe', false) : (bool) $browser;
+        $job['local_max_seconds'] = max(10, min(120, (int) ($seconds === null ? get_option('marrison_cookie_local_max_seconds', 30) : $seconds)));
+        if ($job['local_iframe']) {
+            $this->sampler = new Marrison_Addon_Cookie_Scan_Sampler();
+            $this->enqueue($job, $home, 'page');
+            foreach (array_keys($job['additional_urls']) as $url) { $this->enqueue($job, $url, 'page'); }
+            foreach ($this->sampler->seeds() as $url) { $this->enqueue($job, $url, 'page'); }
+            $job['pages'] = array_column($job['queue'], 'url');
+        }
         $job['queue'] = array();
         // A new run replaces the cookie inventory; consent receipts and settings are separate.
         if (!$scanner->engine_store(array(), $categories, true)) { throw new RuntimeException($scanner->get_last_scan_error()); }
@@ -583,17 +587,27 @@ class Marrison_Addon_Cookie_Scan_Engine {
         if (!$job) { return null; }
         $stale = $this->legacy_job($job);
         if ($stale && in_array($job['status'], array('http', 'browser'), true)) { $job['status'] = 'cancelled'; }
+        $browser_enabled = !$stale && !empty($job['local_iframe']);
+        $issues = $job['issues'];
+        // Older static-only jobs selected samples even though no browser visits were requested.
+        if (!$stale && !$browser_enabled) {
+            $issues = array_values(array_filter($issues, function($issue) {
+                return !preg_match('/^Limite di [0-9]+ campioni raggiunto:/', $issue['message'] ?? '');
+            }));
+        }
+
         return array('revision' => $job['revision'] ?? '', 'mode' => $job['mode'] ?? 'local', 'remote_requests' => count($job['remote_requests'] ?? array()), 'stale' => $stale, 'rescan_required' => (bool) get_option('marrison_cookie_rescan_required_version'), 'id' => $job['id'], 'status' => $job['status'], 'created' => $job['created'], 'updated' => $job['updated'], 'limit' => $job['limit'],
-            'limit_reached' => $job['limit_reached'], 'queued' => count($job['queue']), 'http_done' => $job['http_done'], 'http_failed' => $job['http_failed'],
-            'browser_done' => $job['browser_cursor'], 'browser_total' => count($job['pages']) * 2, 'browser_failed' => $job['browser_failed'],
+            'limit_reached' => $browser_enabled && $job['limit_reached'], 'queued' => count($job['queue']), 'http_done' => $job['http_done'], 'http_failed' => $job['http_failed'],
+            'static_posts' => $stale ? null : (int) ($job['static_scan']['posts'] ?? 0), 'local_iframe' => $browser_enabled,
+            'browser_done' => $browser_enabled ? $job['browser_cursor'] : 0, 'browser_total' => $browser_enabled ? count($job['pages']) * 2 : 0, 'browser_failed' => $job['browser_failed'],
             'response_pages' => count($job['response_pages'] ?? array()), 'skipped_missing' => $job['skipped_missing'] ?? array(),
             'remote_error' => $job['remote_error'] ?? '',
             'background' => false, 'worker' => $job['worker'] ?? array(),
             'static_pending' => !$stale && empty($job['static_scan']['done']),
             'storage' => array_values($job['storage'] ?? array()), 'storage_count' => count($job['storage'] ?? array()), 'storage_supported' => $job['storage_supported'] ?? false,
-            'sampling' => isset($job['sampling']) ? array('strategy' => 'templates', 'candidates' => $job['sampling']['candidates'], 'equivalents' => $job['sampling']['equivalents'],
+            'sampling' => $browser_enabled && isset($job['sampling']) ? array('strategy' => 'templates', 'candidates' => $job['sampling']['candidates'], 'equivalents' => $job['sampling']['equivalents'],
                 'selected' => count($job['sampling']['groups']), 'unselected' => count($job['sampling']['unselected']), 'groups' => array_values($job['sampling']['groups'])) : null,
-            'cookie_count' => count($job['cookies']), 'documented_cookie_count' => $this->documented_cookie_count($job), 'services' => $this->display_services($job['services'] ?? array()), 'issues' => $job['issues'], 'issues_total' => $job['issues_total'], 'next' => $stale ? null : $this->browser_next($job),
+            'cookie_count' => count($job['cookies']), 'documented_cookie_count' => $this->documented_cookie_count($job), 'services' => $this->display_services($job['services'] ?? array()), 'issues' => $issues, 'issues_total' => max(0, $job['issues_total'] - count($job['issues']) + count($issues)), 'next' => $stale || !$browser_enabled ? null : $this->browser_next($job),
             'coverage' => $stale
                 ? 'Rapporto del metodo precedente. Avvia una nuova scansione locale per sostituire il vecchio inventario.'
                 : 'Scansione statica dei servizi e cookie dichiarati dal catalogo.' . (!empty($job['local_iframe']) ? ' Verifica iframe opzionale: non vede i cookie di terze parti.' : ' Nessuna navigazione del browser richiesta.'));

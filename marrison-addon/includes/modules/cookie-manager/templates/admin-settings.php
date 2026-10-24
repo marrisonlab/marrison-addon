@@ -391,7 +391,7 @@ $categories = $scanner->get_categories();
                 </table>
             </div>
             <div class="marrison-card"><div class="marrison-card-header"><h2>Scansione e rilevamento locale</h2></div><table class="form-table">
-            <tr><th>Verifica iframe opzionale</th><td><label><input type="checkbox" name="local_iframe" value="1" <?php checked(get_option('marrison_cookie_local_iframe', false)); ?>>Verifica i cookie accessibili nei campioni; non vede i cookie di terze parti.</label></td></tr>
+            <tr><th>Verifica iframe nelle scansioni automatiche</th><td><label><input type="checkbox" name="local_iframe" value="1" <?php checked(get_option('marrison_cookie_local_iframe', false)); ?>>Verifica i cookie accessibili nei campioni; non vede i cookie di terze parti.</label></td></tr>
             <tr><th><label for="local_max_seconds">Tempo totale iframe</label></th><td><input id="local_max_seconds" name="local_max_seconds" type="number" min="10" max="120" value="<?php echo esc_attr(get_option('marrison_cookie_local_max_seconds', 30)); ?>"> secondi</td></tr>
             <tr><th>Google Consent Mode v2</th><td>Modalità base: tag bloccati prima del consenso.<br><label><input type="checkbox" name="google_advanced" value="1" <?php checked(get_option('marrison_cookie_google_advanced', false)); ?>>Modalità avanzata</label><p>Disattivata per default. Può inviare misurazioni senza cookie prima del consenso e richiede una valutazione legale. Verificare anche i tag configurati nel contenitore GTM.</p></td></tr>
             <tr><th>Rilevamento passivo</th><td><label><input type="checkbox" name="passive_detection" value="1" <?php checked(get_option('marrison_cookie_passive_detection', false)); ?>>Segnala solo gli host bloccati, senza URL, IP o identificatori del visitatore.</label><p>Opzionale e disattivato per default. Se attivato, descriverlo nell’informativa. Massimo 20 host per richiesta, 100 distinti archiviati e 500 richieste al giorno.</p></td></tr>
@@ -452,24 +452,27 @@ $categories = $scanner->get_categories();
                     </button>
 
                     <button type="button" id="marrison-scan-cookies" class="button button-primary">
-                        <?php _e('Avvia Scansione', 'marrison-cookie'); ?>
+                        <?php _e('Avvia analisi statica', 'marrison-cookie'); ?>
                     </button>
                     
+                    <button type="button" id="marrison-scan-browser" class="button"><?php _e('Analisi statica + verifica browser', 'marrison-cookie'); ?></button>
                     <span id="marrison-scan-status"></span>
                     <span id="marrison-db-status"></span>
                 </div>
                 <div id="marrison-scan-engine" class="marrison-scanner-report" aria-live="polite">
                     <p><strong><?php echo esc_html(marrison_cookie_site_text('Motore di scansione', 'Scan engine')); ?></strong> <span id="marrison-engine-runtime"><?php echo esc_html(marrison_cookie_site_text('Verifica in corso…', 'Checking…')); ?></span></p>
                     <p>
-                        <label for="marrison-scan-limit"><?php echo esc_html(marrison_cookie_site_text('Limite campioni', 'Sample limit')); ?></label>
+                        <label for="marrison-scan-limit"><?php echo esc_html(marrison_cookie_site_text('Limite campioni browser', 'Browser sample limit')); ?></label>
                         <input type="number" id="marrison-scan-limit" min="1" max="10" value="3" class="small-text">
+                        <label for="marrison-scan-seconds"><?php _e('Tempo massimo browser (secondi)', 'marrison-cookie'); ?></label>
+                        <input type="number" id="marrison-scan-seconds" min="10" max="120" value="<?php echo esc_attr(get_option('marrison_cookie_local_max_seconds', 30)); ?>" class="small-text">
                         <button type="button" id="marrison-scan-resume" class="button" hidden><?php echo esc_html(marrison_cookie_site_text('Riprendi scansione', 'Resume scan')); ?></button>
                         <button type="button" id="marrison-scan-cancel" class="button" hidden><?php echo esc_html(marrison_cookie_site_text('Interrompi', 'Stop')); ?></button>
                         <button type="button" id="marrison-scan-export" class="button"><?php echo esc_html(marrison_cookie_site_text('Esporta rapporto', 'Export report')); ?></button>
                     </p>
                     <p><label for="marrison-scan-mode"><?php echo esc_html(marrison_cookie_site_text('Metodo di scansione', 'Scan method')); ?></label>
                         <input type="hidden" id="marrison-scan-mode" value="local"><strong>Catalogo locale dei servizi</strong></p>
-                    <p class="description">La scansione analizza contenuti e configurazione senza richieste HTTP. La verifica iframe è opzionale e limitata; non vede i cookie di terze parti.</p>
+                    <p class="description">Avvia analisi statica analizza contenuti e configurazione senza richieste HTTP. Analisi statica + verifica browser aggiunge i campioni in iframe: mantieni aperto il pannello in Chrome o Edge aggiornato. Limite campioni e tempo massimo si applicano solo alla verifica browser, che non vede i cookie di terze parti. Ogni nuovo avvio sostituisce il vecchio inventario.</p>
                     <details class="marrison-scan-additional"><summary><?php echo esc_html(marrison_cookie_site_text('Pagine aggiuntive da verificare', 'Additional pages to test')); ?></summary>
                         <label for="marrison-scan-additional"><?php echo esc_html(marrison_cookie_site_text('URL dello stesso sito, uno per riga (massimo 50). Usali per pagine con condizioni o servizi particolari: saranno verificate anche se condividono il template.', 'Same-site URLs, one per line (up to 50). Use these for pages with special conditions or services: they will be checked even when sharing a template.')); ?></label>
                         <textarea id="marrison-scan-additional" rows="3" class="large-text" style="width:100%;box-sizing:border-box"></textarea>

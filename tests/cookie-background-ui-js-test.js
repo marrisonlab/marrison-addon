@@ -1,8 +1,8 @@
 // Coordinator state machine fixtures, no browser automation.
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
 const code=fs.readFileSync(path.join(__dirname,'../marrison-addon/includes/modules/cookie-manager/assets/js/scanner.js'),'utf8');
-function fixture() {
-    const timers=[],delays=[],cleared=[],actions=[],events=[],statuses=[],frames=[];let reloads=0,storageWrites=0;
+function fixture(browserSupported = true) {
+    const timers=[],delays=[],cleared=[],actions=[],events=[],statuses=[],frames=[],bindings=[];let reloads=0,storageWrites=0;
     const document={getElementById(){return {appendChild(){}};},createElement(){
         const frame={listeners:{},setAttribute(){},addEventListener(name,fn){this.listeners[name]=fn;},remove(){this.removed=true;},style:{}};
         frames.push(frame);return frame;
@@ -11,23 +11,23 @@ function fixture() {
         if(!states.has(selector))states.set(selector,{props:{},classes:{},text:''});
         const state=states.get(selector);
         return {length:typeof selector==='string'&&(selector.includes('wizard_cookie_table_body')||selector.includes('marrison-cookie-table-body'))?1:0,
-            on(){return this;},trigger(event,args){events.push([event,args]);return this;},
+            on(event,selector,callback){bindings.push({event,selector,callback});return this;},trigger(event,args){events.push([event,args]);return this;},
             val(value){if(arguments.length){state.value=value;return this;}return selector==='#marrison-scan-mode'?'commander':'';},
             prop(key,value){state.props[key]=value;return this;},toggleClass(key,value){state.classes[key]=value;return this;},
             text(value){state.text=value;return this;},empty(){return this;},children(){return {length:0};},show(){return this;},remove(){return this;}};
     };
-    const sandbox={jQuery:query,document,window:{marrisonCookieScanner:{},location:{reload(){reloads++;}},addEventListener(){}},
+    const sandbox={jQuery:query,document,HTMLIFrameElement:{prototype:browserSupported?{credentialless:false}:{}},window:{marrisonCookieScanner:{},location:{reload(){reloads++;}},addEventListener(){}},
         sessionStorage:{getItem(){return null;},setItem(){storageWrites++;},removeItem(){}},setTimeout(fn,delay){timers.push(fn);delays.push(delay);return timers.length;},clearTimeout(id){cleared.push(id);},console};
     vm.createContext(sandbox);new vm.Script(code).runInContext(sandbox);
     const engine=sandbox.window.MarrisonCookieScanner;
     const render=engine.render;
     engine.render=function(job){this.job=job;};engine.status=(message,failed)=>statuses.push([message,failed]);engine.loadInventory=async()=>actions.push('inventory');
-    return {engine,actions,events,statuses,timers,delays,cleared,frames,states,render:job=>render.call(engine,job),reloads:()=>reloads,storageWrites:()=>storageWrites};
+    return {engine,actions,events,statuses,timers,delays,cleared,frames,states,bindings,render:job=>render.call(engine,job),reloads:()=>reloads,storageWrites:()=>storageWrites};
 }
 const job={id:'server-job',background:true,mode:'commander',status:'http',worker:{state:'queued'}};
 (async()=>{
     const f=fixture();
-    f.engine.request=async(action)=>{f.actions.push(action);return {job:{...job}};};
+    f.engine.request=async(action,data)=>{f.actions.push(action);if(action==='start')assert.equal(data.browser,0);return {job:{...job}};};
     await f.engine.start(true);
     assert.equal(f.actions.join(','),'start');assert.equal(f.reloads(),0);assert.equal(f.storageWrites(),0);
     assert.equal(f.engine.running,true);assert.equal(f.events[0][0],'marrison-cookie-scan-started');assert.equal(f.events[0][1][1],true);
@@ -42,6 +42,19 @@ const job={id:'server-job',background:true,mode:'commander',status:'http',worker
     await paused.engine.init();assert.equal(paused.engine.running,false);assert.equal(paused.statuses.at(-1)[0],'Quota terminata');
     paused.engine.request=async action=>{paused.actions.push(action);return {job:{...job}};};
     await paused.engine.resume();assert.equal(paused.actions.slice(-2).join(','),'state,resume');assert.equal(paused.engine.running,true);
+    const browserScan=fixture();
+    browserScan.engine.request=async(action,data)=>{browserScan.actions.push(action);assert.equal(data.browser,1);assert.equal(data.max_seconds,30);return {job:{...job}};};
+    await browserScan.engine.start(false,true);assert.equal(browserScan.actions.join(','),'start');
+    const unsupported=fixture(false);unsupported.engine.request=async action=>{unsupported.actions.push(action);};
+    await unsupported.engine.start(true,true);assert.equal(unsupported.actions.length,0);assert.equal(unsupported.engine.running,false);
+    assert.ok(unsupported.statuses.at(-1)[0].includes('Chrome o Edge'));
+    const controls=fixture();controls.engine.request=async()=>({job:null});await controls.engine.init();
+    const starts=[];controls.engine.start=(wizard,browser)=>starts.push([wizard,browser]);
+    for(const selector of ['#marrison-scan-browser','#wizard_scan_browser_button']) {
+        const binding=controls.bindings.find(item=>item.event==='click' && item.selector===selector);
+        assert.ok(binding,'Missing visible browser command binding '+selector);binding.callback({preventDefault(){}});
+    }
+    assert.deepEqual(starts,[[false,true],[true,true]]);
     const idle=fixture();idle.engine.request=async action=>{idle.actions.push(action);return {job:null};};
     await idle.engine.init();assert.equal(idle.actions.join(','),'state');assert.equal(idle.engine.running,false);assert.equal(idle.timers.length,0);
     const changed=fixture();changed.engine.job={...job};changed.engine.running=true;
@@ -73,6 +86,18 @@ const job={id:'server-job',background:true,mode:'commander',status:'http',worker
     visual.render({...job,status:'http',services:[],storage:[]});
     assert.equal(visual.states.get('#marrison-engine-progress').props.hidden,false);
     assert.equal(visual.states.get('#marrison-engine-summary').classes['marrison-scan-complete'],false);
+    const staticOnly = {...job, mode:'local', status:'completed', local_iframe:false, static_posts:18, http_done:18, browser_done:0, browser_total:0,
+        cookie_count:0, documented_cookie_count:4, services:[], storage:[], sampling:null};
+    const staticVisual = fixture(); staticVisual.render(staticOnly);
+    const staticText = staticVisual.states.get('#marrison-engine-summary').text;
+    assert.ok(staticText.includes('18 contenuti analizzati') && staticText.includes('verifica browser disattivata') && staticText.includes('4 cookie documentati dal catalogo'));
+    assert.ok(!staticText.includes('0/6') && !staticText.includes('pagine campione') && !staticText.includes('0 cookie osservati'));
+    assert.ok(staticVisual.engine.resultText(staticOnly).includes('cookie effettivamente installati non sono stati verificati'));
+    assert.ok(!staticVisual.engine.resultText({...staticOnly,status:'partial',issues:[]}).includes('0 cookie rilevati'));
+    const verified = {...staticOnly, local_iframe:true, browser_done:6, browser_total:6, cookie_count:2};
+    staticVisual.render(verified);
+    assert.ok(staticVisual.states.get('#marrison-engine-summary').text.includes('6/6 verifiche browser'));
+    assert.ok(staticVisual.states.get('#marrison-engine-summary').text.includes('2 cookie osservati'));
     const historical = fixture();
     const stale = {...job, stale:true, status:'partial', cookie_count:4, http_done:1, browser_done:2, browser_total:2, services:[], storage:[], static_pending:true,
         remote_error:'Errore remoto precedente', issues:[{message:'Richieste non pubbliche o navigazioni fuori sito bloccate: 2.',url:'https://example.test/hello-world/'}]};

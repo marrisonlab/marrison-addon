@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.85
+Stable tag: 1.3.86
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -102,6 +102,10 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.86 =
+* Aggiunge i comandi analisi statica e verifica browser nello Scanner e nel wizard, con limiti per singolo avvio e controllo del supporto credentialless.
+* Distingue contenuti analizzati, cookie documentati e verifica browser: elimina i contatori e gli avvisi sui campioni quando l’iframe è disattivato, anche nei rapporti già salvati.
 
 = 1.3.85 =
 * Nuova scansione: elimina il vecchio inventario cookie e salva soltanto i risultati del job corrente, anche parziale. Ricevute e impostazioni invariate.

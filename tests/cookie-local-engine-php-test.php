@@ -69,6 +69,24 @@ try {
     file_put_contents($path, "<?php exit; ?>\n" . json_encode($saved_job));
     $current = $summary_method->invoke($engine, $saved_job);
     check_static(!$current['stale'] && $current['status'] === 'completed', 'Current static job became stale');
+    check_static(!$saved_job['pages'] && !$saved_job['limit_reached'] && !$saved_job['issues_total'], 'Disabled iframe selected samples or generated visit warnings');
+    $static_legacy_counters = $saved_job;
+    $static_legacy_counters['pages'] = array('https://example.test/', 'https://example.test/a/', 'https://example.test/b/');
+    $static_legacy_counters['issues'] = array(array('url' => '', 'message' => 'Limite di 3 campioni raggiunto: altri gruppi non sono stati visitati.'));
+    $static_legacy_counters['issues_total'] = 1; $static_legacy_counters['limit_reached'] = true;
+    $summary = $summary_method->invoke($engine, $static_legacy_counters);
+    check_static($summary['static_posts'] === 41 && !$summary['local_iframe'] && $summary['browser_total'] === 0 && $summary['browser_done'] === 0, 'Static contents confused with browser checks');
+    check_static($summary['sampling'] === null && !$summary['issues_total'] && !$summary['issues'] && !$summary['limit_reached'], 'Disabled iframe exposed old sample-limit warning');
+    $static_legacy_counters['local_iframe'] = true; $static_legacy_counters['browser_cursor'] = 2;
+    $summary = $summary_method->invoke($engine, $static_legacy_counters);
+    check_static($summary['local_iframe'] && $summary['browser_total'] === 6 && $summary['browser_done'] === 2 && $summary['issues_total'] === 1 && $summary['limit_reached'], 'Enabled browser lost real counters/warnings');
+
+    $new_job = new ReflectionMethod($engine, 'new_job'); if (PHP_VERSION_ID < 80100) { $new_job->setAccessible(true); }
+    $browser_job = $new_job->invoke($engine, 1, array('https://example.test/extra/'), 'local', true, 20);
+    check_static($browser_job['local_iframe'] && $browser_job['pages'] && $browser_job['local_max_seconds'] === 20, 'Explicit browser command ignored');
+    check_static(!get_option('marrison_cookie_local_iframe', false), 'Manual browser request changed the saved preference');
+    $static_job = $new_job->invoke($engine, 3, array(), 'local', false, 500);
+    check_static(!$static_job['local_iframe'] && !$static_job['pages'] && $static_job['local_max_seconds'] === 120, 'Manual static command/browser bounds ignored');
     $remote = new ReflectionMethod($engine, 'remote_step'); if (PHP_VERSION_ID < 80100) { $remote->setAccessible(true); }
     try { $remote->invoke($engine); throw new RuntimeException('Remote path remained reachable'); }
     catch (RuntimeException $error) { check_static(strpos($error->getMessage(), 'dismessa') !== false, 'Unexpected retirement error'); }

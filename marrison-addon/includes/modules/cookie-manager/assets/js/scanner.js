@@ -39,11 +39,17 @@
             if (job && job.rescan_required === false) { $('[data-marrison-cookie-rescan-notice]').remove(); }
             $('#marrison-scan-cancel').prop('hidden', !job || stale || ['http', 'browser'].indexOf(job.status) < 0);
             $('#marrison-scan-resume').prop('hidden', !job || stale || this.running || !job.static_pending && ['http', 'browser'].indexOf(job.status) < 0);
-            $('#marrison-scan-cookies, #wizard_scan_button').prop('disabled', this.running || this.changingMode);
+            $('#marrison-scan-cookies, #marrison-scan-browser, #wizard_scan_button, #wizard_scan_browser_button').prop('disabled', this.running || this.changingMode);
             $('#marrison-scan-mode').prop('disabled', this.starting || this.changingMode);
             if (!job) { $('#marrison-engine-summary').text('Nessuna scansione del nuovo motore.'); return; }
             var names = { http: 'Scansione delle pagine', browser: 'Analisi nel browser', completed: 'Scansione completata', partial: 'Scansione parziale', cancelled: 'Scansione interrotta', failed: 'Scansione non riuscita' };
-            $('#marrison-engine-summary').text(stale ? 'Rapporto precedente · ' + job.cookie_count + ' cookie rilevati allora. Avvia una nuova scansione locale.' : (names[job.status] || 'Stato non disponibile') + ' · ' + job.http_done + ' pagine campione · ' + job.browser_done + '/' + job.browser_total + ' verifiche · ' + job.cookie_count + ' cookie osservati' + (job.documented_cookie_count ? ' · ' + job.documented_cookie_count + (job.documented_cookie_count === 1 ? ' documentato' : ' documentati') : ''));
+            var browserEnabled = job.local_iframe !== false;
+            var summary = [(job.status === 'completed' && !browserEnabled ? 'Scansione statica completata' : names[job.status]) || 'Stato non disponibile',
+                job.static_posts != null ? job.static_posts + ' contenuti analizzati' : job.http_done + ' pagine campione',
+                browserEnabled ? job.browser_done + '/' + job.browser_total + ' verifiche browser' : 'verifica browser disattivata'];
+            if (browserEnabled) { summary.push(job.cookie_count + ' cookie osservati'); }
+            summary.push((job.documented_cookie_count || 0) + ' cookie documentati dal catalogo');
+            $('#marrison-engine-summary').text(stale ? 'Rapporto precedente · ' + job.cookie_count + ' cookie rilevati allora. Avvia una nuova scansione locale.' : summary.join(' · '));
             $('#marrison-engine-progress').prop('max', job.status === 'http' ? Math.max(1, job.http_done + job.http_failed + job.queued) : Math.max(1, job.browser_total)).val(job.status === 'http' ? job.http_done + job.http_failed : job.browser_done);
             $('#marrison-engine-current').text(job.next ? 'Verifica in background: ' + job.next.url : (job.queued ? job.queued + ' indirizzi da verificare' : ''));
             var services = job.services || [];
@@ -87,11 +93,15 @@
                 if (group.uncertain) { $item.append(document.createTextNode(' · ' + (group.uncertainty || 'percorso non risolto da WordPress'))); }
                 $item.appendTo($samples);
             });
-            $('#marrison-engine-details').text(JSON.stringify({ runtime: this.runtime, method: job.mode, coverage: job.coverage, skipped_missing: job.skipped_missing || [], remote_requests: job.remote_requests, remote_error: job.remote_error, response_pages: job.response_pages, issues: job.issues, issues_total: job.issues_total, services: services, sampling: sampling }, null, 2));
+            $('#marrison-engine-details').text(JSON.stringify({ runtime: this.runtime, method: job.mode, static_posts: job.static_posts, local_iframe: job.local_iframe, browser_done: job.browser_done, browser_total: job.browser_total, coverage: job.coverage, skipped_missing: job.skipped_missing || [], remote_requests: job.remote_requests, remote_error: job.remote_error, response_pages: job.response_pages, issues: job.issues, issues_total: job.issues_total, services: services, sampling: sampling }, null, 2));
             if (job.remote_error && !job.stale && !this.running) { this.status(job.remote_error, true); }
         },
         resultText: function (job) {
             if (job.stale) { return 'Rapporto del metodo precedente. Avvia una nuova scansione locale: sostituisce i vecchi risultati.'; }
+            if (job.local_iframe === false && (job.status === 'completed' || job.status === 'partial')) {
+                var detail = job.status === 'partial' && job.issues && job.issues[0];
+                return 'Analisi statica ' + (job.status === 'completed' ? 'completata' : 'parziale') + ': ' + (job.static_posts || 0) + ' contenuti analizzati e ' + (job.documented_cookie_count || 0) + ' cookie documentati dal catalogo. La verifica browser è disattivata: i cookie effettivamente installati non sono stati verificati.' + (detail ? ' ' + detail.message + (detail.url ? ' — ' + detail.url : '') : '');
+            }
             if (job.status === 'completed') {
                 return 'Questa scansione non può vedere i cookie di terze parti; i servizi rilevati e i loro cookie arrivano dal catalogo. Scansione completata: ' + job.cookie_count + ' cookie osservati.' + (job.documented_cookie_count ? ' Cookie documentati dei servizi rilevati: ' + job.documented_cookie_count + '.' : '');
             }
@@ -112,13 +122,17 @@
             clearTimeout(this.timer);
             if (this.frame) { this.frame.remove(); this.frame = null; }
         },
-        start: async function (wizard) {
+        start: async function (wizard, browser) {
             if (this.running || this.changingMode) { return; }
+            browser = browser === true;
+            if (browser && (typeof HTMLIFrameElement === 'undefined' || !('credentialless' in HTMLIFrameElement.prototype))) {
+                this.status('La verifica browser richiede Chrome o Edge aggiornato con iframe credentialless. Puoi eseguire la sola analisi statica.', true); return;
+            }
             this.running = true; this.starting = true;
             this.render(this.job);
             this.status('Preparazione della scansione…');
             try {
-                var data = await this.request('start', { mode: 'local', limit: $('#marrison-scan-limit').val() || 3, additional_urls: $('#marrison-scan-additional').val() || '' });
+                var data = await this.request('start', { mode: 'local', browser: browser ? 1 : 0, limit: $(wizard ? '#wizard_scan_limit' : '#marrison-scan-limit').val() || 3, max_seconds: $(wizard ? '#wizard_scan_seconds' : '#marrison-scan-seconds').val() || 30, additional_urls: wizard ? '' : ($('#marrison-scan-additional').val() || '') });
                 if (data.job.background) {
                     this.render(data.job); this.watchBackground();
                     $(document).trigger('marrison-cookie-scan-started', [data.job, !!wizard]);
@@ -276,6 +290,8 @@
             } catch (error) { this.fail(error); }
         },
         init: async function () {
+            $(document).on('click', '#marrison-scan-browser', function (event) { event.preventDefault(); engine.start(false, true); });
+            $(document).on('click', '#wizard_scan_browser_button', function (event) { event.preventDefault(); engine.start(true, true); });
             $(document).on('change', '#marrison-scan-mode', function () { engine.changeMode($(this).val()); });
             $(document).on('click', '#marrison-scan-resume', function () { engine.resume(); });
             $(document).on('click', '#marrison-scan-cancel', async function () {
