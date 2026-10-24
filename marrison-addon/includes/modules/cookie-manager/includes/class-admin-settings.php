@@ -188,6 +188,9 @@ class Marrison_Cookie_Admin_Settings {
             $key = $category . '_sources';
             if (isset($_POST[$key]) && is_string($_POST[$key])) { update_option('marrison_cookie_' . $key, $this->sanitize_sources(wp_unslash($_POST[$key]))); }
         }
+        if (isset($_POST['service_categories']) && is_array($_POST['service_categories'])) {
+            update_option('marrison_cookie_service_categories', Marrison_Addon_Cookie_Scan_Services::merge_categories(wp_unslash($_POST['service_categories'])), false);
+        }
         
         echo '<div class="notice notice-success"><p>Impostazioni salvate con successo!</p></div>';
     }
@@ -228,6 +231,7 @@ class Marrison_Cookie_Admin_Settings {
             'functional_sources',
             'analytics_sources',
             'marketing_sources',
+            'service_categories',
             'privacy_policy_content',
             'cookie_policy_content',
             'policy_revision',
@@ -244,7 +248,9 @@ class Marrison_Cookie_Admin_Settings {
 
             $option_key = 'marrison_cookie_' . $key;
             
-            if ($key === 'privacy_profile') {
+            if ($key === 'service_categories') {
+                update_option($option_key, Marrison_Addon_Cookie_Scan_Services::merge_categories($value), false);
+            } elseif ($key === 'privacy_profile') {
                 update_option($option_key, Marrison_Addon_Cookie_Policy_Content::sanitize_profile($value));
             } elseif (in_array($key, array('privacy_policy_content', 'cookie_policy_content'), true)) {
                 update_option($option_key, is_string($value) ? wp_kses_post($value) : '');

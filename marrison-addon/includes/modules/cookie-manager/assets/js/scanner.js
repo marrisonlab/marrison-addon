@@ -49,7 +49,7 @@
             var serviceNames = [];
             services.forEach(function (service) {
                 var labels = Object.keys(service.profiles || {}).map(function (key) { return service.profiles[key].name; });
-                (labels.length ? labels : [service.host]).forEach(function (label) { if (serviceNames.indexOf(label) < 0) { serviceNames.push(label); } });
+                (labels.length ? labels : [service.host + (service.category && service.category !== 'unclassified' ? ' — classificato: ' + service.category : ' — servizio non classificato (vedi Comportamento)')]).forEach(function (label) { if (serviceNames.indexOf(label) < 0) { serviceNames.push(label); } });
             });
             $('#marrison-engine-services').text(services.length ? 'Servizi esterni rilevati: ' + serviceNames.join(', ') + '. La presenza di un servizio non dimostra che abbia installato cookie.' : '');
             var $serviceRows = $('#marrison-service-cookie-rows').empty(), profiles = {};
@@ -60,8 +60,11 @@
                     (profile.cookies || []).forEach(function (cookie) {
                         var $row = $('<tr>');
                         [profile.name, cookie.name, cookie.domain, cookie.duration, cookie.purpose].forEach(function (text) { $('<td>').text(text).appendTo($row); });
-                        var $source = $('<td>').text('Documentato dal fornitore · ');
-                        $('<a>').attr({href: profile.source_url, target: '_blank', rel: 'noopener noreferrer'}).text('Fonte').appendTo($source);
+                        var $source = $('<td>').text('Dichiarato dal catalogo · non osservato · ');
+                        $('<span>').addClass('marrison-category-badge marrison-category-' + (profile.verified === true ? 'functional' : 'uncategorized')).text(profile.verified === true ? 'Fonte verificata' : 'Da verificare').appendTo($source);
+                        if (/^https:\/\//i.test(profile.source_url || '')) {
+                            $('<a>').attr({href: profile.source_url, target: '_blank', rel: 'noopener noreferrer'}).text('Fonte').appendTo($source);
+                        }
                         $source.appendTo($row); $row.appendTo($serviceRows);
                     });
                 });

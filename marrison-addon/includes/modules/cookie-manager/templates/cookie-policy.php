@@ -48,11 +48,13 @@ if (!defined('ABSPATH')) {
     <?php foreach ($services as $service) { foreach ($service['profiles'] ?? array() as $key => $profile) { $profiles[$key] = $profile; } } ?>
     <?php if ($profiles): ?>
         <p><strong><?php echo esc_html(marrison_cookie_site_text('Servizi rilevati e cookie documentati', 'Detected services and documented cookies')); ?></strong></p>
-        <p><?php echo esc_html(marrison_cookie_site_text('I seguenti servizi sono stati riconosciuti nelle pagine analizzate. I cookie elencati sono documentati dai fornitori: la loro installazione dipende dal consenso, dall’utilizzo e dal browser e non è attestata dalla scansione.', 'The following services were identified in the tested pages. Listed cookies are documented by their providers: their installation depends on consent, usage and the browser and is not confirmed by this scan.')); ?></p>
+        <p><?php echo esc_html(marrison_cookie_site_text('I seguenti servizi sono stati riconosciuti nelle pagine analizzate. I cookie elencati sono dichiarati dal catalogo, non osservati: la loro installazione dipende dal consenso, dall’utilizzo e dal browser. Le schede Da verificare richiedono una conferma dei dati del fornitore.', 'The following services were identified in the tested pages. Listed cookies are catalog declarations, not observations: installation depends on consent, usage and the browser. Entries marked for review require confirmation of provider information.')); ?></p>
         <?php foreach ($profiles as $profile): ?>
             <p><strong><?php echo esc_html($profile['name']); ?></strong></p>
+            <?php if (empty($profile['verified'])): ?><p><?php echo esc_html(marrison_cookie_site_text('Da verificare', 'Needs review')); ?></p><?php endif; ?>
+            <?php if (!empty($profile['notes'])): ?><p><?php echo esc_html($profile['notes']); ?></p><?php endif; ?>
             <ul><?php foreach ($profile['cookies'] as $cookie): ?><li><strong><?php echo esc_html($cookie['name']); ?></strong> — <?php echo esc_html($cookie['domain'] . ' · ' . $cookie['duration'] . '. ' . $cookie['purpose']); ?></li><?php endforeach; ?></ul>
-            <p><a href="<?php echo esc_url($profile['source_url']); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html(marrison_cookie_site_text('Documentazione del fornitore', 'Provider documentation')); ?></a></p>
+            <?php if (!empty($profile['source_url'])): ?><p><a href="<?php echo esc_url($profile['source_url']); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html(marrison_cookie_site_text('Documentazione del fornitore', 'Provider documentation')); ?></a></p><?php endif; ?>
         <?php endforeach; ?>
     <?php endif; ?>
 </section>

@@ -4,7 +4,7 @@ require_once __DIR__ . '/class-scan-sampler.php';
 require_once __DIR__ . '/class-scan-services.php';
 class Marrison_Addon_Cookie_Scan_Engine {
     const PROTOCOL = 2;
-    const REVISION = '20261022.1';
+    const REVISION = '20261024.1';
     private static $instance;
     private $frame = null;
     private $sampler = null;
@@ -542,7 +542,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
             'storage' => array_values($job['storage'] ?? array()), 'storage_count' => count($job['storage'] ?? array()), 'storage_supported' => $job['storage_supported'] ?? false,
             'sampling' => isset($job['sampling']) ? array('strategy' => 'templates', 'candidates' => $job['sampling']['candidates'], 'equivalents' => $job['sampling']['equivalents'],
                 'selected' => count($job['sampling']['groups']), 'unselected' => count($job['sampling']['unselected']), 'groups' => array_values($job['sampling']['groups'])) : null,
-            'cookie_count' => count($job['cookies']), 'documented_cookie_count' => $this->documented_cookie_count($job), 'services' => array_values($job['services'] ?? array()), 'issues' => $job['issues'], 'issues_total' => $job['issues_total'], 'next' => $this->browser_next($job),
+            'cookie_count' => count($job['cookies']), 'documented_cookie_count' => $this->documented_cookie_count($job), 'services' => $this->display_services($job['services'] ?? array()), 'issues' => $job['issues'], 'issues_total' => $job['issues_total'], 'next' => $this->browser_next($job),
             'coverage' => (isset($job['sampling']) ? 'Campioni per tipologia, template e servizi incorporati: non vengono visitati tutti i contenuti equivalenti. ' : '') . (($job['mode'] ?? 'local') === 'commander'
                 ? 'Browser remoto tramite Commander: cookie effettivamente osservati anche sui domini esterni e HttpOnly. Due fasi per pagina, prima e dopo il consenso. Cookie condizionati ad altre interazioni o bloccati dal browser possono non comparire.'
                 : 'Cookie HTTP del sito e cookie JavaScript leggibili dal browser. I cookie HttpOnly di domini terzi non sono accessibili dal plugin e non vengono inventati.'));
@@ -556,6 +556,23 @@ class Marrison_Addon_Cookie_Scan_Engine {
             }
         }
         return count($names);
+    }
+
+    private function display_services($services) {
+        $catalog = Marrison_Addon_Cookie_Scan_Services::catalog();
+        foreach ($services as &$service) {
+            $service['category'] = Marrison_Addon_Cookie_Scan_Services::category(array('id' => Marrison_Addon_Cookie_Scan_Services::host_id($service['host']), 'category' => 'unclassified'));
+            foreach ($service['profiles'] ?? array() as $id => $profile) {
+                if (isset($catalog[$id])) {
+                    // Refresh review metadata for old reports without rewriting their observed records.
+                    foreach (array('verified', 'last_reviewed', 'notes', 'provider') as $field) {
+                        if (isset($catalog[$id][$field])) { $service['profiles'][$id][$field] = $catalog[$id][$field]; }
+                    }
+                }
+            }
+        }
+        unset($service);
+        return array_values($services);
     }
 
     public function service_inventory() {

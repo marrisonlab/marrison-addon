@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.78
+Stable tag: 1.3.79
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -49,6 +49,10 @@ Included modules:
 * PHP Snippets: scoped custom PHP with syntax checks and failure recovery.
 
 Elementor, WooCommerce and JetEngine are needed only by their respective integrations. Independent modules remain available without them. PHP Snippets requires both manage_options and unfiltered_html; custom PHP has plugin-level privileges and is not sandboxed.
+
+= Service catalog (Phase 1) =
+
+Cookie Manager > Behavior includes a validated local catalog for ten services and editable classifications. Stripe, WooPayments, PayPal and Klarna default to functional; confirm their classification with your privacy adviser. Unknown external resources intercepted by the consent runtime remain blocked until classified, including after acceptance. Existing custom source lists extend classification. Catalog cookies are declared, not observed; uncertain data carry a review badge. See docs/cookie-service-catalog.md for configuration, sources and limits. Commander removal and static scanning belong to Phase 2. The plugin provides technical tools; compliance remains the site controller responsibility.
 
 = Compatibility =
 
@@ -101,6 +105,11 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.79 =
+
+* Cookie Manager, Phase 1: validated ten-service catalog, official source/privacy links and review badges. Preserve the separation between declared and observed cookies.
+* Add editable service classifications, custom domain/path recognition and default blocking of unclassified external resources. Existing cookies, receipts and settings are preserved.
 
 = 1.3.78 =
 * Fix clipped Query Fallback radio options, Select2 placeholder and selection lifecycle. Show the actual incompatible setting in editor warnings.

@@ -389,6 +389,7 @@ $categories = $scanner->get_categories();
                     <?php endforeach; ?>
                 </table>
             </div>
+            <?php include MARRISON_COOKIE_PLUGIN_DIR . 'templates/service-catalog.php'; ?>
         <?php elseif ($active_tab === 'policies'): ?>
             <div class="marrison-card">
                 <div class="marrison-card-header"><h2>Generatore Privacy Policy</h2><p>I dati compilati alimentano lo shortcode della Privacy Policy. La Cookie Policy è generata automaticamente e include l’inventario della scansione.</p></div>

@@ -3,7 +3,7 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.78
+**Version:** 1.3.79
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -23,6 +23,8 @@ Cookie scans start from the scan button or an explicitly enabled periodic schedu
 Cookie consent checks keep technical diagnostics out of the visitor banner; failed saves remain visible and do not enable tracking. Receipt protection uses the actual server's configuration. All Privacy Policy profile fields are optional. The shortcode renders saved data even when other fields are empty, omitting unspecified details without blocking publication.
 
 [Full documentation and release history](marrison-addon/README.md) · [WordPress-format readme](marrison-addon/readme.txt)
+
+Cookie Manager 1.3.79 adds a local declarative service catalog, editable service categories and default blocking for unclassified external resources. Catalog declarations remain separate from observed cookies. See [configuration and limits](marrison-addon/docs/cookie-service-catalog.md). Scanner replacement is scheduled for Phase 2.
 
 ## Installation
 
@@ -53,6 +55,9 @@ Optional server features are reported by their modules: FFmpeg is needed for loc
 
 ### Unreleased
 * Add Listing Columns, an optional Elementor widget for JetEngine grids with a 1–12 column range, CSS target selector, browser preference, responsive activation, SVG/native icons and Elementor style controls.
+
+### 1.3.79
+* Cookie Manager, Phase 1: validated local catalog for ten services, provider review badges, editable categories and unclassified-host blocking. Preserve observed-cookie counts and custom source rules.
 
 ### 1.3.78
 * Fix clipped Query Fallback radio controls and Select2 placeholder/lifecycle; show the actual incompatible setting in editor warnings.

@@ -11,7 +11,7 @@
 *   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
 *   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
-*   **Stable tag:** 1.3.78
+*   **Stable tag:** 1.3.79
 *   **License:** GPL-3.0-or-later
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -216,11 +216,19 @@ GitHub uses this Markdown documentation and the repository-root overview. The in
 
 Updates use the latest published stable GitHub Release from `marrisonlab/marrison-addon`. Commit and push the updated plugin code before creating a lowercase `vX.Y.Z` tag and publishing its Release as Latest. The PHP header/constant and readme stable tags must match `X.Y.Z`. A tag alone does not publish a Release. The updater downloads the source archive at that tag, not an attached ZIP; its version check is cached for six hours. After updating, open **AM Addon > Cookie Manager > Scanner Cookie** when the rescan notice appears. The GitHub updater runs in admin/WP-Cron while the plugin is active.
 
+## Cookie Manager service catalog
+
+Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, source/review badges, service category overrides in Behavior, custom domain/path rules and default blocking for unclassified external resources. Payment classification must be confirmed by the privacy adviser. Catalog cookies are declarations, never observations; PayPal/Klarna lists remain empty where integration-specific data are unconfirmed. No scanner provider is replaced in this phase. See [configuration, limitations and tests](docs/cookie-service-catalog.md).
+
 ## Changelog
 
 ### Unreleased
 * **Listing Columns:** Make minimum, maximum and initial columns responsive across all active Elementor breakpoints, with inherited empty values and independent per-breakpoint browser preferences.
 * **Listing Columns:** Add the optional Colonne Listing Elementor widget with configurable column range, SVG/native icons, responsive activation, browser preferences, AJAX replacement handling and native style controls.
+
+### 1.3.79
+* **Cookie Manager, Phase 1:** Add the validated declarative catalog, ten services, provider/privacy sources and review dates. Keep GA4 legacy cookies observation-only; flag uncertain provider information.
+* Add service categories (including necessary payments), reuse custom source rules and block unclassified external resources until admin classification. Preserve cookie observations, receipts and existing settings.
 
 ### 1.3.78
 * **Query Fallback UI:** Fix the native Choose control clipping stacked radio options. Use a full-width field with automatic height, a visible Select2 placeholder and stable selection/search without rebuilding the control on every setting change. Compact notices and identify the actual incompatible setting.

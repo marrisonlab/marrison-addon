@@ -23,10 +23,44 @@
         });
         return rule && valid.indexOf(rule.category) !== -1 ? rule.category : 'functional';
     }
-    function categoryForResource(value, element) {
+    function categoryForResource(value, element, hasResource) {
         var explicit = element && element.getAttribute('data-marrison-cookie-category');
         if (explicit && valid.indexOf(explicit) !== -1) { return explicit; }
         value = String(value || '').toLowerCase();
+        // Parse real URLs before legacy inline-script rules; hostname suffixes need a dot boundary.
+        // Inline data (for example JSON-LD @context) are not resource requests.
+        var urls = element && !hasResource ? [] : value.match(/(?:https?:)?\/\/[^\s,"'<>`\\()]+|(?:^|\s)\/(?!\/)[^\s,"'<>`\\()]+/g) || [];
+        var resourceCategory = null;
+        for (var i = 0; i < urls.length; i++) {
+            var url;
+            try { url = new URL(urls[i].trim(), location.protocol + '//' + location.hostname); } catch (error) { continue; }
+            var custom = Object.keys(rules.custom_sources || {}).find(function (category) {
+                return rules.custom_sources[category].some(function (rule) {
+                    rule = rule.toLowerCase();
+                    if (rule.charAt(0) === '/') { return url.pathname.indexOf(rule) === 0; }
+                    try {
+                        var parsed = new URL(rule.indexOf('://') < 0 ? 'https://' + rule : rule);
+                        return (url.hostname === parsed.hostname || url.hostname.endsWith('.' + parsed.hostname)) && url.pathname.indexOf(parsed.pathname) === 0;
+                    } catch (error) { return false; }
+                });
+            });
+            var service = (rules.catalog || []).find(function (entry) {
+                return entry.patterns.some(function (pattern) {
+                    var host = pattern.host.toLowerCase();
+                    if (host ? url.hostname !== host && !(pattern.subdomains && url.hostname.endsWith('.' + host)) : url.hostname !== location.hostname) { return false; }
+                    if (pattern.path && url.pathname.indexOf(pattern.path) !== 0) { return false; }
+                    try {
+                        return (!pattern.path_regex || new RegExp(pattern.path_regex, 'i').test(url.pathname))
+                            && (!pattern.query_regex || new RegExp(pattern.query_regex, 'i').test(url.search.slice(1)));
+                    } catch (error) { return false; }
+                });
+            });
+            var category = custom || (service && service.category) || (rules.hosts && rules.hosts[url.hostname]);
+            if (!category && rules.unknown_external && /^https?:$/.test(url.protocol) && url.hostname !== location.hostname) { category = 'unclassified'; }
+            if (category === 'unclassified') { return category; }
+            if (category && (!resourceCategory || resourceCategory === 'necessary')) { resourceCategory = category; }
+        }
+        if (resourceCategory) { return resourceCategory; }
         return Object.keys(rules.sources || {}).find(function (category) {
             return rules.sources[category].some(function (pattern) { return pattern && value.indexOf(String(pattern).toLowerCase()) !== -1; });
         }) || null;
@@ -34,7 +68,8 @@
     function permitted(category) { return !category || allowed().indexOf(category) !== -1; }
     function neutralize(element, value, attribute) {
         if (!element || element.nodeType !== 1 || !/^(SCRIPT|IFRAME|IMG)$/.test(element.tagName)) { return false; }
-        var category = categoryForResource((value || element.getAttribute('src') || '') + ' ' + (element.getAttribute('srcset') || '') + ' ' + (element.tagName === 'SCRIPT' ? element.textContent : ''), element);
+        var hasResource = !!(value || element.getAttribute('src') || element.getAttribute('srcset'));
+        var category = categoryForResource((value || element.getAttribute('src') || '') + ' ' + (element.getAttribute('srcset') || '') + ' ' + (element.tagName === 'SCRIPT' ? element.textContent : ''), element, hasResource);
         if (permitted(category)) { return false; }
         nativeSetAttribute.call(element, 'data-marrison-cookie-category', category);
         nativeSetAttribute.call(element, 'data-marrison-cookie-blocked', element.tagName.toLowerCase());

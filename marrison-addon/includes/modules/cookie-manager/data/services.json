@@ -1,0 +1,386 @@
+[
+  {
+    "id": "google-analytics",
+    "name": "Google Analytics 4",
+    "category": "analytics",
+    "patterns": [
+      {
+        "host": "google-analytics.com",
+        "subdomains": true
+      },
+      {
+        "host": "googletagmanager.com",
+        "subdomains": true,
+        "path_regex": "^/gtag/js$",
+        "query_regex": "(?:^|&)id=G-[A-Z0-9]+(?:&|$)"
+      }
+    ],
+    "cookies": [
+      {
+        "name": "_ga",
+        "domain": "Dominio del sito",
+        "duration": "2 anni (configurabile)",
+        "purpose": "Distingue i visitatori."
+      },
+      {
+        "name": "_ga_*",
+        "domain": "Dominio del sito",
+        "duration": "2 anni (configurabile)",
+        "purpose": "Mantiene lo stato della sessione; il suffisso identifica il flusso."
+      }
+    ],
+    "provider": {
+      "name": "Google LLC",
+      "privacy_url": "https://policies.google.com/privacy"
+    },
+    "source_url": "https://support.google.com/analytics/answer/11397207",
+    "verified": true,
+    "notes": "_gid e _gat non sono dichiarati da GA4: compaiono solo se realmente osservati. Prefissi e durate possono essere personalizzati.",
+    "last_reviewed": "2026-10-24"
+  },
+  {
+    "id": "google-tag-manager",
+    "name": "Google Tag Manager",
+    "category": "marketing",
+    "patterns": [
+      {
+        "host": "googletagmanager.com",
+        "subdomains": true,
+        "path_regex": "^/(?:gtm\\.js|ns\\.html)$",
+        "query_regex": "(?:^|&)id=GTM-[A-Z0-9]+(?:&|$)"
+      }
+    ],
+    "cookies": [],
+    "provider": {
+      "name": "Google LLC",
+      "privacy_url": "https://policies.google.com/privacy"
+    },
+    "source_url": "https://support.google.com/tagmanager/answer/9323295",
+    "verified": true,
+    "notes": "Il contenitore non dichiara cookie propri. I tag configurati possono caricare altri servizi: vanno verificati separatamente.",
+    "last_reviewed": "2026-10-24"
+  },
+  {
+    "id": "meta-pixel",
+    "name": "Meta Pixel",
+    "category": "marketing",
+    "patterns": [
+      {
+        "host": "connect.facebook.net",
+        "subdomains": true,
+        "path_regex": "/fbevents\\.js$"
+      },
+      {
+        "host": "facebook.com",
+        "subdomains": true,
+        "path_regex": "^/tr/?$"
+      }
+    ],
+    "cookies": [
+      {
+        "name": "_fbp",
+        "domain": "Dominio del sito",
+        "duration": "Da verificare",
+        "purpose": "Misurazione delle visite e degli annunci Meta."
+      },
+      {
+        "name": "_fbc",
+        "domain": "Dominio del sito",
+        "duration": "Da verificare",
+        "purpose": "Attribuzione delle visite provenienti dagli annunci Meta; dipende dal collegamento seguito."
+      },
+      {
+        "name": "fr",
+        "domain": ".facebook.com",
+        "duration": "Da verificare",
+        "purpose": "Pubblicità e misurazione sul dominio Facebook; dipende dal browser e dalla sessione Meta."
+      }
+    ],
+    "provider": {
+      "name": "Meta Platforms",
+      "privacy_url": "https://www.facebook.com/privacy/policy/"
+    },
+    "source_url": "https://developers.facebook.com/docs/marketing-api/conversions-api/parameters/fbp-and-fbc/",
+    "verified": false,
+    "notes": "Documentazione ufficiale non accessibile durante la revisione. Confermare nomi, durate e condizioni di utilizzo prima della pubblicazione.",
+    "last_reviewed": "2026-10-24"
+  },
+  {
+    "id": "youtube",
+    "name": "YouTube",
+    "category": "marketing",
+    "patterns": [
+      {
+        "host": "youtube.com",
+        "subdomains": true,
+        "path": "/embed/"
+      },
+      {
+        "host": "youtube-nocookie.com",
+        "subdomains": true,
+        "path": "/embed/"
+      },
+      {
+        "host": "youtube.com",
+        "subdomains": true,
+        "path": "/iframe_api"
+      },
+      {
+        "host": "youtube.com",
+        "subdomains": true,
+        "path": "/s/player/"
+      }
+    ],
+    "cookies": [
+      {
+        "name": "YSC",
+        "domain": ".youtube.com",
+        "duration": "Sessione",
+        "purpose": "Gestisce le interazioni con il lettore durante la sessione."
+      },
+      {
+        "name": "PREF",
+        "domain": ".youtube.com",
+        "duration": "8 mesi dall'ultimo utilizzo",
+        "purpose": "Memorizza le preferenze del lettore."
+      }
+    ],
+    "provider": {
+      "name": "Google LLC",
+      "privacy_url": "https://policies.google.com/privacy"
+    },
+    "source_url": "https://policies.google.com/technologies/cookies",
+    "verified": true,
+    "notes": "Anche gli embed youtube-nocookie.com sono riconosciuti come servizio. I cookie elencati riguardano YouTube e non provano che il dominio nocookie li abbia installati. Dipendono dalla riproduzione e dalle scelte dell'utente.",
+    "last_reviewed": "2026-10-24"
+  },
+  {
+    "id": "google-maps",
+    "name": "Google Maps",
+    "category": "marketing",
+    "patterns": [
+      {
+        "host": "maps.google.com",
+        "path": "/maps"
+      },
+      {
+        "host": "google.com",
+        "subdomains": true,
+        "path": "/maps/embed"
+      },
+      {
+        "host": "maps.googleapis.com",
+        "path": "/maps/api/"
+      },
+      {
+        "host": "maps.google.com",
+        "path": "/maps/api/"
+      }
+    ],
+    "cookies": [
+      {
+        "name": "NID",
+        "domain": ".google.com",
+        "duration": "6 mesi",
+        "purpose": "Preferenze dei servizi Google; l'uso effettivo dipende dall'integrazione e dalle scelte dell'utente."
+      }
+    ],
+    "provider": {
+      "name": "Google LLC",
+      "privacy_url": "https://policies.google.com/privacy"
+    },
+    "source_url": "https://policies.google.com/technologies/cookies",
+    "verified": false,
+    "notes": "Nome e durata sono documentati da Google; l'installazione specifica da parte di Maps embed/API va verificata. La sola richiesta API non dimostra la presenza di NID.",
+    "last_reviewed": "2026-10-24"
+  },
+  {
+    "id": "woocommerce",
+    "name": "WooCommerce",
+    "category": "necessary",
+    "patterns": [
+      {
+        "host": "",
+        "path": "/wp-content/plugins/woocommerce/"
+      }
+    ],
+    "cookies": [
+      {
+        "name": "woocommerce_cart_hash",
+        "domain": "Dominio del sito",
+        "duration": "Sessione",
+        "purpose": "Rileva le modifiche ai dati del carrello."
+      },
+      {
+        "name": "woocommerce_items_in_cart",
+        "domain": "Dominio del sito",
+        "duration": "Sessione",
+        "purpose": "Rileva le modifiche al contenuto del carrello."
+      },
+      {
+        "name": "wp_woocommerce_session_*",
+        "domain": "Dominio del sito",
+        "duration": "2 giorni",
+        "purpose": "Associa la sessione ai dati del carrello nel database."
+      },
+      {
+        "name": "woocommerce_recently_viewed",
+        "domain": "Dominio del sito",
+        "duration": "Sessione",
+        "purpose": "Supporta il widget dei prodotti visualizzati di recente."
+      }
+    ],
+    "provider": {
+      "name": "Automattic / WooCommerce",
+      "privacy_url": "https://automattic.com/privacy/"
+    },
+    "source_url": "https://woocommerce.com/document/woocommerce-cookies/",
+    "verified": true,
+    "notes": "Cookie tecnici dichiarati; non tutti vengono necessariamente installati su ogni pagina.",
+    "last_reviewed": "2026-10-24"
+  },
+  {
+    "id": "stripe",
+    "name": "Stripe",
+    "category": "functional",
+    "patterns": [
+      {
+        "host": "stripe.com",
+        "subdomains": true
+      },
+      {
+        "host": "stripe.network",
+        "subdomains": true
+      },
+      {
+        "host": "",
+        "path": "/wp-content/plugins/woocommerce-gateway-stripe/"
+      }
+    ],
+    "cookies": [
+      {
+        "name": "__stripe_mid",
+        "domain": "Dominio del sito",
+        "duration": "1 anno",
+        "purpose": "Prevenzione delle frodi e valutazione del rischio delle transazioni."
+      },
+      {
+        "name": "__stripe_sid",
+        "domain": "Dominio del sito",
+        "duration": "30 minuti",
+        "purpose": "Prevenzione delle frodi durante la sessione di pagamento."
+      }
+    ],
+    "provider": {
+      "name": "Stripe",
+      "privacy_url": "https://stripe.com/privacy"
+    },
+    "source_url": "https://stripe.com/cookie-settings",
+    "verified": true,
+    "notes": "Categoria predefinita prudente: funzionali, soggetti a consenso. Confermare con il consulente privacy quando il caricamento è strettamente necessario al pagamento; dominio e durata effettivi dipendono dall'integrazione.",
+    "last_reviewed": "2026-10-24"
+  },
+  {
+    "id": "woopayments",
+    "name": "WooPayments",
+    "category": "functional",
+    "patterns": [
+      {
+        "host": "",
+        "path": "/wp-content/plugins/woocommerce-payments/"
+      }
+    ],
+    "cookies": [
+      {
+        "name": "__stripe_mid",
+        "domain": "Dominio del sito",
+        "duration": "1 anno",
+        "purpose": "Prevenzione delle frodi nell'integrazione Stripe; da confermare per la configurazione WooPayments."
+      },
+      {
+        "name": "__stripe_sid",
+        "domain": "Dominio del sito",
+        "duration": "30 minuti",
+        "purpose": "Protezione della sessione di pagamento Stripe; da confermare per la configurazione WooPayments."
+      }
+    ],
+    "provider": {
+      "name": "Automattic / WooPayments",
+      "privacy_url": "https://automattic.com/privacy/"
+    },
+    "source_url": "https://woocommerce.com/document/privacy-payments/",
+    "verified": false,
+    "notes": "Categoria funzionali da confermare con il consulente privacy. La presenza del plugin non prova l'utilizzo di ogni cookie Stripe; verificare l'integrazione attiva.",
+    "last_reviewed": "2026-10-24"
+  },
+  {
+    "id": "paypal",
+    "name": "PayPal",
+    "category": "functional",
+    "patterns": [
+      {
+        "host": "paypal.com",
+        "subdomains": true,
+        "path": "/sdk/"
+      },
+      {
+        "host": "paypal.com",
+        "subdomains": true,
+        "path": "/smart/"
+      },
+      {
+        "host": "paypalobjects.com",
+        "subdomains": true
+      },
+      {
+        "host": "",
+        "path": "/wp-content/plugins/woocommerce-paypal-payments/"
+      }
+    ],
+    "cookies": [],
+    "provider": {
+      "name": "PayPal",
+      "privacy_url": "https://www.paypal.com/it/legalhub/paypal/privacy-full"
+    },
+    "source_url": "https://www.paypal.com/uk/legalhub/paypal/cookie-full",
+    "verified": false,
+    "notes": "L'informativa ufficiale non fornisce un elenco stabile dei cookie di ogni integrazione commerciale: nessun nome o durata viene dedotto. Completare con osservazioni reali. Categoria funzionali da confermare con il consulente privacy.",
+    "last_reviewed": "2026-10-24"
+  },
+  {
+    "id": "klarna",
+    "name": "Klarna",
+    "category": "functional",
+    "patterns": [
+      {
+        "host": "klarna.com",
+        "subdomains": true
+      },
+      {
+        "host": "klarnacdn.net",
+        "subdomains": true
+      },
+      {
+        "host": "klarna.net",
+        "subdomains": true
+      },
+      {
+        "host": "",
+        "path": "/wp-content/plugins/klarna-payments-for-woocommerce/"
+      },
+      {
+        "host": "",
+        "path": "/wp-content/plugins/klarna-checkout-for-woocommerce/"
+      }
+    ],
+    "cookies": [],
+    "provider": {
+      "name": "Klarna Bank AB",
+      "privacy_url": "https://www.klarna.com/it/privacy/"
+    },
+    "source_url": "https://docs.klarna.com/klarna-network-distribution/resources/legal-and-compliance/policies-and-term-of-service/terms-of-service/",
+    "verified": false,
+    "notes": "La documentazione distingue cookie e local storage, variabili per SDK/integrazione. Nessuna chiave di local storage è presentata come cookie. Completare l'elenco con verifiche dell'integrazione attiva. Categoria funzionali da confermare con il consulente privacy.",
+    "last_reviewed": "2026-10-24"
+  }
+]

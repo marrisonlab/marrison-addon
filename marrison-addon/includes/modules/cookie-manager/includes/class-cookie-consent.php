@@ -131,6 +131,21 @@ class Marrison_Cookie_Consent {
         $content = strtolower((string) $content);
         if (preg_match('/data-marrison-cookie-category\s*=\s*["\']?(necessary|functional|analytics|marketing)\b/', $content, $manual)) { return $manual[1]; }
 
+        if (class_exists('Marrison_Addon_Cookie_Scan_Services', false)
+            && preg_match_all('/(?:^|\s)(?:src|data-src|srcset)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))/i', $content, $attributes, PREG_SET_ORDER)) {
+            $resource_category = null;
+            foreach ($attributes as $attribute) {
+                $value = ($attribute[1] ?? '') !== '' ? $attribute[1] : (($attribute[2] ?? '') !== '' ? $attribute[2] : ($attribute[3] ?? ''));
+                foreach (preg_split('/[\s,]+/', $value) as $url) {
+                    if (strpos($url, '//') === 0) { $url = 'https:' . $url; }
+                    $category = Marrison_Addon_Cookie_Scan_Services::resource_category($url);
+                    if ($category === 'unclassified') { return $category; }
+                    if ($category !== null && ($resource_category === null || $resource_category === 'necessary')) { $resource_category = $category; }
+                }
+            }
+            if ($resource_category !== null) { return $resource_category; }
+        }
+
         foreach ($this->tracking_rules() as $category => $patterns) {
             foreach ($patterns as $pattern) { if ($pattern !== '' && strpos($content, strtolower($pattern)) !== false) { return $category; } }
         }
@@ -183,6 +198,7 @@ class Marrison_Cookie_Consent {
      * Verifica se una categoria opzionale e consentita.
      */
     private function is_category_allowed($category) {
+        if ($category === 'unclassified') { return false; }
         if ($category === 'necessary') { return true; }
         if (class_exists('Marrison_Addon_Cookie_Scan_Engine', false)) {
             $phase = Marrison_Addon_Cookie_Scan_Engine::get_instance()->frame_phase();
@@ -210,6 +226,7 @@ class Marrison_Cookie_Consent {
     }
 
     private function may_render_resource($category) {
+        if ($category === 'unclassified') { return false; }
         if ($category === 'necessary') { return true; }
         return class_exists('Marrison_Addon_Cookie_Scan_Engine', false) && Marrison_Addon_Cookie_Scan_Engine::get_instance()->frame_phase() === 'after';
     }
@@ -235,7 +252,8 @@ class Marrison_Cookie_Consent {
         $scanner = Marrison_Cookie_Scanner::get_instance();
         $cookies = $scanner->runtime_cookie_rules();
         $phase = class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::get_instance()->frame_phase() : null;
-        echo '<script id="marrison-cookie-runtime-config">window.marrisonConsentRules=' . wp_json_encode(array('sources' => $this->tracking_rules(), 'cookies' => $cookies, 'phase' => $phase), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';</script>';
+        $service_rules = class_exists('Marrison_Addon_Cookie_Scan_Services', false) ? Marrison_Addon_Cookie_Scan_Services::runtime_config() : array();
+        echo '<script id="marrison-cookie-runtime-config">window.marrisonConsentRules=' . wp_json_encode(array('sources' => $this->tracking_rules(), 'cookies' => $cookies, 'phase' => $phase) + $service_rules, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';</script>';
         $plugin = dirname(__DIR__, 4) . '/marrison-addon.php';
         $revision = class_exists('Marrison_Addon_Cookie_Scan_Engine', false) ? Marrison_Addon_Cookie_Scan_Engine::REVISION : '20261019.2';
         echo '<script id="marrison-cookie-runtime-js" src="' . esc_url(plugins_url('includes/modules/cookie-manager/assets/js/consent-runtime.js', $plugin)) . '?ver=' . esc_attr($revision) . '"></script>';

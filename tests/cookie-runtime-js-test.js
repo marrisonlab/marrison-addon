@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync(require('node:path').join(__dirname, '../marrison-addon/includes/modules/cookie-manager/assets/js/consent-runtime.js'), 'utf8');
 
-function fixture(phase) {
+function fixture(phase, serviceRules = {}) {
     const writes = [], requests = [];
     const cookies = new Map([['_ga', 'existing-id'], ['functional_pref', 'saved'], ['woocommerce_cart_hash', 'cart']]);
     class Node {
@@ -37,7 +37,7 @@ function fixture(phase) {
     class HTMLImageElement extends Element {}
     class XMLHttpRequest { open() {} send() {} abort() {} }
     const document = new Document();
-    const window = { marrisonConsentRules: { phase, cookies: [{ name: '_ga*', category: 'analytics' }, { name: 'functional_pref', category: 'functional' }], sources: { analytics: ['/tracking/'] } }, fetch(url) { requests.push(url); return Promise.resolve('loaded'); } };
+    const window = { marrisonConsentRules: { phase, cookies: [{ name: '_ga*', category: 'analytics' }, { name: 'functional_pref', category: 'functional' }], sources: { analytics: ['/tracking/'] }, ...serviceRules }, fetch(url) { requests.push(url); return Promise.resolve('loaded'); } };
     const context = vm.createContext({ window, document, Node, Element, Document, DocumentFragment, HTMLScriptElement, HTMLIFrameElement, HTMLImageElement, XMLHttpRequest, navigator: {}, location: { pathname: '/shop/item', hostname: 'example.test', protocol: 'https:' }, URL, DOMException });
     vm.runInContext(source, context);
     return { window, document, writes, requests, cookies, Element, context, Document };
