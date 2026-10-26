@@ -6,14 +6,28 @@ const { fixture } = require('./cookie-runtime-js-test');
 const config = JSON.parse(execFileSync('php', [path.join(__dirname, 'cookie-service-catalog-php-test.php'), '--runtime-json'], { encoding: 'utf8' }));
 (async () => {
     const page = fixture(undefined, config);
-    for (const url of ['https://unseen.example/a.js', 'https://unknown.example/a.js', 'https://js.stripe.com/v3/', 'https://www.youtube-nocookie.com/embed/a', 'https://www.paypal.com/sdk/js?client-id=1', 'https://www.googletagmanager.com/gtag/js?id=G-1']) {
+    for (const url of ['https://unseen.example/a.js', 'https://unknown.example/a.js', 'https://js.stripe.com/v3/', 'https://www.youtube-nocookie.com/embed/a', 'https://www.google.com/maps/embed?pb=fixture', 'https://www.paypal.com/sdk/js?client-id=1', 'https://www.googletagmanager.com/gtag/js?id=G-1']) {
         await assert.rejects(page.window.fetch(url), { name: 'NotAllowedError' });
     }
     page.window.MarrisonConsentRuntime.setState({ valid: true, categories: ['necessary', 'functional', 'analytics', 'marketing'], expires: Date.now() / 1000 + 3600 });
-    await assert.rejects(page.window.fetch('https://unknown.example/a.js'), { name: 'NotAllowedError' });
+    await page.window.fetch('https://unknown.example/a.js');
     await page.window.fetch('https://js.stripe.com/v3/');
     const after = fixture('after', config);
-    await assert.rejects(after.window.fetch('https://unknown.example/a.js'), { name: 'NotAllowedError' });
+    await after.window.fetch('https://unknown.example/a.js');
+    const widgetUrl = 'https://cdn.trustindex.io/loader.js';
+    await page.window.fetch(widgetUrl);
+    await page.window.fetch('https://www.google.com/maps/embed?pb=fixture');
+    for (const categories of [['necessary'], ['necessary','functional','analytics'], ['necessary','functional','marketing'], ['necessary','analytics','marketing']]) {
+        page.window.MarrisonConsentRuntime.setState({valid:true,categories,expires:Date.now()/1000+3600});
+        await assert.rejects(page.window.fetch(widgetUrl), {name:'NotAllowedError'});
+    }
+    page.window.MarrisonConsentRuntime.setState({valid:true,categories:['necessary','marketing'],expires:Date.now()/1000+3600});
+    await page.window.fetch('https://www.google.com/maps/embed?pb=fixture');
+    await assert.rejects(page.window.fetch(widgetUrl), {name:'NotAllowedError'});
+    page.window.MarrisonConsentRuntime.setState({valid:true,categories:['necessary','functional','analytics','marketing'],expires:Date.now()/1000-1});
+    await assert.rejects(page.window.fetch(widgetUrl), {name:'NotAllowedError'});
+    page.window.MarrisonConsentRuntime.setState({valid:false,categories:['necessary','functional','analytics','marketing'],expires:Date.now()/1000+3600});
+    await assert.rejects(page.window.fetch(widgetUrl), {name:'NotAllowedError'});
     const necessaryConfig = JSON.parse(JSON.stringify(config));
     necessaryConfig.catalog.find(service => service.patterns.some(pattern => pattern.host === 'stripe.com')).category = 'necessary';
     necessaryConfig.hosts['cdn.example'] = 'necessary';

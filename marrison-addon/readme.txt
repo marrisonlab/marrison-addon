@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.86
+Stable tag: 1.3.87
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -102,6 +102,10 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.87 =
+* Accetta tutti e la scelta personalizzata completa abilitano anche i servizi esterni non classificati, inclusi i widget recensioni Trustindex. Restano bloccati prima del consenso, con scelta parziale, rifiuto o consenso scaduto.
+* Ripristina script, iframe e immagini dopo lo stato verificato; aggiorna le indicazioni del catalogo. Nessuna reinstallazione del widget richiesta.
 
 = 1.3.86 =
 * Aggiunge i comandi analisi statica e verifica browser nello Scanner e nel wizard, con limiti per singolo avvio e controllo del supporto credentialless.

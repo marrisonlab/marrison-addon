@@ -40,13 +40,13 @@ $discovered_hosts = Marrison_Addon_Cookie_Scan_Services::discovered_hosts();
             <th scope="row"><label for="service-<?php echo esc_attr($host_key); ?>"><?php echo esc_html($service_host); ?></label></th>
             <td>
                 <select id="service-<?php echo esc_attr($host_key); ?>" name="service_categories[<?php echo esc_attr($host_key); ?>]">
-                    <option value="" <?php selected($host_category, 'unclassified'); ?>><?php esc_html_e('Servizio non classificato — bloccato', 'marrison-cookie'); ?></option>
+                    <option value="" <?php selected($host_category, 'unclassified'); ?>><?php esc_html_e('Servizio non classificato', 'marrison-cookie'); ?></option>
                     <?php foreach ($categories as $category_id => $category_label): ?>
                     <option value="<?php echo esc_attr($category_id); ?>" <?php selected($host_category, $category_id); ?>><?php echo esc_html($category_label); ?></option>
                     <?php endforeach; ?>
                 </select>
                 <span class="marrison-category-badge marrison-category-uncategorized"><?php esc_html_e('Da verificare', 'marrison-cookie'); ?></span>
-                <p class="description"><?php esc_html_e('Cookie e finalità non sono dedotti dall’host. Il servizio resta bloccato anche dopo Accetta tutti finché non viene classificato.', 'marrison-cookie'); ?></p>
+                <p class="description"><?php esc_html_e('Cookie e finalità non sono dedotti dall’host. Senza classificazione il servizio si abilita con Accetta tutti o con tutte le categorie opzionali selezionate. Con una scelta parziale resta bloccato.', 'marrison-cookie'); ?></p>
             </td>
         </tr>
     <?php endforeach; ?>

@@ -91,7 +91,13 @@
             return rules.sources[category].some(function (pattern) { return pattern && value.indexOf(String(pattern).toLowerCase()) !== -1; });
         }) || null;
     }
-    function permitted(category) { return !category || allowed().indexOf(category) !== -1; }
+    function permitted(category) {
+        var categories = allowed();
+        if (category === 'unclassified') {
+            return ['functional', 'analytics', 'marketing'].every(function (item) { return categories.indexOf(item) !== -1; });
+        }
+        return !category || categories.indexOf(category) !== -1;
+    }
     function neutralize(element, value, attribute) {
         if (!element || element.nodeType !== 1 || !/^(SCRIPT|IFRAME|IMG)$/.test(element.tagName)) { return false; }
         var hasResource = !!(value || element.getAttribute('src') || element.getAttribute('srcset'));
@@ -204,7 +210,7 @@
             });
         });
     }
-    window.MarrisonConsentRuntime = { allowed: allowed, enforce: enforce, cookieCategory: categoryForCookie,
+    window.MarrisonConsentRuntime = { allowed: allowed, permits: permitted, enforce: enforce, cookieCategory: categoryForCookie,
         allowContent: function (element) {
             if (!element || element.tagName !== 'IFRAME') { return false; }
             try {

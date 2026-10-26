@@ -3,7 +3,7 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.86
+**Version:** 1.3.87
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -51,6 +51,10 @@ Current stable versions checked on 20 October 2026: [WordPress 7.1.3](https://wo
 Optional server features are reported by their modules: FFmpeg is needed for local video cover extraction; browser cache rules depend on the web server. These features are not prerequisites for unrelated modules.
 
 ## Changelog
+
+### 1.3.87
+* Consenso completo coerente: Accetta tutti e Personalizza con tutte le categorie abilitano anche le risorse non classificate, compreso il widget Trustindex. Blocco conservato prima del consenso, con scelta parziale e alla revoca/scadenza.
+* Verificato il widget reale con override dei file nel solo browser di prova; nessuna modifica ai file del sito live.
 
 ### 1.3.86
 * Comandi diretti per analisi statica e verifica browser in Scanner e wizard, con campioni/tempo per singolo avvio e controllo del supporto del browser.

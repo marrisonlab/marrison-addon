@@ -11,7 +11,7 @@
 *   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
 *   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
-*   **Stable tag:** 1.3.86
+*   **Stable tag:** 1.3.87
 *   **License:** GPL-3.0-or-later
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -220,6 +220,10 @@ Updates use the latest published stable GitHub Release from `marrisonlab/marriso
 Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, source/review badges, service category overrides in Behavior, custom domain/path rules and default blocking for unclassified external resources. Payment classification must be confirmed by the privacy adviser. Catalog cookies are declarations, never observations; PayPal/Klarna lists remain empty where integration-specific data are unconfirmed. No scanner provider is replaced in this phase. See [configuration, limitations and tests](docs/cookie-service-catalog.md).
 
 ## Changelog
+
+### 1.3.87
+* Consenso completo coerente: Accetta tutti e Personalizza con tutte le categorie abilitano anche le risorse non classificate, compreso il widget Trustindex. Blocco conservato prima del consenso, con scelta parziale e alla revoca/scadenza.
+* Verificato il widget reale con override dei file nel solo browser di prova; nessuna modifica ai file del sito live.
 
 ### 1.3.86
 * Comandi diretti per analisi statica e verifica browser in Scanner e wizard, con campioni/tempo per singolo avvio e controllo del supporto del browser.

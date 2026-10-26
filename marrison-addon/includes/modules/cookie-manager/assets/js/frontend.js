@@ -454,9 +454,13 @@
                 var $element = $(element);
                 var category = $element.data('marrison-cookie-category');
 
-                if (allowedCategories.indexOf(category) === -1) {
-                    return;
+                var permitted = allowedCategories.indexOf(category) !== -1;
+                if (category === 'unclassified') {
+                    var runtime = window.MarrisonConsentRuntime;
+                    permitted = runtime && typeof runtime.permits === 'function' ? runtime.permits(category)
+                        : ['functional', 'analytics', 'marketing'].every(function (item) { return allowedCategories.indexOf(item) !== -1; });
                 }
+                if (!permitted) { return; }
 
                 if ($element.data('marrison-cookie-blocked') === 'script') {
                     MarrisonCookie.activateBlockedScript(element);
