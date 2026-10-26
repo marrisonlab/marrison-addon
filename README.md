@@ -3,7 +3,7 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.87
+**Version:** 1.3.88
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -54,6 +54,11 @@ Optional server features are reported by their modules: FFmpeg is needed for loc
 
 ## Changelog
 
+### 1.3.88
+* Aggiunto Business Info / Info Azienda: archivio condiviso di dati aziendali, contatti, sedi, campi personalizzati, identità privacy e orari, con shortcode e integrazioni Elementor e JetEngine.
+* Titolare del trattamento sempre compilabile in Info Azienda, con riutilizzo di indirizzo e recapiti selezionati. Sistemata l’impaginazione della scheda Privacy e titolare su desktop e mobile.
+* Cookie Manager: scelta tra dati manuali nelle impostazioni e dati aggiornati da Info Azienda, anche nel wizard. La modalità manuale funziona con Business Info disattivato; il cambio di sorgente conserva i dati manuali e le ricevute storiche.
+
 ### 1.3.87
 * Consenso completo coerente: Accetta tutti e Personalizza con tutte le categorie abilitano anche le risorse non classificate, compreso il widget Trustindex. Blocco conservato prima del consenso, con scelta parziale e alla revoca/scadenza.
 * Verificato il widget reale con override dei file nel solo browser di prova; nessuna modifica ai file del sito live.
@@ -82,7 +87,6 @@ Optional server features are reported by their modules: FFmpeg is needed for loc
 * Fase 2: Scansione statica locale riprendibile, verifica iframe opzionale limitata e rilevamento passivo degli host su esplicita attivazione.
 
 ### Unreleased
-* Add Business Info with stable directory keys, company/privacy details in one place, multi-slot opening hours, date exceptions, native Elementor controls, JetEngine sources and fresh browser opening status. The controller name is always editable. Cookie Manager offers manual identity fields or current Business Info values, preserves manual data when switching sources and leaves existing consent evidence intact.
 * Add Listing Columns, an optional Elementor widget for JetEngine grids with a 1–12 column range, CSS target selector, browser preference, responsive activation, SVG/native icons and Elementor style controls.
 
 ### 1.3.79

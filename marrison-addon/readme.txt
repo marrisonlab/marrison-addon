@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.87
+Stable tag: 1.3.88
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -20,7 +20,7 @@ Consent verification does not add technical diagnostics or retry buttons to the 
 
 Included modules:
 
-* Business Info: shared company/contact/location/custom directory, privacy identities and opening hours. Info Azienda marks Cookie Manager data with shield icons; policies read current values without copies. Native Elementor tags/Business Hours widget, JetEngine Dynamic Field sources and universal shortcodes. Browser opening status uses uncached requests; external full-page caches require their own invalidation for ordinary text/policies.
+* Business Info: shared company/contact/location/custom directory, privacy identities and opening hours. The controller name is always editable and reuses selected contacts. Cookie Manager can use manual identity fields or read current Info Azienda values, and remains configurable with Business Info disabled. Native Elementor tags/Business Hours widget, JetEngine Dynamic Field sources and universal shortcodes. Browser opening status uses uncached requests; external full-page caches require their own invalidation for ordinary text/policies.
 * Wrapped Link: clickable Elementor containers and widgets.
 * Content Ticker: configurable scrolling text with shared styles.
 * Steps: responsive Elementor step layouts.
@@ -104,6 +104,11 @@ Every dependent module lists the plugins that must be present and active. Missin
 
 == Changelog ==
 
+= 1.3.88 =
+* Aggiunto Business Info / Info Azienda: archivio condiviso di dati aziendali, contatti, sedi, campi personalizzati, identità privacy e orari, con shortcode e integrazioni Elementor e JetEngine.
+* Titolare del trattamento sempre compilabile in Info Azienda, con riutilizzo di indirizzo e recapiti selezionati. Sistemata l’impaginazione della scheda Privacy e titolare su desktop e mobile.
+* Cookie Manager: scelta tra dati manuali nelle impostazioni e dati aggiornati da Info Azienda, anche nel wizard. La modalità manuale funziona con Business Info disattivato; il cambio di sorgente conserva i dati manuali e le ricevute storiche.
+
 = 1.3.87 =
 * Accetta tutti e la scelta personalizzata completa abilitano anche i servizi esterni non classificati, inclusi i widget recensioni Trustindex. Restano bloccati prima del consenso, con scelta parziale, rifiuto o consenso scaduto.
 * Ripristina script, iframe e immagini dopo lo stato verificato; aggiorna le indicazioni del catalogo. Nessuna reinstallazione del widget richiesta.
@@ -130,9 +135,6 @@ Every dependent module lists the plugins that must be present and active. Missin
 
 = 1.3.80 =
 * Fase 2: Scansione statica locale riprendibile, verifica iframe opzionale limitata e rilevamento passivo degli host su esplicita attivazione.
-
-= Unreleased =
-* Add Business Info: company/contact/location/custom directory and privacy identities in Info Azienda, with an always-editable controller name and shield markers for Cookie Manager fields. Stable keys, opening hours/date exceptions, native Elementor widget/tags, JetEngine sources and uncached browser state. Cookie Manager supports manual identity fields or current Info Azienda values, preserves both sources and remains configurable with Business Info disabled. Historical consent receipts are unchanged.
 
 = 1.3.79 =
 

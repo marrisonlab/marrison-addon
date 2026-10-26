@@ -11,7 +11,7 @@
 *   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
 *   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
-*   **Stable tag:** 1.3.87
+*   **Stable tag:** 1.3.88
 *   **License:** GPL-3.0-or-later
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -223,6 +223,11 @@ Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, sourc
 
 ## Changelog
 
+### 1.3.88
+* Aggiunto Business Info / Info Azienda: archivio condiviso di dati aziendali, contatti, sedi, campi personalizzati, identità privacy e orari, con shortcode e integrazioni Elementor e JetEngine.
+* Titolare del trattamento sempre compilabile in Info Azienda, con riutilizzo di indirizzo e recapiti selezionati. Sistemata l’impaginazione della scheda Privacy e titolare su desktop e mobile.
+* Cookie Manager: scelta tra dati manuali nelle impostazioni e dati aggiornati da Info Azienda, anche nel wizard. La modalità manuale funziona con Business Info disattivato; il cambio di sorgente conserva i dati manuali e le ricevute storiche.
+
 ### 1.3.87
 * Consenso completo coerente: Accetta tutti e Personalizza con tutte le categorie abilitano anche le risorse non classificate, compreso il widget Trustindex. Blocco conservato prima del consenso, con scelta parziale e alla revoca/scadenza.
 * Verificato il widget reale con override dei file nel solo browser di prova; nessuna modifica ai file del sito live.
@@ -251,7 +256,6 @@ Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, sourc
 * Fase 2: Scansione statica locale riprendibile, verifica iframe opzionale limitata e rilevamento passivo degli host su esplicita attivazione.
 
 ### Unreleased
-* Add Business Info and Info Azienda, with shield markers for Cookie Manager data, stable record keys, central privacy identities, multi-slot opening hours/date exceptions, native Elementor tags/widget, JetEngine sources and fresh browser status. Preserve policy shortcodes and historical consent evidence; company edits do not force a new consent choice.
 * **Listing Columns:** Make minimum, maximum and initial columns responsive across all active Elementor breakpoints, with inherited empty values and independent per-breakpoint browser preferences.
 * **Listing Columns:** Add the optional Colonne Listing Elementor widget with configurable column range, SVG/native icons, responsive activation, browser preferences, AJAX replacement handling and native style controls.
 
