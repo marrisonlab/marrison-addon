@@ -221,7 +221,7 @@ $total_steps = $wizard->get_total_steps();
             <!-- Step 5: Shortcode e collegamenti policy -->
             <div class="marrison-wizard-step <?php echo $current_step === 5 ? 'active' : ''; ?>" data-step="5">
                 <h2 class="marrison-step-title">Genera la Privacy Policy</h2>
-                <p class="marrison-step-description">Passaggio facoltativo. Puoi compilare i dati ora oppure scegliere Salta e completarli in Privacy e policy.</p>
+                <p class="marrison-step-description">Passaggio facoltativo. Inserisci qui titolare e recapiti oppure scegli di usare Info Azienda. Puoi configurare i trattamenti ora o scegliere Salta.</p>
                 <?php $privacy_prefix = 'wizard-privacy-'; include MARRISON_COOKIE_PLUGIN_DIR . 'templates/privacy-fields.php'; ?>
             </div>
             <div class="marrison-wizard-step <?php echo $current_step === 6 ? 'active' : ''; ?>" data-step="6">

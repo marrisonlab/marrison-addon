@@ -49,13 +49,15 @@ final class Marrison_Addon_Cookie_Policy_Content {
     /** Structured inputs only: personal data are never inferred from the example site. */
     public static function fields() {
         return array(
-            'controller_name' => array('label' => 'Titolare / ragione sociale', 'group' => 'Titolare e contatti'),
-            'controller_address' => array('label' => 'Indirizzo completo e Paese', 'group' => 'Titolare e contatti'),
-            'controller_email' => array('label' => 'Email per la privacy e i diritti', 'type' => 'email', 'group' => 'Titolare e contatti'),
-            'controller_vat' => array('label' => 'Partita IVA / codice fiscale (facoltativo)', 'group' => 'Titolare e contatti'),
-            'controller_phone' => array('label' => 'Telefono (facoltativo)', 'group' => 'Titolare e contatti'),
-            'representative' => array('label' => 'Rappresentante nell’UE, se nominato: nome e contatti', 'group' => 'Titolare e contatti'),
-            'dpo' => array('label' => 'Responsabile protezione dati (DPO), se nominato: nome e contatti', 'group' => 'Titolare e contatti'),
+            'identity_source' => array('label' => 'Origine dei dati del titolare e dei contatti', 'type' => 'select', 'default' => 'manual', 'options' => array('manual' => 'Inserisci qui (Cookie Manager)', 'business_info' => 'Usa Info Azienda'), 'group' => 'Origine dei dati'),
+            'controller_name' => array('label' => 'Titolare del trattamento: nome / ragione sociale', 'group' => 'Titolare e contatti'),
+            'controller_address' => array('label' => 'Indirizzo completo e Paese del titolare', 'type' => 'textarea', 'group' => 'Titolare e contatti'),
+            'controller_email' => array('label' => 'Email per la privacy', 'type' => 'email', 'group' => 'Titolare e contatti'),
+            'controller_phone' => array('label' => 'Telefono del titolare', 'type' => 'tel', 'group' => 'Titolare e contatti'),
+            'controller_vat' => array('label' => 'Partita IVA del titolare', 'group' => 'Titolare e contatti'),
+            'controller_tax_code' => array('label' => 'Codice fiscale del titolare', 'group' => 'Titolare e contatti'),
+            'representative' => array('label' => 'Rappresentante UE: nome e contatti (se nominato)', 'type' => 'textarea', 'group' => 'Titolare e contatti'),
+            'dpo' => array('label' => 'Responsabile protezione dati (DPO): nome e contatti (se nominato)', 'type' => 'textarea', 'group' => 'Titolare e contatti'),
             'contact_enabled' => array('label' => 'Il sito riceve richieste tramite moduli o email', 'type' => 'checkbox', 'default' => true, 'group' => 'Moduli e richieste'),
             'contact_data' => array('label' => 'Dati richiesti nei moduli', 'default' => 'Nome, indirizzo email, eventuale telefono e contenuto della richiesta', 'group' => 'Moduli e richieste'),
             'contact_basis' => array('label' => 'Base giuridica delle richieste', 'type' => 'select', 'default' => 'contract', 'options' => array('contract' => 'Richieste contrattuali / preventivi (art. 6.1.b)', 'interest' => 'Legittimo interesse a rispondere (art. 6.1.f)', 'consent' => 'Consenso specifico (art. 6.1.a)'), 'group' => 'Moduli e richieste'),
@@ -86,10 +88,34 @@ final class Marrison_Addon_Cookie_Policy_Content {
         return $clean;
     }
 
-    public static function profile() {
+    /** Editable values: never populate manual fields with resolved Business Info data. */
+    public static function stored_profile() {
         $saved = get_option('marrison_cookie_privacy_profile', array()); $defaults = array();
         foreach (self::fields() as $key => $field) { $defaults[$key] = $field['default'] ?? (($field['type'] ?? '') === 'checkbox' ? false : ''); }
         return array_replace($defaults, self::sanitize_profile(array_replace($defaults, is_array($saved) ? $saved : array())));
+    }
+
+    public static function profile() {
+        $profile = self::stored_profile();
+        if ($profile['identity_source'] === 'manual') { return $profile; }
+        // Resolve only the explicitly selected source; historical snapshots remain untouched.
+        $identity = array_fill_keys(array('controller_name', 'controller_address', 'controller_email', 'controller_phone', 'controller_vat', 'controller_tax_code', 'representative', 'dpo'), '');
+        if (self::business_available()) { $identity = Marrison_Addon_Business_Info_Store::controller(); }
+        return array_replace($profile, $identity);
+    }
+
+    public static function business_available() {
+        return class_exists('Marrison_Addon_Business_Info_Store', false) && class_exists('Marrison_Addon', false) && Marrison_Addon::is_module_enabled('business_info');
+    }
+
+    /** Advisory only: missing identity never blocks settings, wizard or publication. */
+    public static function missing_business_fields() {
+        $profile = self::profile(); $missing = array();
+        if ($profile['identity_source'] === 'business_info' && !self::business_available()) { $missing[] = 'Business Info attivo'; }
+        foreach (array('controller_name' => 'Titolare / ragione sociale', 'controller_address' => 'Indirizzo del titolare', 'controller_email' => 'Email per la privacy') as $key => $label) {
+            if (trim($profile[$key]) === '') { $missing[] = $label; }
+        }
+        return $missing;
     }
 
     /** Kept for compatibility: every profile field is optional. */
@@ -114,7 +140,8 @@ final class Marrison_Addon_Cookie_Policy_Content {
         $t = function($it, $en) { return marrison_cookie_site_text($it, $en); };
         if ($kind === 'cookie') {
             $html = self::paragraph('Cookie Policy', $t('Questa informativa descrive l’uso di cookie e tecnologie analoghe sul sito, le scelte disponibili e le informazioni rilevate sui servizi presenti.', 'This notice describes cookies and similar technologies used on this website, available choices and observations about its services.'));
-            if ($p['controller_name']) { $html .= self::paragraph($t('Titolare e contatti', 'Controller and contacts'), $p['controller_name'] . ($p['controller_address'] ? ' — ' . $p['controller_address'] : '') . ($p['controller_email'] ? ' — ' . $p['controller_email'] : '')); }
+            $contacts = implode(' — ', array_filter(array($p['controller_name'], $p['controller_address'], $p['controller_email'], $p['controller_phone']), 'strlen'));
+            $html .= self::paragraph($t('Titolare e contatti', 'Controller and contacts'), $contacts);
             $html .= self::paragraph($t('Cookie e dati del browser', 'Cookies and browser storage'), $t('I cookie sono piccoli file memorizzati dal browser. Possono essere di prima o terza parte, di sessione oppure persistenti. LocalStorage e sessionStorage conservano invece dati nell’archivio del browser: non sono cookie, ma possono svolgere funzioni analoghe.', 'Cookies are small files stored by the browser. They may be first or third party, session or persistent cookies. LocalStorage and sessionStorage are separate browser stores and can serve similar purposes.'));
             $html .= '<p><strong>' . esc_html($t('Categorie e consenso', 'Categories and consent')) . '</strong></p><ul>';
             foreach (array(
@@ -130,7 +157,7 @@ final class Marrison_Addon_Cookie_Policy_Content {
         }
         $html = self::paragraph('Privacy Policy', $t('Informativa sul trattamento dei dati personali ai sensi dell’articolo 13 del Regolamento (UE) 2016/679 (GDPR), relativa alla navigazione e alle funzionalità del sito.', 'Information under Article 13 of Regulation (EU) 2016/679 (GDPR) about browsing and using this website.'));
         $identity = implode("\n", array_filter(array($p['controller_name'], $p['controller_address'], $p['controller_email'] ? $t('Contatto privacy: ', 'Privacy contact: ') . $p['controller_email'] : '')));
-        foreach (array('controller_vat' => 'P. IVA / C.F.: ', 'controller_phone' => $t('Telefono: ', 'Phone: '), 'representative' => $t('Rappresentante UE: ', 'EU representative: '), 'dpo' => 'DPO: ') as $key => $label) { if ($p[$key]) { $identity .= "\n" . $label . $p[$key]; } }
+        foreach (array('controller_vat' => 'P. IVA: ', 'controller_tax_code' => 'C.F.: ', 'controller_phone' => $t('Telefono: ', 'Phone: '), 'representative' => $t('Rappresentante UE: ', 'EU representative: '), 'dpo' => 'DPO: ') as $key => $label) { if ($p[$key]) { $identity .= "\n" . $label . $p[$key]; } }
         $html .= self::paragraph($t('1. Titolare e contatti', '1. Controller and contacts'), $identity);
         $html .= '<p><strong>' . esc_html($t('2. Dati, finalità, basi giuridiche e conservazione', '2. Data, purposes, legal bases and retention')) . '</strong></p><ul>';
         $items = array();

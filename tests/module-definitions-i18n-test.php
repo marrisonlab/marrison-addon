@@ -78,3 +78,8 @@ $listing_definition = Marrison_Addon::get_module_definitions( false )['listing_c
 check( 'elementor' === $listing_definition['boot'] && $listing_definition['requires_elementor'] && $listing_definition['requires_jet_engine'], 'Listing Columns dependency/bootstrap contract failed.' );
 check( ! Marrison_Addon::is_module_enabled( 'listing_columns' ) && ! class_exists( 'Marrison_Addon_Listing_Columns', false ), 'Disabled Listing Columns must not load.' );
 echo "Listing Columns registry: disabled by default, no loaded module, Elementor/JetEngine dependencies PASS\n";
+
+$business_definition = Marrison_Addon::get_module_definitions( false )['business_info'];
+check( 'independent' === $business_definition['boot'] && ! $business_definition['requires_elementor'], 'Business Info must work independently of builders.' );
+check( ! Marrison_Addon::is_module_enabled( 'business_info' ) && ! class_exists( 'Marrison_Addon_Business_Info_Store', false ), 'Disabled Business Info loaded operational data classes.' );
+echo "Business Info registry: independent, disabled by default, no loaded data classes PASS\n";

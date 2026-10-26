@@ -128,7 +128,59 @@ const fixture = mode => execFileSync('php', [path.join(__dirname, 'cookie-shortc
             assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'Shortcode tab overflows');
             await page.close();
         }
-        console.log('PASS browser: policy shortcodes and wizard at 1246/390px, saved URLs, failed-save recovery, no page-creation requests, full policy preferences with banner disabled, no overflow or JS errors');
+        for (const width of [1246, 390]) {
+            for (const mode of ['--fixture-privacy', '--fixture-privacy-disabled', '--fixture-wizard']) {
+                const page = await browser.newPage({ viewport: { width, height: 900 } }), errors = [];
+                page.on('pageerror', error => errors.push(error.message));
+                await page.setContent(fixture(mode));
+                await page.addStyleTag({ content: 'body{font:14px Arial;margin:0}' });
+                await page.addStyleTag({ path: path.join(wordpress, 'wp-admin/css/forms.css') });
+                await page.addStyleTag({ path: path.join(moduleRoot, 'assets/css/admin.css') });
+                if (mode === '--fixture-wizard') {
+                    await page.addStyleTag({ path: path.join(moduleRoot, 'assets/css/wizard.css') });
+                    await page.addScriptTag({ path: jquery });
+                    await page.evaluate(() => { window.marrisonWizard = { currentStep: 5, totalSteps: 6, shouldOpen: true, stepText: 'Step {step} di {total}' }; });
+                    await page.addScriptTag({ path: path.join(moduleRoot, 'assets/js/wizard.js') });
+                }
+                await page.addScriptTag({ path: path.join(moduleRoot, 'assets/js/privacy-profile.js') });
+                const profile = page.locator('.marrison-privacy-profile'), source = profile.locator('[data-privacy-field="identity_source"]');
+                const manual = profile.locator('[data-privacy-manual]'), business = profile.locator('[data-privacy-business]');
+                assert.equal(await source.inputValue(), 'business_info');
+                assert(!await manual.isVisible());
+                assert(await business.isVisible());
+                if (mode === '--fixture-privacy-disabled') assert((await business.innerText()).includes('Info Azienda non è attivo'));
+                await source.selectOption('manual');
+                assert(await manual.isVisible());
+                assert(!await business.isVisible());
+                const name = profile.locator('[data-privacy-field="controller_name"]');
+                assert.equal(await name.inputValue(), 'Manual Controller', 'Business identity was copied into editable manual fields');
+                await name.fill('Titolare sempre disponibile');
+                await profile.locator('[data-privacy-field="controller_address"]').fill('Via Manuale 4, Italia');
+                await source.selectOption('business_info');
+                await source.selectOption('manual');
+                assert.equal(await name.inputValue(), 'Titolare sempre disponibile');
+                assert.equal(await profile.locator('[data-privacy-field="controller_email"]').inputValue(), 'manual@example.test');
+                assert.equal(await profile.locator('[required]').count(), 0);
+                if (mode !== '--fixture-wizard') {
+                    const submitted = await name.evaluate(input => Object.fromEntries(new FormData(input.form)));
+                    assert.equal(submitted['privacy_profile[identity_source]'], 'manual');
+                    assert.equal(submitted['privacy_profile[controller_name]'], 'Titolare sempre disponibile');
+                }
+                assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'Privacy fields overflow at ' + width);
+                if (process.env.COOKIE_SCREENSHOTS) await page.screenshot({ path: path.join(process.env.COOKIE_SCREENSHOTS, `cookie-privacy-${mode.replace('--fixture-', '')}-${width}.png`), fullPage: true });
+                if (mode === '--fixture-wizard') {
+                    await page.evaluate(() => { window.profileRequests = []; jQuery.ajax = options => { window.profileRequests.push(options.data); }; });
+                    await page.locator('#wizard_next').click();
+                    const requests = await page.evaluate(() => window.profileRequests);
+                    assert.equal(requests[0].step, 5);
+                    assert.equal(requests[0].data.privacy_profile.identity_source, 'manual');
+                    assert.equal(requests[0].data.privacy_profile.controller_name, 'Titolare sempre disponibile');
+                }
+                assert.deepEqual(errors, []);
+                await page.close();
+            }
+        }
+        console.log('PASS browser: policy shortcodes and wizard at 1246/390px, saved URLs, failed-save recovery, source selection and manual data preservation with Business Info enabled/disabled, no page-creation requests, preferences with banner disabled, no overflow or JS errors');
     } finally {
         await browser.close();
     }

@@ -20,6 +20,7 @@ Consent verification does not add technical diagnostics or retry buttons to the 
 
 Included modules:
 
+* Business Info: shared company/contact/location/custom directory, privacy identities and opening hours. Info Azienda marks Cookie Manager data with shield icons; policies read current values without copies. Native Elementor tags/Business Hours widget, JetEngine Dynamic Field sources and universal shortcodes. Browser opening status uses uncached requests; external full-page caches require their own invalidation for ordinary text/policies.
 * Wrapped Link: clickable Elementor containers and widgets.
 * Content Ticker: configurable scrolling text with shared styles.
 * Steps: responsive Elementor step layouts.
@@ -129,6 +130,9 @@ Every dependent module lists the plugins that must be present and active. Missin
 
 = 1.3.80 =
 * Fase 2: Scansione statica locale riprendibile, verifica iframe opzionale limitata e rilevamento passivo degli host su esplicita attivazione.
+
+= Unreleased =
+* Add Business Info: company/contact/location/custom directory and privacy identities in Info Azienda, with an always-editable controller name and shield markers for Cookie Manager fields. Stable keys, opening hours/date exceptions, native Elementor widget/tags, JetEngine sources and uncached browser state. Cookie Manager supports manual identity fields or current Info Azienda values, preserves both sources and remains configurable with Business Info disabled. Historical consent receipts are unchanged.
 
 = 1.3.79 =
 

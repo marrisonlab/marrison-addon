@@ -10,13 +10,15 @@ Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 ## Description
 
-Marrison Addon provides 26 independently enabled modules for page layouts, media, frontend behavior and administration. Disabled modules load no operational module classes, hooks, CSS or JavaScript. The core registry and plugin bootstrap remain available.
+Marrison Addon provides 27 independently enabled modules for page layouts, media, frontend behavior and administration. Disabled modules load no operational module classes, hooks, CSS or JavaScript. The core registry and plugin bootstrap remain available.
 
 Query Fallback adds a backup Posts Query to the native JetEngine Listing Grid, with empty-only and fill modes. Module cards always show required active plugins and keep unavailable modules off and locked. See [Query Fallback configuration and limitations](marrison-addon/docs/query-fallback.md).
 
 Modules include Wrapped Link, Content Ticker, Steps, Product Discount, Heading Animations, Recently Viewed Products, Listing Grid Title, Listing Columns, Dynamic SVG, Read More, Anchor Offset, Preloader, Custom Cursor, Image Sizes, Fast Logout, Calendar Sync, Cookie Manager, Video Thumbnail, Local Google Fonts, Browser Cache, Horizontal Scroll (Beta), Liquid Background, Inline CSS, Dynamic Background Image Size and PHP Snippets.
 
 Elementor, WooCommerce and JetEngine are required only for their related modules. Cookie Manager provides representative HTTP/browser scans, signed consent choices and policy shortcodes. PHP Snippets requires both WordPress `manage_options` and `unfiltered_html` capabilities.
+
+Business Info adds **Info Azienda**: a shared company/contact/location directory, custom fields, privacy identities (including DPO and EU representative), opening hours, Elementor tags/widget, JetEngine Dynamic Field sources and universal shortcodes. Shield icons identify Cookie Manager inputs. Cookie Manager can use its own manual identity fields or explicitly read current values from Info Azienda, and remains configurable with Business Info disabled. See [setup, cache limits and validation](marrison-addon/docs/business-info.md).
 
 
 Cookie consent checks keep technical diagnostics out of the visitor banner; failed saves remain visible and do not enable tracking. Receipt protection uses the actual server's configuration. All Privacy Policy profile fields are optional. The shortcode renders saved data even when other fields are empty, omitting unspecified details without blocking publication.
@@ -80,6 +82,7 @@ Optional server features are reported by their modules: FFmpeg is needed for loc
 * Fase 2: Scansione statica locale riprendibile, verifica iframe opzionale limitata e rilevamento passivo degli host su esplicita attivazione.
 
 ### Unreleased
+* Add Business Info with stable directory keys, company/privacy details in one place, multi-slot opening hours, date exceptions, native Elementor controls, JetEngine sources and fresh browser opening status. The controller name is always editable. Cookie Manager offers manual identity fields or current Business Info values, preserves manual data when switching sources and leaves existing consent evidence intact.
 * Add Listing Columns, an optional Elementor widget for JetEngine grids with a 1–12 column range, CSS target selector, browser preference, responsive activation, SVG/native icons and Elementor style controls.
 
 ### 1.3.79

@@ -25,6 +25,8 @@
 
 The module dashboard always lists required active plugins. Missing dependencies keep the related switch off and locked and prevent server-side activation. Standalone modules remain available.
 
+**Business Info (independent):** **AM Addon > Info Azienda** stores company details, unlimited contacts/locations/social/custom fields, opening hours and privacy identities in one option. Shield icons identify Cookie Manager inputs. The controller name is always editable and reuses selected contacts. Cookie Manager can use its own manual identity fields or explicitly read current values from Info Azienda, including DPO and EU representative; it remains configurable with Business Info disabled. Includes universal shortcodes, Elementor tags and a native Business Hours widget, plus JetEngine Dynamic Field sources. See [configuration, stable keys, caching and test coverage](docs/business-info.md).
+
 1.  **Wrapped Link (Elementor):**
     *   Make an entire Elementor Container or widget clickable.
     *   Adds a "Wrapped Link" section directly to the **Advanced** tab.
@@ -249,6 +251,7 @@ Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, sourc
 * Fase 2: Scansione statica locale riprendibile, verifica iframe opzionale limitata e rilevamento passivo degli host su esplicita attivazione.
 
 ### Unreleased
+* Add Business Info and Info Azienda, with shield markers for Cookie Manager data, stable record keys, central privacy identities, multi-slot opening hours/date exceptions, native Elementor tags/widget, JetEngine sources and fresh browser status. Preserve policy shortcodes and historical consent evidence; company edits do not force a new consent choice.
 * **Listing Columns:** Make minimum, maximum and initial columns responsive across all active Elementor breakpoints, with inherited empty values and independent per-breakpoint browser preferences.
 * **Listing Columns:** Add the optional Colonne Listing Elementor widget with configurable column range, SVG/native icons, responsive activation, browser preferences, AJAX replacement handling and native style controls.
 

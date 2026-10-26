@@ -97,6 +97,12 @@ class Ticker_Widget extends \Elementor\Widget_Base {
 			'post_content' => esc_html__( 'Post Content', 'marrison-addon' ),
 			'permalink' => esc_html__( 'Permalink (URL)', 'marrison-addon' ),
 			'thumbnail_url' => esc_html__( 'Thumbnail URL', 'marrison-addon' ),
+			'name' => esc_html__( 'Term Name', 'marrison-addon' ),
+			'term_id' => esc_html__( 'Term ID', 'marrison-addon' ),
+			'slug' => esc_html__( 'Term Slug', 'marrison-addon' ),
+			'description' => esc_html__( 'Term Description', 'marrison-addon' ),
+			'taxonomy' => esc_html__( 'Term Taxonomy', 'marrison-addon' ),
+			'term_link' => esc_html__( 'Term Archive URL', 'marrison-addon' ),
 		];
 
 		if ( function_exists( 'jet_engine' ) && isset( jet_engine()->listings->macros ) ) {
@@ -329,7 +335,6 @@ class Ticker_Widget extends \Elementor\Widget_Base {
 				'label' => esc_html__( 'Speed (seconds)', 'marrison-addon' ),
 				'type' => \Elementor\Controls_Manager::NUMBER,
 				'min' => 1,
-				'max' => 100,
 				'step' => 1,
 				'default' => 10,
 				'description' => esc_html__( 'Time in seconds for the text to cross the container.', 'marrison-addon' ),
@@ -528,6 +533,10 @@ class Ticker_Widget extends \Elementor\Widget_Base {
 		}
 
 		// 1. Handle special helpers
+		if ( ( 'term_link' === $key || 'permalink' === $key ) && $obj instanceof \WP_Term ) {
+			$url = get_term_link( $obj );
+			return is_wp_error( $url ) ? '' : $url;
+		}
 		if ( 'permalink' === $key ) {
 			if ( $obj instanceof \WP_Post ) {
 				return get_permalink( $obj->ID );

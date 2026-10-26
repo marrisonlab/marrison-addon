@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <div class="marrison-policy-shortcodes">
+<p><?php echo esc_html(marrison_cookie_site_text('In Privacy e policy puoi scegliere se inserire qui i dati del titolare e i contatti oppure leggerli da Info Azienda. Gli shortcode usano la sorgente scelta e possono essere pubblicati anche prima di completare i dati.', 'In Privacy and policies, choose whether to enter controller details and contacts here or read them from Business Info. Shortcodes use the selected source and can be published before the details are complete.')); ?></p>
 <p><?php echo esc_html(marrison_cookie_site_text('Inserisci questi shortcode nelle tue pagine, anche nel widget Shortcode di Elementor. Il layout resta quello della pagina.', 'Insert these shortcodes into your pages, including the Elementor Shortcode widget. The page keeps its own layout.')); ?></p>
 <?php
 $policy_shortcodes = array(

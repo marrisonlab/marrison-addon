@@ -118,4 +118,8 @@ foreach (array(false, true) as $locale) {
     verify($banner->get_cookie_expiration_label((object) array('cookie_expiration_status' => 'session')) === ($locale ? 'Session' : 'Sessione'), 'Session language failed');
     verify($banner->get_cookie_expiration_label((object) array()) === ($locale ? 'Not detectable' : 'Non rilevabile'), 'Unknown expiration language failed');
 }
-echo "PASS cookie policy: legacy/generated, fresh/empty scan, escaping, no cookie values, no duplication, context isolation, disabled banner and Italian/English\n";
+$options['marrison_cookie_privacy_profile'] = array('identity_source' => 'manual', 'controller_name' => 'Titolare indipendente', 'controller_email' => 'indipendente@example.test');
+verify(!class_exists('Marrison_Addon_Business_Info_Store', false) && !class_exists('Marrison_Addon', false), 'Standalone fixture unexpectedly loaded Business Info');
+$standalone = Marrison_Addon_Cookie_Policy_Content::content('privacy');
+verify(strpos($standalone, 'Titolare indipendente') !== false && strpos($standalone, 'indipendente@example.test') !== false, 'Manual identity requires Business Info classes');
+echo "PASS cookie policy: legacy/generated, fresh/empty scan, escaping, no cookie values, no duplication, context isolation, disabled banner, Italian/English and standalone manual identity\n";

@@ -12,8 +12,11 @@ $options = array('marrison_wizard_current_step' => 5, 'marrison_cookie_show_bann
     'marrison_cookie_privacy_policy_content' => '<h1>Privacy Policy</h1><p>Test &lt;Site&gt;: informativa approvata.</p>',
     'marrison_cookie_cookie_policy_content' => '<h1>Cookie Policy</h1><p>Testo cookie approvato per questo sito.</p>');
 $options['marrison_cookie_privacy_profile'] = array(
-    'controller_name' => 'Test & Site', 'controller_address' => 'Via Esempio 1, Italia', 'controller_email' => 'privacy@example.test',
+    'identity_source' => 'business_info', 'controller_name' => 'Manual Controller', 'controller_email' => 'manual@example.test',
     'contact_enabled' => true, 'logs_enabled' => true, 'logs_retention' => '30 giorni', 'recipients' => 'Hosting ed email', 'transfers' => 'none');
+$options['marrison_business_info'] = array('company' => array('legal_name' => 'Test & Site'), 'contacts' => array(array('key' => 'privacy', 'type' => 'email', 'value' => 'privacy@example.test')), 'locations' => array(array('key' => 'sede', 'street' => 'Via Esempio 1', 'country' => 'Italia')));
+class Marrison_Addon { public static $business_enabled = true; public static function is_module_enabled($module) { return self::$business_enabled && $module === 'business_info'; } }
+require __DIR__ . '/../marrison-addon/includes/modules/business-info/class-business-info-store.php';
 $english = false;
 $can_manage = true;
 $post_content = '';
@@ -49,6 +52,7 @@ function sanitize_text_field($text) { return strip_tags($text); }
 function wp_nonce_field($action) { echo '<input type="hidden" name="_wpnonce" value="fixture">'; }
 function __($text) { return $text; }
 function _e($text) { echo esc_html($text); }
+function esc_html_e($text) { echo esc_html($text); }
 function esc_attr__($text) { return esc_attr($text); }
 function selected($value, $expected) { if ($value === $expected) { echo 'selected'; } }
 function checked($value, $expected) { if ($value === $expected) { echo 'checked'; } }
@@ -103,6 +107,13 @@ if (($argv[2] ?? '') === '--fixture-shortcodes') {
     echo '</body></html>';
     exit;
 }
+if (in_array($argv[2] ?? '', array('--fixture-privacy', '--fixture-privacy-disabled'), true)) {
+    if ($argv[2] === '--fixture-privacy-disabled') { Marrison_Addon::$business_enabled = false; }
+    $_GET['tab'] = 'policies';
+    echo '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>';
+    Marrison_Cookie_Admin_Settings::get_instance()->render_settings_page();
+    echo '</body></html>'; exit;
+}
 
 $_GET['tab'] = 'shortcodes';
 ob_start();
@@ -140,7 +151,7 @@ verify($response->success && $options['marrison_cookie_privacy_policy_url'] === 
 $before = $options;
 $response = ajax('wp_ajax_marrison_wizard_finish', array('nonce' => 'fixture'));
 verify($response->success && $options === $before, 'Finishing without URL fields overwrote existing settings');
-$saved_profile = Marrison_Addon_Cookie_Policy_Content::profile();
+$saved_profile = Marrison_Addon_Cookie_Policy_Content::stored_profile();
 $options['marrison_cookie_privacy_profile'] = $saved_profile;
 $response = ajax('wp_ajax_marrison_wizard_save_step', array('nonce' => 'fixture', 'step' => 6, 'data' => array('current_step' => 6)));
 verify($response->success && $options['marrison_cookie_privacy_profile'] === $saved_profile, 'Skipping privacy changed the saved profile');
@@ -181,6 +192,35 @@ verify(strpos(do_shortcode('[marrison_privacy_policy]'), 'Newsletter e marketing
 $options['marrison_cookie_privacy_profile']['transfers'] = 'scc';
 $options['marrison_cookie_privacy_profile']['transfer_details'] = '';
 verify(Marrison_Addon_Cookie_Policy_Content::missing() === array() && strpos(do_shortcode('[marrison_privacy_policy]'), 'Privacy Policy') !== false, 'Optional transfer details blocked the policy');
+$options['marrison_cookie_privacy_profile'] = $profile_before;
+$options['marrison_business_info'] = array('company' => array('legal_name' => 'Test & Site'), 'contacts' => array(array('key' => 'privacy', 'type' => 'email', 'value' => 'privacy@example.test')), 'locations' => array(array('key' => 'sede', 'street' => 'Via Esempio 1', 'country' => 'Italia')));
+// Explicit source selection, independent module lifecycle, and no copying between stores.
+$manual = array('identity_source' => 'manual', 'controller_name' => 'Manual <b>Controller</b>', 'controller_address' => 'Via Manuale 2, Italia', 'controller_email' => 'manual@example.test', 'controller_phone' => '+39 123', 'controller_vat' => '123', 'controller_tax_code' => 'CF123', 'dpo' => 'DPO manuale', 'representative' => 'Rappresentante manuale');
+foreach (array(true, false) as $business_enabled) {
+    Marrison_Addon::$business_enabled = $business_enabled;
+    $response = ajax('wp_ajax_marrison_save_settings', array('nonce' => 'fixture', 'settings' => array('privacy_profile' => $manual)));
+    $manual_saved = $options['marrison_cookie_privacy_profile'];
+    verify($response->success && $manual_saved['controller_name'] === 'Manual Controller', 'Manual identity was not sanitized/saved');
+    foreach (array('[marrison_privacy_policy]', '[marrison_cookie_policy_content]') as $shortcode) {
+        $output = do_shortcode($shortcode);
+        verify(strpos($output, 'Manual Controller') !== false && strpos($output, 'manual@example.test') !== false && strpos($output, 'Test &amp; Site') === false, 'Manual mode depends on Business Info or mixes identities');
+    }
+    $switched = $manual_saved; $switched['identity_source'] = 'business_info';
+    $response = ajax('wp_ajax_marrison_wizard_save_step', array('nonce' => 'fixture', 'step' => 5, 'data' => array('privacy_profile' => $switched)));
+    verify($response->success && Marrison_Addon_Cookie_Policy_Content::stored_profile()['controller_name'] === 'Manual Controller', 'Switching source destroyed manual data');
+    verify(Marrison_Addon_Cookie_Policy_Content::profile()['controller_name'] === ($business_enabled ? 'Test & Site' : ''), 'Business source silently uses manual data');
+    $business_snapshot = Marrison_Addon_Cookie_Policy_Content::snapshot();
+    $options['marrison_cookie_privacy_profile']['identity_source'] = 'manual';
+    verify(Marrison_Addon_Cookie_Policy_Content::profile()['controller_name'] === 'Manual Controller', 'Switching back failed to restore manual data');
+    verify($business_snapshot['privacy_profile']['controller_name'] === ($business_enabled ? 'Test & Site' : ''), 'Source switch changed historical evidence');
+}
+Marrison_Addon::$business_enabled = false;
+unset($options['marrison_cookie_privacy_profile']['identity_source']);
+verify(Marrison_Addon_Cookie_Policy_Content::profile()['identity_source'] === 'manual' && Marrison_Addon_Cookie_Policy_Content::profile()['controller_name'] === 'Manual Controller', 'Legacy manual fields were lost');
+verify(Marrison_Addon_Cookie_Policy_Content::sanitize_profile(array('identity_source' => 'invalid'))['identity_source'] === 'manual', 'Invalid source was accepted');
+ob_start(); include MARRISON_COOKIE_PLUGIN_DIR . 'templates/privacy-fields.php'; $manual_form = ob_get_clean();
+verify(strpos($manual_form, 'value="Manual Controller"') !== false && strpos($manual_form, 'name="privacy_profile[identity_source]"') !== false, 'Independent manual UI missing');
+Marrison_Addon::$business_enabled = true;
 $options['marrison_cookie_privacy_profile'] = $profile_before;
 try {
     ajax('wp_ajax_marrison_wizard_create_pages', array('nonce' => 'bad'));

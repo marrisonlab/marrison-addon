@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
- * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Listing Columns, Query Fallback, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Dynamic Background Image Size, Local Google Fonts, Inline CSS, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Cookie Manager, PHP Snippets, and Video Thumbnail.
+ * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Listing Columns, Query Fallback, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Dynamic Background Image Size, Local Google Fonts, Inline CSS, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Business Info, Cookie Manager, PHP Snippets, and Video Thumbnail.
  * Version: 1.3.87
  * Requires at least: 6.0
  * Requires PHP: 7.4
@@ -389,6 +389,17 @@ final class Marrison_Addon {
 				'boot' => 'independent',
 				'class' => 'Marrison_Addon_Calendar_Sync',
 				'file' => 'includes/modules/class-marrison-addon-calendar-sync.php',
+			],
+			'business_info' => [
+				'settings_page' => 'marrison-business-info',
+				'icon' => 'dashicons-building',
+				'title' => self::module_text( 'Business Info', $translate ),
+				'desc' => self::module_text( 'Anagrafica aziendale, contatti, sedi, dati privacy e orari condivisi con Cookie Manager e page builder.', $translate ),
+				'reload' => true,
+				'requires_elementor' => false,
+				'boot' => 'independent',
+				'class' => 'Marrison_Addon_Business_Info',
+				'file' => 'includes/modules/class-marrison-addon-business-info.php',
 			],
 			'cookie_manager' => [
 				'settings_page' => 'marrison-cookie',

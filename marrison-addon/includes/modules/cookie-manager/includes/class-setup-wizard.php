@@ -75,6 +75,14 @@ class Marrison_Setup_Wizard {
             return;
         }
 
+        wp_enqueue_script(
+            'marrison-cookie-privacy-profile',
+            MARRISON_COOKIE_PLUGIN_URL . 'assets/js/privacy-profile.js',
+            array(),
+            (string) filemtime(MARRISON_COOKIE_PLUGIN_DIR . 'assets/js/privacy-profile.js'),
+            true
+        );
+
         wp_enqueue_style(
             'marrison-wizard',
             MARRISON_COOKIE_PLUGIN_URL . 'assets/css/wizard.css',

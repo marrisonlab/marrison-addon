@@ -3,7 +3,8 @@
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 9999;
+    /* Keep both cursor layers above the Cookie Manager banner and preferences modal. */
+    z-index: 1000001;
     pointer-events: none;
     opacity: 0;
     transform: translate(-50%, -50%);

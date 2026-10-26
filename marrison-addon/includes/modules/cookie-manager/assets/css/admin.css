@@ -1122,6 +1122,7 @@ input[type="color"]:hover {
     }
 }
 /* Shared structured privacy fields, also inside the wizard. */
+.marrison-privacy-profile [hidden] { display: none !important; }
 .marrison-privacy-profile .marrison-profile-group { border: 1px solid #dcdcde; border-radius: 4px; padding: 12px; margin: 10px 0; }
 .marrison-privacy-profile summary { cursor: pointer; }
 .marrison-profile-field { margin-top: 14px; }
