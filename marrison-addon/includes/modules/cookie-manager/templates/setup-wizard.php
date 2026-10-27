@@ -105,11 +105,11 @@ $total_steps = $wizard->get_total_steps();
                 <button type="button" id="wizard_scan_browser_button" class="button"><?php _e('Analisi statica + verifica browser', 'marrison-cookie'); ?></button>
                 <p>
                     <label for="wizard_scan_limit"><?php _e('Limite campioni browser', 'marrison-cookie'); ?></label>
-                    <input id="wizard_scan_limit" type="number" min="1" max="10" value="3" class="small-text">
+                    <input id="wizard_scan_limit" type="number" min="0" max="10" value="0" class="small-text">
                     <label for="wizard_scan_seconds"><?php _e('Tempo massimo browser (secondi)', 'marrison-cookie'); ?></label>
-                    <input id="wizard_scan_seconds" type="number" min="10" max="120" value="<?php echo esc_attr(get_option('marrison_cookie_local_max_seconds', 30)); ?>" class="small-text">
+                    <input id="wizard_scan_seconds" type="number" min="0" max="120" value="0" class="small-text">
                 </p>
-                <p><?php _e('La verifica browser richiede Chrome o Edge aggiornato e il pannello aperto; non vede i cookie di terze parti. Ogni nuovo avvio sostituisce il vecchio inventario.', 'marrison-cookie'); ?></p>
+                <p><?php _e('La verifica browser richiede Chrome o Edge aggiornato e il pannello aperto; verifica ogni gruppo individuato prima e dopo il consenso, ma non vede i cookie di terze parti. Con 0 verifica tutti i gruppi senza un limite di tempo complessivo; i timeout delle singole pagine restano attivi. Valori maggiori di 0 riducono la verifica. Ogni nuovo avvio sostituisce il vecchio inventario.', 'marrison-cookie'); ?></p>
                 <div id="wizard_scan_status" class="marrison-scan-status"></div>
                 <div><h3><?php esc_html_e('Dati del browser', 'marrison-cookie'); ?></h3><p id="wizard_browser_storage_note"><?php esc_html_e('LocalStorage e sessionStorage sono elencati separatamente dai cookie, senza raccoglierne i valori.', 'marrison-cookie'); ?></p>
                     <table class="widefat"><thead><tr><th><?php esc_html_e('Chiave', 'marrison-cookie'); ?></th><th><?php esc_html_e('Tipo', 'marrison-cookie'); ?></th><th><?php esc_html_e('Origine', 'marrison-cookie'); ?></th><th><?php esc_html_e('Rilevazione', 'marrison-cookie'); ?></th></tr></thead><tbody id="wizard_browser_storage_rows"></tbody></table>

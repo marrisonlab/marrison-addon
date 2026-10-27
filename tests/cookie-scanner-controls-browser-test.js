@@ -44,6 +44,27 @@ let browser;
         assert(await page.locator('#wizard_scan_browser_button').isVisible());
         assert.equal(await page.locator('#marrison-scan-cookies').innerText(),'Avvia analisi statica');
         assert.equal(await page.locator('#wizard_scan_button').innerText(),'Avvia analisi statica');
+        for (const selector of ['#marrison-scan-limit','#marrison-scan-seconds','#wizard_scan_limit','#wizard_scan_seconds']) {
+            assert.equal(await page.inputValue(selector),'0','Normal scan must cover all discovered groups without the former total cutoff');
+        }
+    }
+    const limited={id:'fixture',mode:'local',status:'partial',local_iframe:true,static_pending:false,static_posts:16,http_done:16,http_failed:0,
+        queued:0,browser_done:6,browser_total:6,browser_failed:0,cookie_count:3,documented_cookie_count:2,limit:3,limit_reached:true,
+        services:[],storage:[],sampling:{selected:3,unselected:5,candidates:8,equivalents:0,groups:[]},issues_total:1,
+        issues:[{url:'',message:'Limite di 3 campioni raggiunto: altri gruppi non sono stati visitati.'}]};
+    for(const width of [1280,390]) {
+        await page.setViewportSize({width,height:1000});
+        await page.evaluate(job=>{window.MarrisonCookieScanner.running=false;window.MarrisonCookieScanner.render(job);},limited);
+        assert((await page.locator('#marrison-engine-summary').innerText()).includes('3/8 gruppi selezionati'));
+        assert((await page.locator('#marrison-engine-summary').innerText()).includes('6/6 verifiche browser (prima e dopo il consenso)'));
+        for(const selector of ['#marrison-scan-status','#wizard_scan_status']) {
+            assert((await page.locator(selector).innerText()).includes('Copertura browser limitata'));
+            assert.equal(await page.locator(selector).evaluate(el=>el.classList.contains('marrison-scan-status-error')),false);
+        }
+        const timeout={...limited,issues:[...limited.issues,{url:'',message:'Tempo massimo della verifica locale raggiunto.'}],issues_total:2};
+        await page.evaluate(job=>window.MarrisonCookieScanner.render(job),timeout);
+        assert((await page.locator('#marrison-scan-status').innerText()).includes('Tempo massimo'));
+        assert.equal(await page.locator('#marrison-scan-status').evaluate(el=>el.classList.contains('marrison-scan-status-error')),true);
     }
     for (const [button,limit,seconds] of [['#marrison-scan-browser','#marrison-scan-limit','#marrison-scan-seconds'],['#wizard_scan_browser_button','#wizard_scan_limit','#wizard_scan_seconds']]) {
         await page.fill(limit,'2'); await page.fill(seconds,'20'); await page.click(button);

@@ -7,10 +7,14 @@ function wp_unslash($value) { return stripslashes($value); }
 function wp_upload_dir() { return array('basedir' => $GLOBALS['engine_dir']); }
 function wp_mkdir_p($path) { return is_dir($path) || mkdir($path, 0777, true); }
 function wp_json_encode($value, $flags = 0) { return json_encode($value, $flags); }
+function wp_salt($scheme) { return 'local-engine-fixture-only'; }
+function add_query_arg($args, $url) { return $url . (strpos($url, '?') === false ? '?' : '&') . http_build_query($args); }
 function wp_next_scheduled() { return $GLOBALS['scheduled'] ?? false; }
 function wp_schedule_single_event($time) { $GLOBALS['scheduled'] = $time; }
 function update_option($name, $value) {}
 function do_action($name, $job) { $GLOBALS['finished'][] = $job; }
+function add_filter() {}
+function is_user_logged_in() { return !empty($GLOBALS['fixture_logged_in']); }
 class Marrison_Cookie_Scanner {
     public static $records = array();
     public static $writes = array();
@@ -85,6 +89,49 @@ try {
     $browser_job = $new_job->invoke($engine, 1, array('https://example.test/extra/'), 'local', true, 20);
     check_static($browser_job['local_iframe'] && $browser_job['pages'] && $browser_job['local_max_seconds'] === 20, 'Explicit browser command ignored');
     check_static(!get_option('marrison_cookie_local_iframe', false), 'Manual browser request changed the saved preference');
+    $urls = array(); for ($i = 1; $i <= 12; $i++) { $urls[] = 'https://example.test/sample-' . $i . '/'; }
+    $all_job = $new_job->invoke($engine, 0, $urls, 'local', true, 0);
+    check_static(count($all_job['pages']) === 13 && count($all_job['sampling']['groups']) === 13 && !$all_job['sampling']['unselected'] && !$all_job['limit_reached'] && !$all_job['issues_total'], 'Default full scan still dropped groups at 3 or 10 samples');
+    $all_job['static_scan']['done'] = true; $all_job['status'] = 'browser'; $all_job['local_started'] = time() - 300;
+    $browser_next = new ReflectionMethod($engine, 'browser_next'); if (PHP_VERSION_ID < 80100) { $browser_next->setAccessible(true); }
+    check_static($all_job['local_max_seconds'] === 0 && $browser_next->invoke($engine, $all_job) !== null, 'Full scan stopped at the former total time budget');
+    $summary = $summary_method->invoke($engine, $all_job);
+    check_static($summary['browser_total'] === 26 && $summary['sampling']['selected'] === 13, 'Full scan lost before/after checks');
+    $all_job['local_max_seconds'] = 20;
+    check_static($browser_next->invoke($engine, $all_job) === null, 'Explicit total time budget ignored');
+    $limited_job = $new_job->invoke($engine, 3, $urls, 'local', true, 20);
+    check_static(count($limited_job['pages']) === 3 && count($limited_job['sampling']['unselected']) === 10 && $limited_job['limit_reached'], 'Explicit reduced scan limit ignored');
+    $GLOBALS['static_bodies'] = array(40 => '<iframe src="https://player.vimeo.com/video/late-service"></iframe>');
+    $coverage_job = $new_job->invoke($engine, 0, array(), 'local', true, 0);
+    $http_step = new ReflectionMethod($engine, 'http_step'); if (PHP_VERSION_ID < 80100) { $http_step->setAccessible(true); }
+    do { $arguments = array(&$coverage_job); $http_step->invokeArgs($engine, $arguments); } while ($coverage_job['status'] === 'http');
+    check_static(count($coverage_job['seen']) === 42 && $coverage_job['sampling']['candidates'] === 42, 'Published routes were never offered to the browser grouping plan');
+    check_static(in_array('https://example.test/post-40/', $coverage_job['pages'], true), 'A unique service on a later post was omitted from browser samples');
+    check_static($coverage_job['sampling']['equivalents'] > 30 && count($coverage_job['pages']) < 10, 'Equivalent posts were all visited instead of grouped');
+    unset($GLOBALS['static_bodies']);
+    // WooCommerce redirects an empty checkout to the cart. Only a server-recorded,
+    // same-origin target may retain the current signed anonymous scan context.
+    $redirect_job = $new_job->invoke($engine, 0, array(), 'local', true, 0);
+    $redirect_job['status'] = 'browser'; $redirect_job['static_scan']['done'] = true;
+    file_put_contents($path, "<?php exit; ?>\n" . json_encode($redirect_job));
+    $next = $browser_next->invoke($engine, $redirect_job);
+    $frame_property = new ReflectionProperty($engine, 'frame'); if (PHP_VERSION_ID < 80100) { $frame_property->setAccessible(true); }
+    $frame_property->setValue($engine, $next + array('job' => $redirect_job['id'], 'actual_url' => $next['url']));
+    $_SERVER['HTTP_SEC_FETCH_DEST'] = 'iframe';
+    check_static($engine->scan_redirect('https://other.test/cart/') === 'https://other.test/cart/', 'Signed scan context leaked cross-origin');
+    check_static($engine->scan_redirect('https://example.test/wp-admin/') === 'https://example.test/wp-admin/', 'Signed scan entered an admin route');
+    $redirect_url = $engine->scan_redirect('https://example.test/cart/');
+    parse_str(parse_url($redirect_url, PHP_URL_QUERY), $_GET);
+    check_static(($_GET['marrison_scan_token'] ?? '') === $next['token'], 'Legitimate redirect lost the signed scan token');
+    $frame_context = new ReflectionMethod($engine, 'frame_context'); if (PHP_VERSION_ID < 80100) { $frame_context->setAccessible(true); }
+    $_SERVER['REQUEST_URI'] = '/cart/?' . parse_url($redirect_url, PHP_URL_QUERY);
+    check_static(($frame_context->invoke($engine)['actual_url'] ?? '') === 'https://example.test/cart/', 'Recorded redirect did not restore the frame agent');
+    $_SERVER['REQUEST_URI'] = '/unrecorded/?' . parse_url($redirect_url, PHP_URL_QUERY);
+    check_static($frame_context->invoke($engine) === null, 'Copied token authorized an unrecorded route');
+    $_SERVER['REQUEST_URI'] = '/cart/?' . parse_url($redirect_url, PHP_URL_QUERY); $GLOBALS['fixture_logged_in'] = true;
+    check_static($frame_context->invoke($engine) === null, 'Authenticated browser entered anonymous scan');
+    unset($GLOBALS['fixture_logged_in'], $_SERVER['HTTP_SEC_FETCH_DEST'], $_SERVER['REQUEST_URI']); $_GET = array();
+    $frame_property->setValue($engine, null);
     $static_job = $new_job->invoke($engine, 3, array(), 'local', false, 500);
     check_static(!$static_job['local_iframe'] && !$static_job['pages'] && $static_job['local_max_seconds'] === 120, 'Manual static command/browser bounds ignored');
     $remote = new ReflectionMethod($engine, 'remote_step'); if (PHP_VERSION_ID < 80100) { $remote->setAccessible(true); }

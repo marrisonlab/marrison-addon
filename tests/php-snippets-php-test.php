@@ -56,7 +56,7 @@ function is_user_logged_in() { return $GLOBALS['fixture_logged_in'] ?? true; }
 function wp_get_session_token() { return 'session-token'; }
 function wp_get_current_user() { return (object) array('ID' => 1, 'user_pass' => 'hash'); }
 function wp_check_password($password, $hash, $id) { return $password === 'correct'; }
-class WP_Session_Tokens { public static function get_instance($id) { return new self(); } public function get($token) { return array('login' => time()); } }
+class WP_Session_Tokens { public static function get_instance($id) { return new self(); } public function get($token) { return array('login' => $GLOBALS['fixture_login'] ?? time()); } }
 function get_transient($key) { return $GLOBALS['fixture_transients'][$key] ?? false; }
 function set_transient($key, $value, $ttl) { $GLOBALS['fixture_transients'][$key] = $value; }
 function update_option($key, $value, $autoload = null) { $GLOBALS['fixture_options'][$key] = $value; return true; }
@@ -237,7 +237,25 @@ $_GET['page'] = 'marrison_addon_php_snippets'; $_GET['edit'] = $copy;
 $fresh_admin = new Marrison_Addon_PHP_Snippets_Admin( $store );
 ob_start(); $fresh_admin->render(); $html = ob_get_clean();
 check( false === strpos( $html, '<script>name</script>' ) && false === strpos( $html, '<img src=x onerror=alert(1)>' ) && false !== strpos( $html, '&lt;/textarea&gt;&lt;script&gt;' ), 'Stored code/name/error escaped incorrectly in the admin page.' );
-check( 7 === substr_count( $html, '<form ' ) && false !== strpos( $html, 'MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE' ), 'CRUD/recovery controls missing from rendered page.' );
+check( 6 === substr_count( $html, '<form ' ) && false !== strpos( $html, 'MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE' ), 'CRUD/recovery controls missing from rendered page.' );
+check( false === strpos( $html, 'type="password"' ), 'Recent login must not show a password field.' );
+check( false !== strpos( $html, 'value="activate"' ) && false === strpos( $html, 'value="sign_reactivate"' ), 'The normal activation control must replace manual signing.' );
+
+$GLOBALS['fixture_login'] = time() - 3600;
+ob_start(); $fresh_admin->render(); $expired_html = ob_get_clean();
+check( false === strpos( $expired_html, 'type="password"' ), 'A valid WordPress login must not request the password again.' );
+$GLOBALS['fixture_transients'] = [];
+$old_session_id = post_action( $fresh_admin, 'save', 0, [ 'name' => 'Old session', 'code' => 'return;', 'scope' => 'frontend' ] );
+check( is_int( $old_session_id ) && Marrison_Addon_PHP_Snippets_Security::verify( $store->get( $old_session_id ) ), 'Existing login could not save and sign without another password.' );
+$draft_admin = new Marrison_Addon_PHP_Snippets_Admin( $store );
+$stored_before = $wpdb->rows;
+check( is_wp_error( post_action( $draft_admin, 'save', 0, [ 'name' => 'Unsaved draft', 'code' => '$preserved = 42;', 'scope' => 'invalid' ] ) ) && $stored_before === $wpdb->rows, 'Invalid scope changed stored snippets.' );
+ob_start(); $draft_admin->render(); $draft_html = ob_get_clean();
+check( false !== strpos( $draft_html, '$preserved = 42;' ) && false !== strpos( $draft_html, 'Unsaved draft' ) && false === strpos( $draft_html, 'type="password"' ), 'A validation failure must retain the draft without asking for a password.' );
+ob_start(); $fresh_admin->render(); $confirmed_html = ob_get_clean();
+check( false === strpos( $confirmed_html, 'type="password"' ), 'Password control returned after a normal save.' );
+unset( $GLOBALS['fixture_login'] );
+$GLOBALS['fixture_transients'] = [];
 $GLOBALS['styles'] = $GLOBALS['inline_scripts'] = [];
 $_GET['page'] = 'unrelated'; $fresh_admin->assets();
 check( [] === $GLOBALS['styles'] && [] === $GLOBALS['inline_scripts'], 'Assets leaked onto another screen.' );
@@ -245,7 +263,7 @@ $_GET['page'] = 'marrison_addon_php_snippets'; $GLOBALS['caps']['unfiltered_html
 check( [] === $GLOBALS['styles'], 'Assets loaded for a restricted user.' );
 $GLOBALS['caps']['unfiltered_html'] = true; $fresh_admin->assets();
 check( 1 === count( $GLOBALS['styles'] ) && true === $GLOBALS['editor_settings']['codemirror']['mode']['startOpen'] && false !== strpos( $GLOBALS['inline_scripts'][0], 'wp.codeEditor.initialize' ), 'PHP CodeMirror initialization is missing.' );
-if ( getenv( 'MARRISON_SNIPPETS_HTML' ) ) { file_put_contents( getenv( 'MARRISON_SNIPPETS_HTML' ), json_encode( [ 'html' => $html, 'script' => $GLOBALS['inline_scripts'][0] ] ) ); }
+if ( getenv( 'MARRISON_SNIPPETS_HTML' ) ) { file_put_contents( getenv( 'MARRISON_SNIPPETS_HTML' ), json_encode( [ 'html' => $html, 'expired_html' => $expired_html, 'draft_html' => $draft_html, 'script' => $GLOBALS['inline_scripts'][0] ] ) ); }
 $GLOBALS['editor_disabled'] = true; $GLOBALS['inline_scripts'] = []; $fresh_admin->assets();
 check( [] === $GLOBALS['inline_scripts'], 'Disabled syntax highlighting preference was ignored.' );
 unset( $_GET['page'], $_GET['edit'] );
@@ -311,4 +329,24 @@ $result = run_child( 'dependency-memory', [ 1 => snippet_row( 1, 'add_action("la
 check( 0 !== $result['status'] && ! $result['stored'][1]['active'] && ! $result['stored'][2]['active'], 'Unattributed resource exhaustion did not suspend loaded snippets.' );
 $result = run_child( 'stale-fatal', [ 1 => snippet_row( 1, 'add_action("late_snippet_test", function(){marrison_missing_function();});' ) ] );
 check( 0 !== $result['status'] && 1 === $result['stored'][1]['active'], 'An older failed request quarantined a newer revision.' );
+// Optional read-only render in its own process (constants cannot be undefined).
+$readonly = getenv( 'MARRISON_SNIPPETS_READONLY' );
+if ( in_array( $readonly, [ 'DISALLOW_FILE_EDIT', 'DISALLOW_FILE_MODS' ], true ) ) {
+    define( $readonly, true );
+    $_GET['page'] = 'marrison_addon_php_snippets';
+    $wpdb->rows[99] = snippet_row( 99, 'return;' );
+    $readonly_admin = new Marrison_Addon_PHP_Snippets_Admin( $store );
+    ob_start(); $readonly_admin->render(); $readonly_html = ob_get_clean();
+    check( false === strpos( $readonly_html, 'type="password"' ), 'Read-only page must not request a password.' );
+    $blocked = 'DISALLOW_FILE_MODS' === $readonly;
+    check( $blocked === ( false !== strpos( $readonly_html, 'DISALLOW_FILE_MODS' ) ) && false === strpos( $readonly_html, 'DISALLOW_FILE_EDIT' ), 'The file editor setting must not block database snippets.' );
+    check( false !== strpos( $readonly_html, $blocked ? '>Visualizza</a>' : '>Modifica</a>' ) && false !== strpos( $readonly_html, 'value="deactivate"' ), 'Viewing/editing and deactivation controls are missing.' );
+    $config_save = post_action( $readonly_admin, 'save', 0, [ 'name' => 'Config test', 'code' => 'return;', 'scope' => 'frontend' ] );
+    check( $blocked ? is_wp_error( $config_save ) : is_int( $config_save ), 'File editor setting incorrectly blocked snippet management, or full modifications lock was ignored.' );
+    $GLOBALS['editor_disabled'] = false; $GLOBALS['inline_scripts'] = [];
+    $readonly_admin->assets();
+    check( $blocked === $GLOBALS['editor_settings']['codemirror']['readOnly'], 'Editor editability does not match the configuration.' );
+    if ( getenv( 'MARRISON_SNIPPETS_HTML' ) ) { file_put_contents( getenv( 'MARRISON_SNIPPETS_HTML' ), json_encode( [ 'html' => $readonly_html, 'script' => $GLOBALS['inline_scripts'][0], 'readonly' => $blocked ? $readonly : '', 'configuration' => $readonly ] ) ); }
+}
+
 echo "PHP Snippets: PASS ($checks checks; CRUD/capabilities/nonces/scopes/early hooks/shortcode/JetEngine contract/native fatal processes/retry/recovery).\n";

@@ -1,0 +1,31 @@
+Data e ora	Scelta e categorie	Validità	Verifica
+27/10/2026, 14:31	Solo necessari
+
+Necessari
+
+Dettagli della ricevuta
+	Fino al 29/04/2027, 15:31	Ricevuta e informativa integre
+27/10/2026, 14:32	Tutti accettati
+
+Necessari, Funzionali, Analitici, Marketing
+
+Dettagli della ricevuta
+	Fino al 29/04/2027, 15:32	Ricevuta e informativa integre
+27/10/2026, 14:34	Solo necessari
+
+Necessari
+
+Dettagli della ricevuta
+	Fino al 29/04/2027, 15:34	Ricevuta e informativa integre
+27/10/2026, 14:35	Scelta personalizzata
+
+Necessari, Analitici
+
+Dettagli della ricevuta
+	Fino al 29/04/2027, 15:35	Ricevuta e informativa integre
+27/10/2026, 14:36	Solo necessari
+
+Necessari
+
+Dettagli della ricevuta
+	Fino al 29/04/2027, 15:36	Ricevuta e informativa integre

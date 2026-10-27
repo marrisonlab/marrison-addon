@@ -11,7 +11,7 @@
 *   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
 *   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
-*   **Stable tag:** 1.3.88
+*   **Stable tag:** 1.3.91
 *   **License:** GPL-3.0-or-later
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -117,7 +117,7 @@ The module dashboard always lists required active plugins. Missing dependencies 
     *   The scanner selects representative samples before making HTTP/browser requests. It groups public posts, announcements and other CPTs by content type, assigned/classic WordPress template, Elementor widget/component structure and saved embedded services/forms/inline scripts. Text, widget IDs, pagination and image IDs alone do not create another visit. Home, configured policies, post-type archives and public taxonomy archives receive their own representatives; unique templates and services keep extra samples. WordPress APIs provide seed routes; internal links, sitemaps and robots.txt identify further candidates without visiting every equivalent page.
     *   The visible limit controls samples (default 50; maximum 5,000). Each successful sample receives two isolated browser passes, before/after simulated consent. The report lists the chosen URLs, selection reasons, represented URL counts and equivalent URLs avoided. Up to 50 same-site **Additional pages** can be explicitly included even when they share a template. Dynamic display conditions or integrations not identifiable from saved content require these targeted URLs; Elementor supports custom inclusion/exclusion rules ([developer documentation](https://developers.elementor.com/docs/theme-conditions/)). Non-WordPress routes are grouped by route family and identified as uncertain. Sampling completion means the representative plan finished, not that every URL or possible interaction was visited.
     *   Requests are incremental and progress is saved. Administrative/action URLs, external hosts and asset downloads are excluded. Discovery is bounded to 10,000 candidate URLs; limits, failed samples and incomplete coverage are explicit. Large/nested saved content that cannot be fully classified gets a dedicated sample rather than being silently merged. Scans from the previous exhaustive method cannot resume under the new grouping strategy.
-    *   Scans analyze published content and configuration locally in resumable batches. Optional iframe checks use at most ten representative samples and a total time budget; they cannot observe third-party cookies. See [local scan and hardening limits](docs/cookie-hardening.md).
+    *   Scans analyze published content and configuration locally in resumable batches. Optional manual iframe checks cover one representative per discovered group, before and after consent, with sample and total-time limits set to 0 by default (all groups, no total cutoff). Reduced sample/time budgets remain explicit choices; per-page timeouts still apply. Browser checks cannot observe third-party cookies. See [local scan and hardening limits](docs/cookie-hardening.md).
     *   Catalog declarations have source catalogo and observed=false. They never replace real observations. Provider-specific conditional cookies still require manual browser checks.
     *   Inventory and policy lists consolidate duplicates by name, domain and path, retaining manual categories. A successful complete scan removes cookies no longer observed; partial scans retain earlier observations. Legacy catalog-only records and duplicates are cleaned on the next scan. Database and JSON fallback storage remain supported. Reports can be exported and show runtime version, loaded scanner path and source fingerprint so stale or conflicting installations cannot silently report successful scans.
     *   Automatic local scans remain opt-in and respect the configured interval (1–30 days, default 7). WP-Cron advances the saved static cursor; optional browser measurements need an open panel.
@@ -147,6 +147,7 @@ The module dashboard always lists required active plugins. Missing dependencies 
     *   Configure browser cache headers for static CSS, JavaScript, fonts, and images while preserving WordPress `?ver=` cache busting.
     *   New configurations default to 7 days and no `immutable`. Longer TTLs and `immutable` require reliable URL changes whenever content changes; existing saved settings are preserved.
     *   Manages an isolated Apache 2.4-compatible `.htaccess` block when available; written rules remain unverified until public headers pass diagnostics. OpenLiteSpeed requires manual server configuration.
+    *   Keeps one automatic `.htaccess` backup, refreshed before each rule change; previous module backups are deleted after a successful write. Opening the AM Addon panel also prunes legacy backups to the newest timestamp. Other files and backups are preserved; cleanup errors are reported.
     *   Nginx instructions separate `http` maps from directives for the existing static location, preserving response policies and excluding errors/dynamic responses. A system administrator must apply and later remove these directives; disabling the WordPress module cannot remove manual Nginx configuration.
     *   Manual GET diagnostics check up to three assets per enabled category, including CSS backgrounds and fonts, with HTTP status, content type and cache directives. Missing categories and failed checks cannot retain a previous green status. The module does not configure HTTP/2, compression or page cache.
 
@@ -222,6 +223,22 @@ Updates use the latest published stable GitHub Release from `marrisonlab/marriso
 Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, source/review badges, service category overrides in Behavior, custom domain/path rules and default blocking for unclassified external resources. Payment classification must be confirmed by the privacy adviser. Catalog cookies are declarations, never observations; PayPal/Klarna lists remain empty where integration-specific data are unconfirmed. No scanner provider is replaced in this phase. See [configuration, limitations and tests](docs/cookie-service-catalog.md).
 
 ## Changelog
+
+### 1.3.91
+
+* **Fix:** Browser Cache conserva un solo backup automatico di `.htaccess`, aggiornato prima di ogni modifica delle regole; elimina i precedenti backup del modulo dopo la scrittura riuscita.
+* **Fix:** La prima apertura del pannello AM Addon ripulisce anche i backup accumulati dalle versioni precedenti, conservando il più recente. Preservati gli altri file e backup; eventuali errori di pulizia sono visibili nello stato del modulo.
+
+### 1.3.90
+
+* **Fix:** PHP Snippets ripristina creazione, modifica e attivazione con DISALLOW_FILE_EDIT=true e una sessione WordPress valida, senza password aggiuntive o firma manuale.
+* **Fix:** Migrazione di compatibilità una tantum, eseguita soltanto da un amministratore autorizzato: firma i vecchi snippet e riattiva quelli sospesi esclusivamente per firma mancante. Restano invariati gli stati disattivati manualmente, le sospensioni per errori PHP e le firme già presenti. Safe mode e DISALLOW_FILE_MODS rinviano il recupero.
+* **Fix:** Campo Nome con tipo text e stile nativo WordPress. Restano capability, nonce, validazione PHP, firme HMAC, controlli delle revisioni e recupero dagli errori fatali.
+
+### 1.3.89
+
+* **Fix:** PHP Snippets allinea i pulsanti delle azioni ed elimina i campi password ripetuti. Una sola conferma compare quando necessaria; nessun campo password con autenticazione recente o configurazione in sola lettura.
+* **Fix:** Conserva la bozza quando la conferma scade durante la scrittura, distingue le costanti WordPress effettivamente attive e separa le sezioni Recupero e Registro modifiche. Restano invariati i blocchi DISALLOW_FILE_EDIT/DISALLOW_FILE_MODS e i controlli di sicurezza.
 
 ### 1.3.88
 * Aggiunto Business Info / Info Azienda: archivio condiviso di dati aziendali, contatti, sedi, campi personalizzati, identità privacy e orari, con shortcode e integrazioni Elementor e JetEngine.
@@ -668,6 +685,6 @@ Il controllo Site Health prova a leggere un file temporaneo innocuo e lo elimina
 
 ## PHP Snippets security and recovery
 
-Version 1.3.84 requires HMAC signatures before execution. Existing unsigned snippets are preserved but do not execute: review each one and use **Firma e riattiva** with recent authentication. DISALLOW_FILE_EDIT/DISALLOW_FILE_MODS disable editing; signed execution can continue. Recover with MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE or the empty file wp-content/uploads/marrison-snippets-off. See [signing, authentication, audit retention and limits](docs/cookie-hardening.md#fase-6--1384).
+Version 1.3.90 retains HMAC integrity checks and restores compatibility with existing snippets. On the first authorized admin request, a one-time migration signs legacy unsigned code and restores snippets suspended only by the earlier signature migration. Manually disabled snippets and real PHP-error quarantines stay inactive. Later unsigned or altered database records remain blocked by runtime integrity checks. Normal save/activation handles signatures automatically using the existing WordPress login; no additional password or manual signing is required. DISALLOW_FILE_EDIT affects the native file editors and no longer blocks database snippets; DISALLOW_FILE_MODS still blocks modifications. Recover with MARRISON_ADDON_PHP_SNIPPETS_SAFE_MODE or the empty file wp-content/uploads/marrison-snippets-off. See [migration, authentication, audit retention and limits](docs/cookie-hardening.md#fase-6--1384).
 
 GitHub releases must include **Marrison-Archive-SHA256: DIGEST** for the exact existing tag archive URL. Missing or mismatched digests block the update offer and installation. The six-hour cache and download URL are unchanged. This checks integrity, not independent authenticity of a compromised GitHub account. See the release procedure and tests in the same document.

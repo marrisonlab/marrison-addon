@@ -8,6 +8,9 @@ require_once __DIR__ . '/class-php-snippets-security.php';
 final class Marrison_Addon_PHP_Snippets_Store {
 	const SCHEMA_OPTION = 'marrison_addon_php_snippets_schema';
 	const SCHEMA_VERSION = '2';
+	const COMPATIBILITY_OPTION = 'marrison_addon_php_snippets_legacy_restored';
+	const SIGNATURE_SUSPENSION = 'Firma assente o non valida: codice non eseguito. Verifica lo snippet e usa Firma e riattiva con riautenticazione.';
+	const INTEGRITY_SUSPENSION = 'Firma assente o non valida: snippet sospeso. Verifica il codice e usa Attiva.';
 
 	public function table() {
 		global $wpdb;
@@ -49,6 +52,37 @@ final class Marrison_Addon_PHP_Snippets_Store {
 	public static function can_manage() {
 		// Do not replace these checks with role names or an is_super_admin shortcut.
 		return current_user_can( 'manage_options' ) && current_user_can( 'unfiltered_html' );
+	}
+
+	public function restore_legacy_snippets() {
+		if ( ! self::can_manage() ) {
+			return new WP_Error( 'permission', __( 'Operazione non autorizzata.', 'marrison-addon' ) );
+		}
+		if ( ! $this->ready() || get_option( self::COMPATIBILITY_OPTION ) || ! Marrison_Addon_PHP_Snippets_Security::can_edit()
+			|| Marrison_Addon_PHP_Snippets_Security::safe_mode() || ( function_exists( 'wp_is_recovery_mode' ) && wp_is_recovery_mode() ) ) {
+			return true;
+		}
+		global $wpdb;
+		$rows = $this->listing();
+		if ( ! is_array( $rows ) ) { return $this->write_error(); }
+		foreach ( $rows as $row ) {
+			// Only migrate records from before signatures, never changed signed records.
+			if ( ! empty( $row['signature'] ) || ! in_array( $row['scope'], [ 'everywhere', 'frontend', 'backend' ], true ) || is_wp_error( self::validate( $row['code'] ) ) ) {
+				continue;
+			}
+			$restore = ! $row['active'] && in_array( $row['last_error'], [ self::SIGNATURE_SUSPENSION, self::INTEGRITY_SUSPENSION ], true );
+			$data = [ 'revision' => self::new_revision() ];
+			if ( $restore ) { $data['active'] = 1; $data['last_error'] = ''; }
+			$data['signature'] = Marrison_Addon_PHP_Snippets_Security::signature( array_merge( $row, $data ) );
+			if ( '' === $data['signature'] ) {
+				return new WP_Error( 'signing_key', __( 'Impossibile completare il recupero degli snippet: chiavi WordPress non disponibili.', 'marrison-addon' ) );
+			}
+			$where = [ 'id' => $row['id'], 'revision' => $row['revision'], 'signature' => '', 'active' => $row['active'], 'last_error' => $row['last_error'] ];
+			if ( 1 !== $wpdb->update( $this->table(), $data, $where ) ) { return $this->write_error(); }
+			Marrison_Addon_PHP_Snippets_Security::audit( 'legacy_restore', $row, $restore ? 'reactivated' : 'state_preserved' );
+		}
+		update_option( self::COMPATIBILITY_OPTION, 1, false );
+		return true;
 	}
 
 	private static function new_revision() {
@@ -140,7 +174,6 @@ final class Marrison_Addon_PHP_Snippets_Store {
 			$result = $wpdb->delete( $this->table(), $where );
 		} else {
 			if (in_array($operation, array('activate', 'sign_reactivate'), true)) {
-				if ($operation === 'activate' && !Marrison_Addon_PHP_Snippets_Security::verify($row)) { return new WP_Error('signature', __('Firma assente o non valida. Verifica il codice e usa Firma e riattiva.', 'marrison-addon')); }
 				$valid = self::validate( $row['code'] );
 				if ( is_wp_error( $valid ) ) {
 					$this->quarantine( $id, $revision, $valid->get_error_message() );
@@ -150,7 +183,7 @@ final class Marrison_Addon_PHP_Snippets_Store {
 				return new WP_Error( 'operation', __( 'Operazione non valida.', 'marrison-addon' ) );
 			}
 			$data = array('active' => in_array($operation, array('activate', 'sign_reactivate'), true) ? 1 : 0, 'last_error' => '', 'revision' => self::new_revision());
-			$data['signature'] = $operation === 'sign_reactivate' || Marrison_Addon_PHP_Snippets_Security::verify($row) ? Marrison_Addon_PHP_Snippets_Security::signature(array_merge($row, $data)) : '';
+			$data['signature'] = in_array($operation, array('activate', 'sign_reactivate'), true) || Marrison_Addon_PHP_Snippets_Security::verify($row) ? Marrison_Addon_PHP_Snippets_Security::signature(array_merge($row, $data)) : '';
 			if ($data['active'] && $data['signature'] === '') { return new WP_Error('signature', __('Chiave di firma non disponibile.', 'marrison-addon')); }
 			$result = $wpdb->update($this->table(), $data, $where);
 		}

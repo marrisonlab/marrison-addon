@@ -269,6 +269,42 @@ class Marrison_Addon_Browser_Cache_Server {
 		return is_string( $contents ) && false !== strpos( $contents, self::BEGIN_MARKER ) && false !== strpos( $contents, self::END_MARKER );
 	}
 
+	public function cleanup_htaccess_backups( $keep = '' ) {
+		$dir     = dirname( $this->get_htaccess_path() );
+		$entries = scandir( $dir );
+
+		if ( false === $entries ) {
+			return new WP_Error( 'htaccess_backup_scan_failed', __( 'Impossibile leggere la directory dei backup Browser Cache.', 'marrison-addon' ) );
+		}
+
+		$backups = array();
+		foreach ( $entries as $entry ) {
+			if ( ! preg_match( '/^\.htaccess\.marrison-browser-cache-[0-9]{8}-[0-9]{6}\.bak$/D', $entry ) ) {
+				continue;
+			}
+			$file = trailingslashit( $dir ) . $entry;
+			if ( is_file( $file ) && ! is_link( $file ) ) {
+				$backups[] = $file;
+			}
+		}
+
+		// Timestamp names sort chronologically; retain the newest existing backup on upgrade.
+		rsort( $backups, SORT_STRING );
+		if ( '' === $keep && ! empty( $backups ) ) {
+			$keep = $backups[0];
+		}
+		if ( '' !== $keep && ! in_array( $keep, $backups, true ) ) {
+			return new WP_Error( 'htaccess_backup_missing', __( 'Backup Browser Cache da conservare non trovato. Nessun vecchio backup eliminato.', 'marrison-addon' ) );
+		}
+		foreach ( $backups as $backup ) {
+			if ( $backup !== $keep && ! unlink( $backup ) ) {
+				return new WP_Error( 'htaccess_backup_cleanup_failed', __( 'Impossibile eliminare un vecchio backup Browser Cache. Controlla i permessi della directory principale.', 'marrison-addon' ) );
+			}
+		}
+
+		return true;
+	}
+
 	public function apply_htaccess_rules( $settings = null ) {
 		$settings = is_array( $settings ) ? $settings : $this->get_settings();
 		$rules    = $this->build_htaccess_rules( $settings );
@@ -309,6 +345,10 @@ class Marrison_Addon_Browser_Cache_Server {
 		}
 
 		if ( $updated === (string) $existing ) {
+			$cleanup = $this->cleanup_htaccess_backups();
+			if ( is_wp_error( $cleanup ) ) {
+				return $cleanup;
+			}
 			$this->update_state(
 				array(
 					'status'        => 'pending_verification',
@@ -320,6 +360,7 @@ class Marrison_Addon_Browser_Cache_Server {
 			return true;
 		}
 
+		$backup = '';
 		if ( file_exists( $path ) ) {
 			$backup = trailingslashit( $dir ) . '.htaccess.marrison-browser-cache-' . gmdate( 'Ymd-His' ) . '.bak';
 
@@ -336,6 +377,11 @@ class Marrison_Addon_Browser_Cache_Server {
 				'htaccess_write_failed',
 				__( 'Scrittura .htaccess non riuscita. Copia manualmente le regole mostrate nella pagina del modulo.', 'marrison-addon' )
 			);
+		}
+
+		$cleanup = $this->cleanup_htaccess_backups( $backup );
+		if ( is_wp_error( $cleanup ) ) {
+			return $cleanup;
 		}
 
 		$this->update_state(

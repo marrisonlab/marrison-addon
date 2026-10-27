@@ -6,7 +6,7 @@ require_once __DIR__ . '/class-scan-services.php';
 require_once __DIR__ . '/class-static-scanner.php';
 class Marrison_Addon_Cookie_Scan_Engine {
     const PROTOCOL = 2;
-    const REVISION = '20261024.2';
+    const REVISION = '20261027.3';
     private static $instance;
     private $frame = null;
     private $sampler = null;
@@ -29,6 +29,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
             add_action('template_redirect', array($this, 'frame_headers'), -9999);
             add_action('wp_head', array($this, 'frame_agent'), -9999);
             add_action('shutdown', array($this, 'capture_frame_cookies'), PHP_INT_MAX);
+            add_filter('wp_redirect', array($this, 'scan_redirect'), PHP_INT_MAX, 2);
         }
     }
 
@@ -120,12 +121,12 @@ class Marrison_Addon_Cookie_Scan_Engine {
                 }
             }
             $result = $this->locked(function() {
-                $limit = isset($_POST['limit']) ? max(1, min(10, (int) $_POST['limit'])) : 3;
+                $limit = isset($_POST['limit']) && is_scalar($_POST['limit']) ? max(0, min(10, (int) $_POST['limit'])) : 0;
                 if (isset($_POST['additional_urls']) && is_string($_POST['additional_urls']) && strlen($_POST['additional_urls']) > 20000) { throw new RuntimeException('Elenco delle pagine aggiuntive troppo lungo.'); }
                 $additional = isset($_POST['additional_urls']) && is_string($_POST['additional_urls']) ? preg_split('/\R/', wp_unslash($_POST['additional_urls'])) : array();
                 $mode = 'local';
                 $browser = in_array($_POST['browser'] ?? null, array('1', 1), true);
-                $seconds = isset($_POST['max_seconds']) && is_scalar($_POST['max_seconds']) ? (int) $_POST['max_seconds'] : 30;
+                $seconds = isset($_POST['max_seconds']) && is_scalar($_POST['max_seconds']) ? (int) $_POST['max_seconds'] : 0;
                 $job = $this->new_job($limit, $additional, $mode, $browser, $seconds);
                 if (isset($_POST['mode'])) { update_option('marrison_cookie_scan_mode', $mode); }
                 $this->write_job($job);
@@ -269,7 +270,8 @@ class Marrison_Addon_Cookie_Scan_Engine {
         $job['mode'] = 'local';
         $job['static_scan'] = array('page' => 1, 'posts' => 0, 'done' => false);
         $job['local_iframe'] = $browser === null ? (bool) get_option('marrison_cookie_local_iframe', false) : (bool) $browser;
-        $job['local_max_seconds'] = max(10, min(120, (int) ($seconds === null ? get_option('marrison_cookie_local_max_seconds', 30) : $seconds)));
+        $seconds = (int) ($seconds === null ? get_option('marrison_cookie_local_max_seconds', 30) : $seconds);
+        $job['local_max_seconds'] = $seconds === 0 ? 0 : max(10, min(120, $seconds));
         if ($job['local_iframe']) {
             $this->sampler = new Marrison_Addon_Cookie_Scan_Sampler();
             $this->enqueue($job, $home, 'page');
@@ -285,7 +287,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
 
     public function start_local_scan() {
         return $this->locked(function() {
-            $job = $this->new_job(3);
+            $job = $this->new_job(0);
             $this->http_step($job); $this->write_job($job);
             if ($job['status'] === 'http' && !wp_next_scheduled('marrison_addon_cookie_engine_tick')) { wp_schedule_single_event(time() + 10, 'marrison_addon_cookie_engine_tick'); }
             return count(Marrison_Addon_Cookie_Static_Scanner::declared_cookies($job['services']));
@@ -361,7 +363,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
                 if (count($group['examples']) < 3) { $group['examples'][] = $url; }
                 $job['sampling']['equivalents']++; return;
             }
-            if (count($job['sampling']['groups']) >= $job['limit']) {
+            if ($job['limit'] > 0 && count($job['sampling']['groups']) >= $job['limit']) {
                 if (!$job['sampling']['unselected']) { $this->issue($job, '', 'Limite di ' . $job['limit'] . ' campioni raggiunto: altri gruppi non sono stati visitati.'); }
                 $job['sampling']['unselected'][$key] = true; $job['limit_reached'] = true; return;
             }
@@ -379,13 +381,30 @@ class Marrison_Addon_Cookie_Scan_Engine {
     private function http_step(&$job) {
         if ($job['status'] !== 'http') { return; }
         if (isset($job['static_scan'])) {
-            (new Marrison_Addon_Cookie_Static_Scanner())->step($job['static_scan'], $job['services']);
+            (new Marrison_Addon_Cookie_Static_Scanner())->step($job['static_scan'], $job['services'], function($post, $id) use (&$job) {
+                if (empty($job['local_iframe']) || empty($post->post_type) || !function_exists('get_permalink')
+                    || in_array($post->post_type, array('attachment', 'elementor_library'), true)
+                    || (function_exists('is_post_type_viewable') && !is_post_type_viewable($post->post_type))) { return; }
+                // Every published route participates in grouping, not just the newest post of each type.
+                $this->enqueue($job, get_permalink($id), 'page');
+            });
+            foreach ($job['queue'] as $item) { if (!in_array($item['url'], $job['pages'], true)) { $job['pages'][] = $item['url']; } }
+            $job['queue'] = array();
             $job['http_done'] = $job['static_scan']['posts']; $job['updated'] = time();
             if (!empty($job['static_scan']['memory_limited'])) {
                 $job['status'] = 'partial'; $this->issue($job, '', 'Limite di memoria: scansione statica sospesa e riprendibile.');
             } elseif (!empty($job['static_scan']['done'])) {
                 $incomplete = !empty($job['static_scan']['skipped']) || !empty($job['static_scan']['config_incomplete']);
-                if ($incomplete) { $this->issue($job, '', 'Alcuni contenuti superano i limiti di analisi: inventario statico parziale.'); }
+                if ($incomplete) {
+                    $details = $job['static_scan']['details'] ?? array();
+                    if (!$details) { $this->issue($job, '', 'Inventario statico parziale: alcuni dati non sono stati analizzati.'); }
+                    foreach ($details as $detail) {
+                        $source = (string) ($detail['source'] ?? '');
+                        $url = '';
+                        if (preg_match('/^post:(\d+):/', $source, $match) && function_exists('get_permalink')) { $url = (string) get_permalink((int) $match[1]); }
+                        $this->issue($job, $url, 'Analisi statica parziale — ' . $source . ': ' . ($detail['reason'] ?? 'Dato non analizzabile.'));
+                    }
+                }
                 $job['status'] = !empty($job['local_iframe']) && $job['pages'] ? 'browser' : ($incomplete ? 'partial' : 'completed');
                 $job['local_started'] = time();
             }
@@ -571,7 +590,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
     private function browser_next($job) {
         $count = count($job['pages']);
         if (!$count || $job['status'] !== 'browser' || $job['browser_cursor'] >= $count * 2) { return null; }
-        if (isset($job['local_started']) && time() - $job['local_started'] >= ($job['local_max_seconds'] ?? 30)) { return null; }
+        if (isset($job['local_started']) && ($job['local_max_seconds'] ?? 30) > 0 && time() - $job['local_started'] >= ($job['local_max_seconds'] ?? 30)) { return null; }
         if (($job['mode'] ?? 'local') === 'commander') { return array('url' => $job['pages'][(int) floor($job['browser_cursor'] / 2)], 'phase' => 'both'); }
         $phase = $job['browser_cursor'] < $count ? 'before' : 'after';
         $url = $job['pages'][$job['browser_cursor'] % $count];
@@ -604,6 +623,8 @@ class Marrison_Addon_Cookie_Scan_Engine {
             'remote_error' => $job['remote_error'] ?? '',
             'background' => false, 'worker' => $job['worker'] ?? array(),
             'static_pending' => !$stale && empty($job['static_scan']['done']),
+            'static_source' => $stale ? '' : ($job['static_scan']['current_source'] ?? ''),
+            'static_details' => $stale ? array() : ($job['static_scan']['details'] ?? array()),
             'storage' => array_values($job['storage'] ?? array()), 'storage_count' => count($job['storage'] ?? array()), 'storage_supported' => $job['storage_supported'] ?? false,
             'sampling' => $browser_enabled && isset($job['sampling']) ? array('strategy' => 'templates', 'candidates' => $job['sampling']['candidates'], 'equivalents' => $job['sampling']['equivalents'],
                 'selected' => count($job['sampling']['groups']), 'unselected' => count($job['sampling']['unselected']), 'groups' => array_values($job['sampling']['groups'])) : null,
@@ -860,8 +881,32 @@ class Marrison_Addon_Cookie_Scan_Engine {
         $home = wp_parse_url(home_url('/'));
         $origin = $home['scheme'] . '://' . $home['host'] . (isset($home['port']) ? ':' . $home['port'] : '');
         $actual = $this->normalize_url($origin . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/'), home_url('/'));
-        if (!$next || $_GET['marrison_scan'] !== $job['id'] || $phase !== $next['phase'] || $actual !== $next['url'] || !hash_equals($next['token'], $token)) { return null; }
-        return $next + array('job' => $job['id']);
+        if (!$next || $_GET['marrison_scan'] !== $job['id'] || $phase !== $next['phase'] || !hash_equals($next['token'], $token)) { return null; }
+        if ($actual !== $next['url'] && !in_array($actual, $job['frame_redirects'][$token] ?? array(), true)) { return null; }
+        return $next + array('job' => $job['id'], 'actual_url' => $actual);
+    }
+
+    /** Keep a verified anonymous scan attached to legitimate same-site redirects (e.g. an empty checkout). */
+    public function scan_redirect($location, $status = 302) {
+        if (!$this->frame || is_user_logged_in() || ($_SERVER['HTTP_SEC_FETCH_DEST'] ?? '') !== 'iframe') { return $location; }
+        $target = $this->normalize_url($location, $this->frame['actual_url'] ?? $this->frame['url']);
+        if (!$target) { return $location; }
+        try {
+            return $this->locked(function() use ($location, $target) {
+                $job = $this->read_job();
+                $next = $job ? $this->browser_next($job) : null;
+                if (!$next || !hash_equals($next['token'], $this->frame['token'])) { return $location; }
+                $targets = $job['frame_redirects'][$next['token']] ?? array();
+                if (count($targets) >= 8 || $target === ($this->frame['actual_url'] ?? $next['url'])) { return $location; }
+                if (!in_array($target, $targets, true)) { $targets[] = $target; }
+                $job['frame_redirects'][$next['token']] = $targets;
+                // Preserve the effective destination in the exported report, rather than claiming checkout rendered.
+                $key = $next['phase'] . ' ' . $next['url'];
+                if (count($job['redirected_pages'] ?? array()) < 100 || isset($job['redirected_pages'][$key])) { $job['redirected_pages'][$key] = $targets; }
+                $this->write_job($job);
+                return add_query_arg(array('marrison_scan' => $job['id'], 'marrison_scan_phase' => $next['phase'], 'marrison_scan_token' => $next['token']), $target);
+            });
+        } catch (Throwable $error) { return $location; }
     }
 
     public function frame_headers() {
@@ -1040,7 +1085,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
         try {
             $this->locked(function() {
                 $job = $this->read_job();
-                if (!$job || ($job['revision'] ?? '') !== self::REVISION || !in_array($job['status'], array('http', 'browser'), true) || $job['expires'] < time()) { $this->write_job($this->new_job(3, array(), 'local')); }
+                if (!$job || ($job['revision'] ?? '') !== self::REVISION || !in_array($job['status'], array('http', 'browser'), true) || $job['expires'] < time()) { $this->write_job($this->new_job(0, array(), 'local')); }
             });
             $job = $this->read_job();
             if ($this->background_active($job)) { $this->wake_background(); }

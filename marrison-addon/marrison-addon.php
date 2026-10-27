@@ -3,7 +3,7 @@
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
  * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Listing Columns, Query Fallback, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Dynamic Background Image Size, Local Google Fonts, Inline CSS, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Business Info, Cookie Manager, PHP Snippets, and Video Thumbnail.
- * Version: 1.3.88
+ * Version: 1.3.91
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Angelo Marra
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.3.88';
+	const VERSION = '1.3.91';
 
 	private $elementor_modules_initialized = false;
 	private $header_animations_initialized = false;

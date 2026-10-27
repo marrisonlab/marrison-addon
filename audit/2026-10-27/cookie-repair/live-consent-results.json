@@ -1,0 +1,83 @@
+[
+  {
+    "label": "prima del consenso",
+    "analytics": "no",
+    "analyticsCookie": "no",
+    "marketing": "no",
+    "marketingCookie": "no",
+    "requests": "0",
+    "videoSrc": null
+  },
+  {
+    "label": "rifiuto",
+    "analytics": "no",
+    "analyticsCookie": "no",
+    "marketing": "no",
+    "marketingCookie": "no",
+    "requests": "0",
+    "videoSrc": null
+  },
+  {
+    "label": "rifiuto dopo ricaricamento",
+    "analytics": "no",
+    "analyticsCookie": "no",
+    "marketing": "no",
+    "marketingCookie": "no",
+    "requests": "0",
+    "videoSrc": null
+  },
+  {
+    "label": "accettazione completa",
+    "analytics": "sì",
+    "analyticsCookie": "sì",
+    "marketing": "sì",
+    "marketingCookie": "sì",
+    "requests": "2",
+    "videoSrc": "https://www.youtube-nocookie.com/embed/M7lc1UVf-VE"
+  },
+  {
+    "label": "accettazione completa dopo ricaricamento",
+    "analytics": "sì",
+    "analyticsCookie": "sì",
+    "marketing": "sì",
+    "marketingCookie": "sì",
+    "requests": "2",
+    "videoSrc": "https://www.youtube-nocookie.com/embed/M7lc1UVf-VE"
+  },
+  {
+    "label": "revoca del consenso completo",
+    "analytics": "no",
+    "analyticsCookie": "no",
+    "marketing": "no",
+    "marketingCookie": "no",
+    "requests": "0",
+    "videoSrc": null
+  },
+  {
+    "label": "consenso soltanto analitici",
+    "analytics": "sì",
+    "analyticsCookie": "sì",
+    "marketing": "no",
+    "marketingCookie": "no",
+    "requests": "1",
+    "videoSrc": null
+  },
+  {
+    "label": "soltanto analitici dopo ricaricamento",
+    "analytics": "sì",
+    "analyticsCookie": "sì",
+    "marketing": "no",
+    "marketingCookie": "no",
+    "requests": "1",
+    "videoSrc": null
+  },
+  {
+    "label": "revoca del consenso selettivo",
+    "analytics": "no",
+    "analyticsCookie": "no",
+    "marketing": "no",
+    "marketingCookie": "no",
+    "requests": "0",
+    "videoSrc": null
+  }
+]

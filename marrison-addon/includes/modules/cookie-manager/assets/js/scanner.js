@@ -29,13 +29,23 @@
         status: function (text, failed) {
             $('#marrison-scan-status, #wizard_scan_status').text(text).toggleClass('error marrison-scan-status-error', !!failed).show();
         },
+        sampleLimitOnly: function (job) {
+            var sampling = job && job.sampling, issues = job && job.issues || [];
+            return !!job && !job.stale && job.status === 'partial' && job.local_iframe === true && !job.static_pending &&
+                job.browser_total > 0 && job.browser_done === job.browser_total && job.browser_failed === 0 && job.http_failed === 0 &&
+                job.limit_reached === true && !!sampling && sampling.unselected > 0 && issues.length > 0 && job.issues_total === issues.length &&
+                issues.every(function (issue) { return /^Limite di [0-9]+ campioni raggiunto:/.test(issue.message || ''); });
+        },
+        resultFailed: function (job) {
+            return !!job && !job.stale && job.status !== 'completed' && !this.sampleLimitOnly(job);
+        },
         render: function (job) {
             this.job = job;
             var stale = !!job && !!job.stale;
             var active = !!job && !stale && ['http', 'browser'].indexOf(job.status) >= 0;
             $('#marrison-engine-progress').prop('hidden', !active);
             $('#marrison-engine-summary').toggleClass('marrison-scan-complete', !!job && !stale && job.status === 'completed').toggleClass('marrison-scan-incomplete', !!job && !stale && ['partial', 'failed', 'cancelled'].indexOf(job.status) >= 0);
-            if (job && !active && !this.running) { this.status(this.resultText(job), !stale && job.status !== 'completed'); }
+            if (job && !active && !this.running) { this.status(this.resultText(job), this.resultFailed(job)); }
             if (job && job.rescan_required === false) { $('[data-marrison-cookie-rescan-notice]').remove(); }
             $('#marrison-scan-cancel').prop('hidden', !job || stale || ['http', 'browser'].indexOf(job.status) < 0);
             $('#marrison-scan-resume').prop('hidden', !job || stale || this.running || !job.static_pending && ['http', 'browser'].indexOf(job.status) < 0);
@@ -44,9 +54,10 @@
             if (!job) { $('#marrison-engine-summary').text('Nessuna scansione del nuovo motore.'); return; }
             var names = { http: 'Scansione delle pagine', browser: 'Analisi nel browser', completed: 'Scansione completata', partial: 'Scansione parziale', cancelled: 'Scansione interrotta', failed: 'Scansione non riuscita' };
             var browserEnabled = job.local_iframe !== false;
-            var summary = [(job.status === 'completed' && !browserEnabled ? 'Scansione statica completata' : names[job.status]) || 'Stato non disponibile',
+            var summary = [(this.sampleLimitOnly(job) ? 'Campioni verificati · copertura browser limitata' : job.status === 'completed' && !browserEnabled ? 'Scansione statica completata' : names[job.status]) || 'Stato non disponibile',
                 job.static_posts != null ? job.static_posts + ' contenuti analizzati' : job.http_done + ' pagine campione',
-                browserEnabled ? job.browser_done + '/' + job.browser_total + ' verifiche browser' : 'verifica browser disattivata'];
+                browserEnabled ? job.browser_done + '/' + job.browser_total + ' verifiche browser (prima e dopo il consenso)' : 'verifica browser disattivata'];
+            if (browserEnabled && job.sampling) { summary.push(job.sampling.selected + '/' + (job.sampling.selected + job.sampling.unselected) + ' gruppi selezionati'); }
             if (browserEnabled) { summary.push(job.cookie_count + ' cookie osservati'); }
             summary.push((job.documented_cookie_count || 0) + ' cookie documentati dal catalogo');
             $('#marrison-engine-summary').text(stale ? 'Rapporto precedente · ' + job.cookie_count + ' cookie rilevati allora. Avvia una nuova scansione locale.' : summary.join(' · '));
@@ -98,6 +109,11 @@
         },
         resultText: function (job) {
             if (job.stale) { return 'Rapporto del metodo precedente. Avvia una nuova scansione locale: sostituisce i vecchi risultati.'; }
+            if (this.sampleLimitOnly(job)) {
+                var sampling = job.sampling, total = sampling.selected + sampling.unselected;
+                var next = 'Per verificare tutti i gruppi individuati, imposta Limite campioni browser e Tempo massimo browser a 0';
+                return 'Verifica riuscita sui ' + sampling.selected + ' campioni selezionati, prima e dopo il consenso: ' + job.cookie_count + ' cookie osservati e ' + (job.documented_cookie_count || 0) + ' cookie documentati dal catalogo. Copertura browser limitata: ' + sampling.unselected + ' gruppi su ' + total + ' esclusi dal limite di ' + job.limit + '. ' + next + ' e avvia Analisi statica + verifica browser. I risultati disponibili sono salvati; i cookie di terze parti non sono verificabili con questo metodo.';
+            }
             if (job.local_iframe === false && (job.status === 'completed' || job.status === 'partial')) {
                 var detail = job.status === 'partial' && job.issues && job.issues[0];
                 return 'Analisi statica ' + (job.status === 'completed' ? 'completata' : 'parziale') + ': ' + (job.static_posts || 0) + ' contenuti analizzati e ' + (job.documented_cookie_count || 0) + ' cookie documentati dal catalogo. La verifica browser è disattivata: i cookie effettivamente installati non sono stati verificati.' + (detail ? ' ' + detail.message + (detail.url ? ' — ' + detail.url : '') : '');
@@ -106,7 +122,7 @@
                 return 'Questa scansione non può vedere i cookie di terze parti; i servizi rilevati e i loro cookie arrivano dal catalogo. Scansione completata: ' + job.cookie_count + ' cookie osservati.' + (job.documented_cookie_count ? ' Cookie documentati dei servizi rilevati: ' + job.documented_cookie_count + '.' : '');
             }
             if (job.status === 'partial') {
-                var issue = job.issues && job.issues[0];
+                var issue = (job.issues || []).find(function (item) { return !/^Limite di [0-9]+ campioni raggiunto:/.test(item.message || ''); }) || (job.issues || [])[0];
                 return 'Scansione incompleta: ' + job.cookie_count + ' cookie rilevati; i risultati disponibili sono salvati. ' + (issue ? issue.message + (issue.url ? ' — ' + issue.url : '') : 'Non è stato possibile verificare tutte le pagine previste.');
             }
             return job.status === 'cancelled' ? 'Scansione interrotta.' : 'Scansione non riuscita: consulta i problemi rilevati.';
@@ -132,7 +148,7 @@
             this.render(this.job);
             this.status('Preparazione della scansione…');
             try {
-                var data = await this.request('start', { mode: 'local', browser: browser ? 1 : 0, limit: $(wizard ? '#wizard_scan_limit' : '#marrison-scan-limit').val() || 3, max_seconds: $(wizard ? '#wizard_scan_seconds' : '#marrison-scan-seconds').val() || 30, additional_urls: wizard ? '' : ($('#marrison-scan-additional').val() || '') });
+                var data = await this.request('start', { mode: 'local', browser: browser ? 1 : 0, limit: $(wizard ? '#wizard_scan_limit' : '#marrison-scan-limit').val() || 0, max_seconds: $(wizard ? '#wizard_scan_seconds' : '#marrison-scan-seconds').val() || 0, additional_urls: wizard ? '' : ($('#marrison-scan-additional').val() || '') });
                 if (data.job.background) {
                     this.render(data.job); this.watchBackground();
                     $(document).trigger('marrison-cookie-scan-started', [data.job, !!wizard]);
@@ -201,7 +217,7 @@
                     this.timer = setTimeout(function () { engine.pollBackground(); }, 3000);
                 } else {
                     this.running = false; this.render(data.job);
-                    this.status(data.job && (data.job.worker || {}).state === 'paused' ? (data.job.worker.error || 'Scansione in pausa. Premi Riprendi.') : this.resultText(data.job), data.job && data.job.status !== 'completed');
+                    this.status(data.job && (data.job.worker || {}).state === 'paused' ? (data.job.worker.error || 'Scansione in pausa. Premi Riprendi.') : this.resultText(data.job), this.resultFailed(data.job));
                     await this.loadInventory('all');
                 }
             } catch (error) {
@@ -228,7 +244,7 @@
                     sessionStorage.removeItem('marrisonCookieScanRun');
                     this.removeFrame();
                     this.render(this.job);
-                    this.status(this.resultText(this.job), this.job.status !== 'completed');
+                    this.status(this.resultText(this.job), this.resultFailed(this.job));
                     await this.loadInventory('all');
                 }
             } catch (error) {

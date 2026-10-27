@@ -29,7 +29,8 @@ final class Marrison_Addon_PHP_Snippets_Security {
     }
 
     public static function can_edit() {
-        return !(defined('DISALLOW_FILE_EDIT') && DISALLOW_FILE_EDIT) && !(defined('DISALLOW_FILE_MODS') && DISALLOW_FILE_MODS);
+        // DISALLOW_FILE_EDIT concerns WordPress's file editors, not database snippets.
+        return !(defined('DISALLOW_FILE_MODS') && DISALLOW_FILE_MODS);
     }
 
     public static function safe_mode() {

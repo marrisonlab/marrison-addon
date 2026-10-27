@@ -3,7 +3,7 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.88
+**Version:** 1.3.91
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -16,7 +16,7 @@ Query Fallback adds a backup Posts Query to the native JetEngine Listing Grid, w
 
 Modules include Wrapped Link, Content Ticker, Steps, Product Discount, Heading Animations, Recently Viewed Products, Listing Grid Title, Listing Columns, Dynamic SVG, Read More, Anchor Offset, Preloader, Custom Cursor, Image Sizes, Fast Logout, Calendar Sync, Cookie Manager, Video Thumbnail, Local Google Fonts, Browser Cache, Horizontal Scroll (Beta), Liquid Background, Inline CSS, Dynamic Background Image Size and PHP Snippets.
 
-Elementor, WooCommerce and JetEngine are required only for their related modules. Cookie Manager provides representative HTTP/browser scans, signed consent choices and policy shortcodes. PHP Snippets requires both WordPress `manage_options` and `unfiltered_html` capabilities.
+Elementor, WooCommerce and JetEngine are required only for their related modules. Cookie Manager provides representative HTTP/browser scans, signed consent choices and policy shortcodes. Manual browser scans cover every discovered group before and after consent by default; sample and total-time limits are optional. PHP Snippets requires both WordPress `manage_options` and `unfiltered_html` capabilities.
 
 Business Info adds **Info Azienda**: a shared company/contact/location directory, custom fields, privacy identities (including DPO and EU representative), opening hours, Elementor tags/widget, JetEngine Dynamic Field sources and universal shortcodes. Shield icons identify Cookie Manager inputs. Cookie Manager can use its own manual identity fields or explicitly read current values from Info Azienda, and remains configurable with Business Info disabled. See [setup, cache limits and validation](marrison-addon/docs/business-info.md).
 
@@ -53,6 +53,22 @@ Current stable versions checked on 20 October 2026: [WordPress 7.1.3](https://wo
 Optional server features are reported by their modules: FFmpeg is needed for local video cover extraction; browser cache rules depend on the web server. These features are not prerequisites for unrelated modules.
 
 ## Changelog
+
+### 1.3.91
+
+* Browser Cache: conserva un solo backup automatico di `.htaccess`, aggiornato a ogni modifica delle regole. Elimina i precedenti backup del modulo soltanto dopo la scrittura riuscita.
+* Alla successiva apertura del pannello AM Addon elimina anche i backup accumulati dalle versioni precedenti, conservando il più recente. Gli altri file e backup restano invariati; eventuali errori di pulizia vengono segnalati.
+
+### 1.3.90
+
+* PHP Snippets: ripristina gestione e attivazione con DISALLOW_FILE_EDIT=true e login WordPress già valido, senza password aggiuntive o firma manuale.
+* Recupera una sola volta, al primo accesso amministrativo autorizzato, gli snippet senza firma sospesi dal precedente aggiornamento; conserva le disattivazioni manuali, gli errori PHP reali e i controlli di integrità successivi.
+* Corretto il campo Nome con lo stile nativo WordPress; pulsanti allineati. DISALLOW_FILE_MODS e modalità di recupero restano rispettati.
+
+### 1.3.89
+
+* PHP Snippets: allinea i pulsanti e mostra una sola conferma password quando necessaria; nessun campo password con autenticazione recente o configurazione in sola lettura.
+* Conserva la bozza se la conferma scade durante la scrittura e indica esattamente le costanti WordPress che bloccano le modifiche. I blocchi DISALLOW_FILE_EDIT/DISALLOW_FILE_MODS restano rispettati.
 
 ### 1.3.88
 * Aggiunto Business Info / Info Azienda: archivio condiviso di dati aziendali, contatti, sedi, campi personalizzati, identità privacy e orari, con shortcode e integrazioni Elementor e JetEngine.
@@ -141,4 +157,4 @@ Optional server features are reported by their modules: FFmpeg is needed for loc
 
 [Complete changelog](marrison-addon/README.md#changelog)
 
-Cookie Manager and PHP Snippets hardening is documented in [the phase guide](marrison-addon/docs/cookie-hardening.md): local service scans, Consent Mode v2, banner controls, private receipt limits and snippet signatures. Existing unsigned snippets require explicit review and re-signing. Release bodies must publish the SHA-256 of the exact tag archive before the updater offers it.
+Cookie Manager and PHP Snippets hardening is documented in [the phase guide](marrison-addon/docs/cookie-hardening.md): local service scans, Consent Mode v2, banner controls, private receipt limits and snippet signatures. PHP Snippets 1.3.90 repairs the legacy signature migration during an authorized admin request, preserving manual deactivations and real PHP-error quarantines. Release bodies must publish the SHA-256 of the exact tag archive before the updater offers it.

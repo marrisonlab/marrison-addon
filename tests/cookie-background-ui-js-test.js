@@ -43,7 +43,7 @@ const job={id:'server-job',background:true,mode:'commander',status:'http',worker
     paused.engine.request=async action=>{paused.actions.push(action);return {job:{...job}};};
     await paused.engine.resume();assert.equal(paused.actions.slice(-2).join(','),'state,resume');assert.equal(paused.engine.running,true);
     const browserScan=fixture();
-    browserScan.engine.request=async(action,data)=>{browserScan.actions.push(action);assert.equal(data.browser,1);assert.equal(data.max_seconds,30);return {job:{...job}};};
+    browserScan.engine.request=async(action,data)=>{browserScan.actions.push(action);assert.equal(data.browser,1);assert.equal(data.limit,0);assert.equal(data.max_seconds,0);return {job:{...job}};};
     await browserScan.engine.start(false,true);assert.equal(browserScan.actions.join(','),'start');
     const unsupported=fixture(false);unsupported.engine.request=async action=>{unsupported.actions.push(action);};
     await unsupported.engine.start(true,true);assert.equal(unsupported.actions.length,0);assert.equal(unsupported.engine.running,false);
@@ -98,6 +98,38 @@ const job={id:'server-job',background:true,mode:'commander',status:'http',worker
     staticVisual.render(verified);
     assert.ok(staticVisual.states.get('#marrison-engine-summary').text.includes('6/6 verifiche browser'));
     assert.ok(staticVisual.states.get('#marrison-engine-summary').text.includes('2 cookie osservati'));
+    // Reproduce the supplied report: 8 groups, 3 selected, all 6 before/after checks succeeded.
+    const limited = {...verified, status:'partial', static_pending:false, static_posts:16, cookie_count:3, documented_cookie_count:2,
+        limit:3, limit_reached:true, http_failed:0, browser_failed:0, sampling:{selected:3,unselected:5,candidates:8,equivalents:0},
+        issues:[{url:'',message:'Limite di 3 campioni raggiunto: altri gruppi non sono stati visitati.'}], issues_total:1};
+    const limitedVisual = fixture(); limitedVisual.render(limited);
+    assert.ok(limitedVisual.states.get('#marrison-engine-summary').text.includes('copertura browser limitata'));
+    assert.ok(limitedVisual.states.get('#marrison-engine-summary').text.includes('3/8 gruppi selezionati'));
+    assert.ok(limitedVisual.states.get('#marrison-engine-summary').text.includes('6/6 verifiche browser (prima e dopo il consenso)'));
+    assert.equal(limitedVisual.states.get('#marrison-engine-summary').classes['marrison-scan-complete'],false);
+    assert.equal(limitedVisual.states.get('#marrison-engine-summary').classes['marrison-scan-incomplete'],true);
+    assert.equal(limitedVisual.statuses.at(-1)[1],false);
+    assert.ok(limitedVisual.engine.resultText(limited).includes('Tempo massimo browser a 0'));
+    assert.equal(limited.status,'partial','Limited coverage must remain partial in the saved report');
+    const largeSite={...limited,sampling:{...limited.sampling,unselected:15}};
+    assert.ok(limitedVisual.engine.resultText(largeSite).includes('Tempo massimo browser a 0'));
+    assert.ok(!limitedVisual.engine.resultText(largeSite).includes('a 18'));
+    const timeout={...limited,issues:[...limited.issues,{url:'',message:'Tempo massimo della verifica locale raggiunto.'}],issues_total:2};
+    limitedVisual.render(timeout);
+    assert.equal(limitedVisual.statuses.at(-1)[1],true);
+    assert.ok(limitedVisual.engine.resultText(timeout).includes('Tempo massimo'));
+    for (const incomplete of [timeout,{...limited,browser_failed:1},{...limited,http_failed:1},{...limited,browser_done:5},
+        {...limited,static_pending:true},{...limited,issues_total:2},{...limited,stale:true},{...limited,limit_reached:false}]) {
+        assert.equal(limitedVisual.engine.sampleLimitOnly(incomplete),false,'A genuine incomplete/error result was hidden');
+    }
+    // Both terminal paths must keep the same severity as a reopened report.
+    for (const background of [false,true]) {
+        const finished=fixture(); finished.engine.job={...limited,background}; finished.engine.running=true;
+        finished.engine.request=async()=>({job:{...limited,background}});
+        if(background)await finished.engine.pollBackground();else await finished.engine.advance();
+        assert.equal(finished.statuses.at(-1)[1],false);
+        assert.ok(finished.statuses.at(-1)[0].includes('Verifica riuscita'));
+    }
     const historical = fixture();
     const stale = {...job, stale:true, status:'partial', cookie_count:4, http_done:1, browser_done:2, browser_total:2, services:[], storage:[], static_pending:true,
         remote_error:'Errore remoto precedente', issues:[{message:'Richieste non pubbliche o navigazioni fuori sito bloccate: 2.',url:'https://example.test/hello-world/'}]};

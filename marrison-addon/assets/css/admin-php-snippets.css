@@ -1,6 +1,9 @@
 .marrison-php-snippets .marrison-module-card { margin-top: 20px; }
 .marrison-php-snippets .marrison-snippets-table { overflow-x: auto; }
-.marrison-php-snippets .marrison-snippet-action { display: inline-block; margin: 2px; }
+.marrison-php-snippets .marrison-snippet-action-list { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.marrison-php-snippets .marrison-snippet-action { display: inline-flex; margin: 0; }
+.marrison-php-snippets .marrison-snippet-action-list .button { margin: 0; white-space: nowrap; }
+.marrison-php-snippets fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 .marrison-php-snippets .marrison-snippet-actions { min-width: 230px; }
 .marrison-php-snippets pre { max-width: 460px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .marrison-php-snippets .CodeMirror { height: 360px; border: 1px solid #8c8f94; }

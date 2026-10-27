@@ -1,0 +1,595 @@
+- navigation "Menu principale":
+  - link "Salta al contenuto principale":
+    - /url: "#wpbody-content"
+  - link "Vai alla barra degli strumenti":
+    - /url: "#wp-toolbar"
+  - list:
+    - link "Bacheca":
+      - /url: index.php
+      - generic: 
+      - generic: Bacheca
+    - list:
+      - link "Home":
+        - /url: index.php
+      - link "Aggiornamenti":
+        - /url: update-core.php
+    - link "Elementor":
+      - /url: admin.php?page=elementor-home
+      - generic: Elementor
+    - list:
+      - link "Home":
+        - /url: admin.php?page=elementor-home
+      - link "Editor":
+        - /url: admin.php?page=elementor
+      - link "Theme Builder":
+        - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=elementor-app&ver=4.3.5&return_to=/wp-admin/plugins.php?deactivate=true&plugin_status=all&paged=1&s#site-editor/promotion
+      - link "Iscrizioni":
+        - /url: admin.php?page=e-form-submissions
+      - link "Elementor MCP":
+        - /url: admin.php?page=elementor-mcp
+      - link "Connetti Account":
+        - /url: admin.php?page=elementor-connect-account
+      - link "Acquista":
+        - /url: admin.php?page=elementor-one-upgrade
+    - link "Articoli":
+      - /url: edit.php
+      - generic: 
+      - generic: Articoli
+    - list:
+      - link "Tutti gli articoli":
+        - /url: edit.php
+      - link "Aggiungi articolo":
+        - /url: post-new.php
+      - link "Categorie":
+        - /url: edit-tags.php?taxonomy=category
+      - link "Tag":
+        - /url: edit-tags.php?taxonomy=post_tag
+    - link "Media":
+      - /url: upload.php
+      - generic: 
+      - generic: Media
+    - list:
+      - link "Libreria":
+        - /url: upload.php
+      - link "Aggiungi file media":
+        - /url: media-new.php
+    - link "Pagine":
+      - /url: edit.php?post_type=page
+      - generic: 
+      - generic: Pagine
+    - list:
+      - link "Tutte le pagine":
+        - /url: edit.php?post_type=page
+      - link "Aggiungi pagina":
+        - /url: post-new.php?post_type=page
+    - link "Commenti":
+      - /url: edit-comments.php
+      - generic: 
+      - generic: Commenti
+    - text: 
+    - link "WPMI":
+      - /url: admin.php?page=marrison-installer
+      - generic: WPMI
+    - list:
+      - link "Installer":
+        - /url: admin.php?page=marrison-installer
+      - link "Impostazioni":
+        - /url: admin.php?page=marrison-installer-settings
+    - link "WPMU":
+      - /url: admin.php?page=marrison-updater
+      - generic: WPMU
+    - list:
+      - link "Aggiornamenti":
+        - /url: admin.php?page=marrison-updater
+      - link "Backup":
+        - /url: admin.php?page=marrison-updater-backups
+      - link "Impostazioni":
+        - /url: admin.php?page=marrison-updater-settings
+    - link "AM Addon":
+      - /url: admin.php?page=marrison_addon_panel
+      - generic: AM Addon
+    - list:
+      - link "AM Addon":
+        - /url: admin.php?page=marrison_addon_panel
+      - link "Sconto Prodotto":
+        - /url: admin.php?page=marrison_addon_product_discount
+      - link "Dimensioni Immagini":
+        - /url: admin.php?page=marrison_addon_image_sizes
+      - link "Local Google Fonts":
+        - /url: admin.php?page=marrison_addon_local_google_fonts
+      - link "Browser Cache":
+        - /url: admin.php?page=marrison_addon_browser_cache
+      - link "Cursore Animato":
+        - /url: admin.php?page=marrison_addon_cursor
+      - link "Preloader":
+        - /url: admin.php?page=marrison_addon_preloader
+      - link "Calendar Sync":
+        - /url: admin.php?page=marrison_addon_calendar_sync
+      - link "Cookie Manager":
+        - /url: admin.php?page=marrison-cookie
+      - link "Video Thumbnail":
+        - /url: admin.php?page=marrison-video-thumb
+      - link "PHP Snippets":
+        - /url: admin.php?page=marrison_addon_php_snippets
+    - link "WooCommerce":
+      - /url: admin.php?page=wc-admin
+      - generic: WooCommerce
+    - list:
+      - link "Home":
+        - /url: admin.php?page=wc-admin
+      - link "Ordini":
+        - /url: admin.php?page=wc-orders
+      - link "Clienti":
+        - /url: admin.php?page=wc-admin&path=/customers
+      - link "Codici promozionali":
+        - /url: admin.php?page=coupons-moved
+      - link "Rapporti":
+        - /url: admin.php?page=wc-reports
+      - link "Impostazioni":
+        - /url: admin.php?page=wc-settings
+      - link "Stato":
+        - /url: admin.php?page=wc-status
+      - link "Estensioni":
+        - /url: admin.php?page=wc-admin&path=/extensions
+    - link "Prodotti":
+      - /url: edit.php?post_type=product
+      - generic: 
+      - generic: Prodotti
+    - list:
+      - link "Tutti i prodotti":
+        - /url: edit.php?post_type=product
+      - link "Aggiungi un nuovo prodotto":
+        - /url: post-new.php?post_type=product
+      - link "Marchi":
+        - /url: edit-tags.php?taxonomy=product_brand&post_type=product
+      - link "Categorie":
+        - /url: edit-tags.php?taxonomy=product_cat&post_type=product
+      - link "Tag":
+        - /url: edit-tags.php?taxonomy=product_tag&post_type=product
+      - link "Attributi":
+        - /url: edit.php?post_type=product&page=product_attributes
+      - link "Recensioni":
+        - /url: edit.php?post_type=product&page=product-reviews
+    - link "Pagamenti":
+      - /url: admin.php?page=wc-settings&tab=checkout&from=PAYMENTS_MENU_ITEM
+      - generic: Pagamenti
+    - link "Dati analizzati":
+      - /url: admin.php?page=wc-admin&path=/analytics/overview
+      - generic: 
+      - generic: Dati analizzati
+    - list:
+      - link "Panoramica":
+        - /url: admin.php?page=wc-admin&path=/analytics/overview
+      - link "Prodotti":
+        - /url: admin.php?page=wc-admin&path=/analytics/products
+      - link "Fatturato":
+        - /url: admin.php?page=wc-admin&path=/analytics/revenue
+      - link "Ordini":
+        - /url: admin.php?page=wc-admin&path=/analytics/orders
+      - link "Variazioni":
+        - /url: admin.php?page=wc-admin&path=/analytics/variations
+      - link "Categorie":
+        - /url: admin.php?page=wc-admin&path=/analytics/categories
+      - link "Codici promozionali":
+        - /url: admin.php?page=wc-admin&path=/analytics/coupons
+      - link "Imposte":
+        - /url: admin.php?page=wc-admin&path=/analytics/taxes
+      - link "Download":
+        - /url: admin.php?page=wc-admin&path=/analytics/downloads
+      - link "Magazzino":
+        - /url: admin.php?page=wc-admin&path=/analytics/stock
+      - link "Impostazioni":
+        - /url: admin.php?page=wc-admin&path=/analytics/settings
+    - link "Marketing":
+      - /url: admin.php?page=wc-admin&path=/marketing
+      - generic: 
+      - generic: Marketing
+    - list:
+      - link "Panoramica":
+        - /url: admin.php?page=wc-admin&path=/marketing
+      - link "Codici promozionali":
+        - /url: edit.php?post_type=shop_coupon
+    - text: 
+    - link "Crocoblock":
+      - /url: admin.php?page=jet-dashboard
+      - generic: Crocoblock
+    - list:
+      - link "Dashboard":
+        - /url: admin.php?page=jet-dashboard
+      - link "JetPlugins Settings":
+        - /url: admin.php?page=jet-dashboard-settings-page
+      - link "Update & Installation":
+        - /url: admin.php?page=jet-dashboard-license-page
+      - link "Command Center":
+        - /url: admin.php?page=jet-command-center
+      - link "Interactive Tutorials":
+        - /url: admin.php?page=crocoblock-workflows
+      - link "License":
+        - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=jet-dashboard-license-page&subpage=license-manager
+      - link "Get Crocoblock":
+        - /url: admin.php?page=jet-dashboard-upsale-page
+    - link "JetEngine":
+      - /url: admin.php?page=jet-engine
+      - generic: JetEngine
+    - list:
+      - link "JetEngine":
+        - /url: admin.php?page=jet-engine
+      - link "Listings/Components":
+        - /url: edit.php?post_type=jet-engine
+      - link "Post Types":
+        - /url: admin.php?page=jet-engine-cpt
+      - link "Meta Boxes":
+        - /url: admin.php?page=jet-engine-meta
+      - link "Taxonomies":
+        - /url: admin.php?page=jet-engine-cpt-tax
+      - link "Relations":
+        - /url: admin.php?page=jet-engine-relations
+      - link "Options Pages":
+        - /url: admin.php?page=jet-engine-options-pages
+      - link "Query Builder":
+        - /url: admin.php?page=jet-engine-query
+      - link "Website Builder":
+        - /url: admin.php?page=website-builder
+        - text: Website Builder
+    - link "Hello":
+      - /url: admin.php?page=hello-elementor
+      - generic: 
+      - generic: Hello
+    - link "Aspetto":
+      - /url: themes.php
+      - generic: 
+      - generic: Aspetto
+    - list:
+      - link "Temi":
+        - /url: themes.php
+      - link "Design":
+        - /url: site-editor.php
+      - link "Personalizza":
+        - /url: customize.php?return=%2Fwp-admin%2Fplugins.php%3Fplugin_status%3Dall%26paged%3D1%26s
+      - link "Font":
+        - /url: font-library.php
+      - link "Menu":
+        - /url: nav-menus.php
+      - link "Editor del tema":
+        - /url: theme-editor.php
+    - link "Plugin":
+      - /url: plugins.php
+      - generic: 
+      - generic: Plugin
+    - list:
+      - link "Plugin installati":
+        - /url: plugins.php
+      - link "Aggiungi plugin":
+        - /url: plugin-install.php
+      - link "Editor del plugin":
+        - /url: plugin-editor.php
+    - link "Utenti":
+      - /url: users.php
+      - generic: 
+      - generic: Utenti
+    - list:
+      - link "Tutti gli utenti":
+        - /url: users.php
+      - link "Aggiungi utente":
+        - /url: user-new.php
+      - link "Profilo":
+        - /url: profile.php
+    - link "Strumenti":
+      - /url: tools.php
+      - generic: 
+      - generic: Strumenti
+    - list:
+      - link "Strumenti disponibili":
+        - /url: tools.php
+      - link "Importa":
+        - /url: import.php
+      - link "Esporta":
+        - /url: export.php
+      - link "Salute del sito 1":
+        - /url: site-health.php
+        - text: Salute del sito
+        - generic: "1"
+      - link "Esporta dati personali":
+        - /url: export-personal-data.php
+      - link "Elimina dati personali":
+        - /url: erase-personal-data.php
+      - link "Azioni programmate":
+        - /url: tools.php?page=action-scheduler
+    - link "Impostazioni":
+      - /url: options-general.php
+      - generic: 
+      - generic: Impostazioni
+    - list:
+      - link "Generali":
+        - /url: options-general.php
+      - link "Connettori":
+        - /url: options-connectors.php
+      - link "Scrittura":
+        - /url: options-writing.php
+      - link "Lettura":
+        - /url: options-reading.php
+      - link "Discussione":
+        - /url: options-discussion.php
+      - link "Media":
+        - /url: options-media.php
+      - link "Permalink":
+        - /url: options-permalink.php
+      - link "Privacy":
+        - /url: options-privacy.php
+    - button "Comprimi menu principale" [expanded]:
+      - generic: Riduci menu
+- navigation "Barra degli strumenti":
+  - menu:
+    - menuitem "Informazioni su WordPress":
+      - generic: Informazioni su WordPress
+    - menuitem "lightskyblue-ape-529924.hostingersite.co…"
+    - menuitem "Live"
+    - menuitem "Ctrl+K Apri la palette dei comandi":
+      - text: Ctrl+K
+      - generic: Apri la palette dei comandi
+    - menuitem "0 commenti in moderazione":
+      - generic: "0"
+      - generic: 0 commenti in moderazione
+    - menuitem "Nuovo":
+      - generic: Nuovo
+  - menu:
+    - menuitem "Ciao, angelo@marrisonlab.com"
+- main:
+  - button "Impostazioni schermata"
+  - button "Aiuto"
+  - heading "Plugin" [level=1]
+  - link "Aggiungi plugin":
+    - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/plugin-install.php
+  - paragraph: Plugin disattivato.
+  - button "Ignora questa notifica.":
+    - generic: Ignora questa notifica.
+  - heading "Filtra l'elenco dei plugin" [level=2]
+  - list:
+    - link "Tutti (7)":
+      - /url: plugins.php?plugin_status=all
+    - text: "|"
+    - link "Attivi (6)":
+      - /url: plugins.php?plugin_status=active
+    - text: "|"
+    - link "Inattivi (1)":
+      - /url: plugins.php?plugin_status=inactive
+    - text: "|"
+    - link "Attivi di recente (1)":
+      - /url: plugins.php?plugin_status=recently_activated
+    - text: "|"
+    - link "Obbligatori (2)":
+      - /url: plugins.php?plugin_status=mustuse
+  - paragraph:
+    - generic: Cerca tra i plugin installati
+    - searchbox "Cerca tra i plugin installati"
+  - generic: Seleziona l'azione di gruppo
+  - combobox "Seleziona l'azione di gruppo":
+    - option "Azioni di gruppo" [selected]
+    - option "Attiva"
+    - option "Disattiva"
+    - option "Aggiorna"
+    - option "Elimina"
+  - button "Applica"
+  - generic: 7 elementi
+  - heading "Elenco dei plugin" [level=2]
+  - table:
+    - rowgroup:
+      - row "Seleziona tutto Plugin Descrizione":
+        - cell "Seleziona tutto":
+          - checkbox "Seleziona tutto"
+          - generic: Seleziona tutto
+        - columnheader "Plugin"
+        - columnheader "Descrizione"
+    - rowgroup:
+      - 'row "Seleziona Elementor Elementor L''Editor di Elementor ha tutto ciò che serve: editor di pagine drag-and-drop, Atomic Editor, design pixel-perfect, sistemi di stile globali e riutilizzabili, modifica responsive per dispositivi mobili e molto altro ancora. Inizia subito! Versione 4.3.5 | Di: Elementor.com | Altre informazioni su Elementor | Visualizza la documentazione di Elementor | Visualizza i video tutorial di Elementor"':
+        - cell "Seleziona Elementor":
+          - generic: Seleziona Elementor
+          - checkbox "Seleziona Elementor"
+        - rowheader "Elementor":
+          - strong: Elementor
+          - link "Impostazioni":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=elementor
+          - text: "|"
+          - link "Disattiva Elementor":
+            - /url: plugins.php?action=deactivate&plugin=elementor%2Felementor.php&plugin_status=all&paged=1&s&_wpnonce=d25d82753a
+            - text: Disattiva
+          - text: "|"
+          - link "Ottieni Elementor Pro":
+            - /url: https://go.elementor.com/go-pro-wp-plugins/
+        - 'cell "L''Editor di Elementor ha tutto ciò che serve: editor di pagine drag-and-drop, Atomic Editor, design pixel-perfect, sistemi di stile globali e riutilizzabili, modifica responsive per dispositivi mobili e molto altro ancora. Inizia subito! Versione 4.3.5 | Di: Elementor.com | Altre informazioni su Elementor | Visualizza la documentazione di Elementor | Visualizza i video tutorial di Elementor"':
+          - paragraph: "L'Editor di Elementor ha tutto ciò che serve: editor di pagine drag-and-drop, Atomic Editor, design pixel-perfect, sistemi di stile globali e riutilizzabili, modifica responsive per dispositivi mobili e molto altro ancora. Inizia subito!"
+          - text: "Versione 4.3.5 | Di:"
+          - link "Elementor.com":
+            - /url: https://elementor.com/?utm_source=wp-plugins&utm_campaign=author-uri&utm_medium=wp-dash
+          - text: "|"
+          - link "Altre informazioni su Elementor":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/plugin-install.php?tab=plugin-information&plugin=elementor&TB_iframe=true&width=600&height=550
+            - text: Visualizza i dettagli
+          - text: "|"
+          - link "Visualizza la documentazione di Elementor":
+            - /url: https://go.elementor.com/docs-admin-plugins/
+            - text: Documentazione e FAQ
+          - text: "|"
+          - link "Visualizza i video tutorial di Elementor":
+            - /url: https://go.elementor.com/yt-admin-plugins/
+            - text: Video Tutorial
+      - 'row "Seleziona FAZ Cookie Manager FAZ Cookie Manager Un gestore completo del consenso cookie conforme a GDPR/CCPA con scanner cookie integrato, registrazione locale del consenso, Google Consent Mode v2 e supporto IAB TCF v2.3. Versione 1.34.3 | Di: Fabio D''Alessandro | Altre informazioni su FAZ Cookie Manager"':
+        - cell "Seleziona FAZ Cookie Manager":
+          - generic: Seleziona FAZ Cookie Manager
+          - checkbox "Seleziona FAZ Cookie Manager"
+        - rowheader "FAZ Cookie Manager":
+          - strong: FAZ Cookie Manager
+          - link "Attiva FAZ Cookie Manager":
+            - /url: plugins.php?action=activate&plugin=faz-cookie-manager%2Ffaz-cookie-manager.php&plugin_status=all&paged=1&s&_wpnonce=7450f36364
+            - text: Attiva
+          - text: "|"
+          - link "Elimina FAZ Cookie Manager":
+            - /url: plugins.php?action=delete-selected&checked%5B0%5D=faz-cookie-manager%2Ffaz-cookie-manager.php&plugin_status=all&paged=1&s&_wpnonce=35f33525ea
+            - text: Elimina
+        - 'cell "Un gestore completo del consenso cookie conforme a GDPR/CCPA con scanner cookie integrato, registrazione locale del consenso, Google Consent Mode v2 e supporto IAB TCF v2.3. Versione 1.34.3 | Di: Fabio D''Alessandro | Altre informazioni su FAZ Cookie Manager"':
+          - paragraph: Un gestore completo del consenso cookie conforme a GDPR/CCPA con scanner cookie integrato, registrazione locale del consenso, Google Consent Mode v2 e supporto IAB TCF v2.3.
+          - text: "Versione 1.34.3 | Di:"
+          - link "Fabio D'Alessandro":
+            - /url: https://fabiodalez.it/
+          - text: "|"
+          - link "Altre informazioni su FAZ Cookie Manager":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/plugin-install.php?tab=plugin-information&plugin=faz-cookie-manager&TB_iframe=true&width=600&height=550
+            - text: Visualizza i dettagli
+      - 'row "Seleziona JetEngine JetEngine The ultimate solution for managing custom post types, taxonomies and meta boxes. Versione 3.9.0.1 | Di: Crocoblock | Altre informazioni su JetEngine | More information about JetEngine"':
+        - cell "Seleziona JetEngine":
+          - generic: Seleziona JetEngine
+          - checkbox "Seleziona JetEngine"
+        - rowheader "JetEngine":
+          - strong: JetEngine
+          - link "Disattiva JetEngine":
+            - /url: plugins.php?action=deactivate&plugin=jet-engine%2Fjet-engine.php&plugin_status=all&paged=1&s&_wpnonce=217ac12bed
+            - text: Disattiva
+          - text: "|"
+          - link "Interactive Tutorials":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=crocoblock-workflows
+        - 'cell "The ultimate solution for managing custom post types, taxonomies and meta boxes. Versione 3.9.0.1 | Di: Crocoblock | Altre informazioni su JetEngine | More information about JetEngine"':
+          - paragraph: The ultimate solution for managing custom post types, taxonomies and meta boxes.
+          - text: "Versione 3.9.0.1 | Di:"
+          - link "Crocoblock":
+            - /url: https://crocoblock.com/
+          - text: "|"
+          - link "Altre informazioni su JetEngine":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/plugin-install.php?tab=plugin-information&plugin=jet-engine&TB_iframe=true&width=600&height=550
+            - text: Visualizza i dettagli
+          - text: "|"
+          - link "More information about JetEngine":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/plugin-install.php?tab=plugin-information&plugin=jet-engine&TB_iframe=true&width=600&height=550
+            - text: View details
+      - 'row "Seleziona Marrison Addon Marrison Addon A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Listing Columns, Query Fallback, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Dynamic Background Image Size, Local Google Fonts, Inline CSS, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Business Info, Cookie Manager, PHP Snippets, and Video Thumbnail. Versione 1.3.91 | Di: Angelo Marra | Altre informazioni su Marrison Addon"':
+        - cell "Seleziona Marrison Addon":
+          - generic: Seleziona Marrison Addon
+          - checkbox "Seleziona Marrison Addon"
+        - rowheader "Marrison Addon":
+          - strong: Marrison Addon
+          - link "Settings":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison_addon_panel
+          - text: "|"
+          - link "Disattiva Marrison Addon":
+            - /url: plugins.php?action=deactivate&plugin=marrison-addon%2Fmarrison-addon.php&plugin_status=all&paged=1&s&_wpnonce=224cd5e3f6
+            - text: Disattiva
+        - 'cell "A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Listing Columns, Query Fallback, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Dynamic Background Image Size, Local Google Fonts, Inline CSS, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Business Info, Cookie Manager, PHP Snippets, and Video Thumbnail. Versione 1.3.91 | Di: Angelo Marra | Altre informazioni su Marrison Addon"':
+          - paragraph: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Listing Columns, Query Fallback, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Dynamic Background Image Size, Local Google Fonts, Inline CSS, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Business Info, Cookie Manager, PHP Snippets, and Video Thumbnail.
+          - text: "Versione 1.3.91 | Di:"
+          - link "Angelo Marra":
+            - /url: https://marrisonlab.com
+          - text: "|"
+          - link "Altre informazioni su Marrison Addon":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/plugin-install.php?tab=plugin-information&plugin=marrison-addon&TB_iframe=true&width=600&height=550
+            - text: Visualizza i dettagli
+      - row "Marrison Cookie Live Probe (test site only) è stato eliminato.":
+        - cell "Marrison Cookie Live Probe (test site only) è stato eliminato.":
+          - strong: Marrison Cookie Live Probe (test site only)
+          - text: è stato eliminato.
+      - 'row "Seleziona WooCommerce WooCommerce Un kit di strumenti per l''eCommerce che ti aiuta a vendere qualunque cosa. In modo eccellente. Versione 11.2.1 | Di: Automattic | Altre informazioni su WooCommerce | Visualizza la documentazione di WooCommerce | Visualizza la documentazione API WooCommerce | Visita i forum della community"':
+        - cell "Seleziona WooCommerce":
+          - generic: Seleziona WooCommerce
+          - checkbox "Seleziona WooCommerce"
+        - rowheader "WooCommerce":
+          - strong: WooCommerce
+          - link "Impostazioni Woocommerce":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=wc-settings
+            - text: Impostazioni
+          - text: "|"
+          - link "Disattiva WooCommerce":
+            - /url: plugins.php?action=deactivate&plugin=woocommerce%2Fwoocommerce.php&plugin_status=all&paged=1&s&_wpnonce=0817bbdd4d
+            - text: Disattiva
+        - 'cell "Un kit di strumenti per l''eCommerce che ti aiuta a vendere qualunque cosa. In modo eccellente. Versione 11.2.1 | Di: Automattic | Altre informazioni su WooCommerce | Visualizza la documentazione di WooCommerce | Visualizza la documentazione API WooCommerce | Visita i forum della community"':
+          - paragraph: Un kit di strumenti per l'eCommerce che ti aiuta a vendere qualunque cosa. In modo eccellente.
+          - text: "Versione 11.2.1 | Di:"
+          - link "Automattic":
+            - /url: https://woocommerce.com
+          - text: "|"
+          - link "Altre informazioni su WooCommerce":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/plugin-install.php?tab=plugin-information&plugin=woocommerce&TB_iframe=true&width=600&height=550
+            - text: Visualizza i dettagli
+          - text: "|"
+          - link "Visualizza la documentazione di WooCommerce":
+            - /url: https://woocommerce.com/documentation/plugins/woocommerce/
+            - text: Documentazione
+          - text: "|"
+          - link "Visualizza la documentazione API WooCommerce":
+            - /url: https://woocommerce.com/wc-apidocs/
+            - text: Documentazione API
+          - text: "|"
+          - link "Visita i forum della community":
+            - /url: https://wordpress.org/support/plugin/woocommerce/
+            - text: Supporto della community
+      - 'row "Seleziona WP Master Installer WP Master Installer This plugin is used to install plugins from a personal repository. Versione 2.1.12 | Di: Marrisonlab | Altre informazioni su WP Master Installer | Visita il sito"':
+        - cell "Seleziona WP Master Installer":
+          - generic: Seleziona WP Master Installer
+          - checkbox "Seleziona WP Master Installer"
+        - rowheader "WP Master Installer":
+          - strong: WP Master Installer
+          - link "Disattiva WP Master Installer":
+            - /url: plugins.php?action=deactivate&plugin=marrison-custom-installer%2Fcustom_installer.php&plugin_status=all&paged=1&s&_wpnonce=e453989859
+            - text: Disattiva
+          - text: "|"
+          - link "Impostazioni":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison-installer
+        - 'cell "This plugin is used to install plugins from a personal repository. Versione 2.1.12 | Di: Marrisonlab | Altre informazioni su WP Master Installer | Visita il sito"':
+          - paragraph: This plugin is used to install plugins from a personal repository.
+          - text: "Versione 2.1.12 | Di:"
+          - link "Marrisonlab":
+            - /url: https://marrisonlab.com
+          - text: "|"
+          - link "Altre informazioni su WP Master Installer":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/plugin-install.php?tab=plugin-information&plugin=marrison-custom-installer&TB_iframe=true&width=600&height=550
+            - text: Visualizza i dettagli
+          - text: "|"
+          - link "Visita il sito":
+            - /url: https://github.com/marrisonlab/marrison-custom-installer
+      - 'row "Seleziona WP Master Updater WP Master Updater This plugin is used to add a personal repository for updating plugins. Versione 9.8.27 | Di: Marrisonlab | Altre informazioni su WP Master Updater | Visita il sito del plugin"':
+        - cell "Seleziona WP Master Updater":
+          - generic: Seleziona WP Master Updater
+          - checkbox "Seleziona WP Master Updater"
+        - rowheader "WP Master Updater":
+          - strong: WP Master Updater
+          - link "Disattiva WP Master Updater":
+            - /url: plugins.php?action=deactivate&plugin=marrison-custom-updater%2Fcustom_updater.php&plugin_status=all&paged=1&s&_wpnonce=25141325f9
+            - text: Disattiva
+          - text: "|"
+          - link "Impostazioni":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/admin.php?page=marrison-updater
+        - 'cell "This plugin is used to add a personal repository for updating plugins. Versione 9.8.27 | Di: Marrisonlab | Altre informazioni su WP Master Updater | Visita il sito del plugin"':
+          - paragraph: This plugin is used to add a personal repository for updating plugins.
+          - text: "Versione 9.8.27 | Di:"
+          - link "Marrisonlab":
+            - /url: https://marrisonlab.com
+          - text: "|"
+          - link "Altre informazioni su WP Master Updater":
+            - /url: https://lightskyblue-ape-529924.hostingersite.com/wp-admin/plugin-install.php?tab=plugin-information&plugin=marrison-custom-updater&TB_iframe=true&width=600&height=550
+            - text: Visualizza i dettagli
+          - text: "|"
+          - link "Visita il sito del plugin":
+            - /url: https://github.com/marrisonlab/marrison-custom-updater
+    - rowgroup:
+      - row "Seleziona tutto Plugin Descrizione":
+        - cell "Seleziona tutto":
+          - checkbox "Seleziona tutto"
+          - generic: Seleziona tutto
+        - columnheader "Plugin"
+        - columnheader "Descrizione"
+  - generic: Seleziona l'azione di gruppo
+  - combobox "Seleziona l'azione di gruppo":
+    - option "Azioni di gruppo" [selected]
+    - option "Attiva"
+    - option "Disattiva"
+    - option "Aggiorna"
+    - option "Elimina"
+  - button "Applica"
+  - generic: 7 elementi
+- contentinfo:
+  - paragraph:
+    - text: Grazie per aver creato con
+    - link "WordPress":
+      - /url: https://it.wordpress.org/
+    - text: .
+  - paragraph: Versione 7.1.3
+- text: 
+- paragraph: Notifiche
+- generic: Eliminato!

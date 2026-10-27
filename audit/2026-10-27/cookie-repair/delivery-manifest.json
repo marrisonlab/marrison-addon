@@ -1,0 +1,21 @@
+{
+  "package": "marrison-addon-cookie-repair-20261027-r3.zip",
+  "sha256": "ece27349df40ce2c40bff50d6c80e3cab1673f4b1ecd71abd046e4ef757fcb16",
+  "changed_files": [
+    "marrison-addon/includes/modules/cookie-manager/includes/class-scan-engine.php",
+    "marrison-addon/includes/modules/cookie-manager/includes/class-scan-sampler.php",
+    "marrison-addon/includes/modules/cookie-manager/includes/class-static-scanner.php"
+  ],
+  "ui_css_templates_changed": false,
+  "live_revision": "20261027.3",
+  "package_revision": "20261027.3",
+  "live_probe_active": false,
+  "stress_scan_verified": true,
+  "consent_live_verified": true,
+  "receipts_live_verified": true,
+  "final_clean_scan_verified": true,
+  "cleanup_status": "Temporary probe plugin deactivated and deleted; its page trashed; original source settings restored.",
+  "final_report": "live-scan-final.json",
+  "final_scan_status": "completed",
+  "final_scan_issues": []
+}

@@ -19,7 +19,9 @@ const plugin = path.join(__dirname, '../marrison-addon');
         const page = await browser.newPage();
         const errors = [];
         page.on('pageerror', error => errors.push(error.message));
-        await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>' + fixture.html + '</body></html>');
+        async function render(html) {
+        await page.goto('about:blank');
+        await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body class="wp-admin wp-core-ui">' + html + '</body></html>');
         for (const relative of ['wp-includes/css/buttons.min.css', 'wp-admin/css/common.min.css', 'wp-admin/css/forms.min.css', 'wp-admin/css/list-tables.min.css', 'wp-includes/js/codemirror/codemirror.min.css']) {
             await page.addStyleTag({ path: path.join(wpRoot, relative) });
         }
@@ -32,7 +34,23 @@ const plugin = path.join(__dirname, '../marrison-addon');
         }
         await page.addScriptTag({ content: fixture.script });
         await page.waitForSelector('.CodeMirror');
+        }
+        await render(fixture.html);
         assert.equal(await page.locator('.CodeMirror').count(), 1, 'Only one editor should be initialized.');
+        assert.equal(await page.locator('#marrison-snippet-name').getAttribute('type'), 'text', 'Name must receive native WordPress text input styling.');
+        const nameStyle = await page.locator('#marrison-snippet-name').evaluate(element => { const style = getComputedStyle(element); return {height:element.getBoundingClientRect().height,border:style.borderTopStyle,radius:parseFloat(style.borderTopLeftRadius)}; });
+        assert(nameStyle.height >= 30 && nameStyle.border === 'solid' && nameStyle.radius > 0, 'Name must use the standard WordPress input appearance.');
+        assert.equal(await page.locator('input[type="password"]').count(), 0, 'Recent and read-only sessions must not show password fields.');
+        if (fixture.readonly) {
+            assert.equal(await page.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.getOption('readOnly')), true);
+            assert(await page.getByRole('link', {name: 'Visualizza', exact: true}).first().isVisible());
+            for (const operation of ['duplicate', 'delete', 'activate']) {
+                assert(await page.locator('form').filter({has: page.locator('input[name="operation"][value="' + operation + '"]')}).first().getByRole('button').isDisabled());
+            }
+            assert(await page.getByRole('button', {name: 'Disattiva', exact: true}).isEnabled());
+            assert(await page.getByRole('button', {name: 'Disattiva tutti gli snippet', exact: true}).isEnabled());
+            assert(await page.getByRole('button', {name: 'Salva disattivato'}).isDisabled());
+        } else {
         const editorResult = await page.evaluate(() => {
             const editor = document.querySelector('.CodeMirror').CodeMirror;
             editor.setValue('add_action("init", function () { return 42; });');
@@ -62,15 +80,37 @@ const plugin = path.join(__dirname, '../marrison-addon');
         assert.equal(submitted.scope, 'frontend');
         assert.equal(submitted.operation, 'save');
         assert(submitted._wpnonce.startsWith('valid-'));
+        }
         for (const viewport of [{ width: 1280, height: 1100 }, { width: 390, height: 844 }]) {
             await page.setViewportSize(viewport);
             await page.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.refresh());
             const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
             assert.equal(overflow, false, 'The page must not overflow horizontally at ' + viewport.width + 'px.');
-            await page.screenshot({ path: path.join(outputDir, 'php-snippets-' + viewport.width + '.png'), fullPage: true });
+            const buttons = await page.locator('.marrison-snippet-action-list').first().locator('.button').evaluateAll(elements => elements.map(element => { const rect=element.getBoundingClientRect(); return {top:rect.top,bottom:rect.bottom,height:rect.height}; }));
+            for (const button of buttons) {
+                assert(Math.abs(button.height - buttons[0].height) < 1, 'Action buttons have different heights.');
+                for (const other of buttons) {
+                    if (Math.abs(button.top - other.top) < button.height) { assert(Math.abs(button.top - other.top) < 1, 'Action buttons on the same row are misaligned: ' + JSON.stringify(buttons)); }
+                }
+            }
+            assert.equal(await page.locator('.wrap > .marrison-module-card').count(), 4, 'Recovery and audit sections must be separate cards.');
+            await page.screenshot({ path: path.join(outputDir, 'php-snippets-' + (fixture.readonly || 'recent') + '-' + viewport.width + '.png'), fullPage: true });
+        }
+        for (const [mode, html] of [['expired', fixture.expired_html], ['draft', fixture.draft_html]]) {
+            if (!html) continue;
+            await render(html);
+            assert.equal(await page.locator('input[type="password"]').count(), 0, 'A valid WordPress session must suffice for ' + mode);
+            assert.equal(await page.locator('.marrison-snippet-actions input[type="password"]').count(), 0);
+            if (mode === 'draft') assert((await page.locator('#marrison-php-snippet-code').inputValue()).includes('$preserved = 42;'));
+            for (const width of [1280, 390]) {
+                await page.setViewportSize({width, height:1000});
+                await page.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.refresh());
+                assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'Overflow in ' + mode + ' at ' + width);
+                await page.screenshot({path:path.join(outputDir, 'php-snippets-' + mode + '-' + width + '.png'),fullPage:true});
+            }
         }
         assert.deepEqual(errors, []);
-        console.log('PHP Snippets UI: PASS (native WordPress CodeMirror, PHP highlighting without tags, synchronized form submission, escaped markup, desktop/mobile layout).');
+        console.log('PHP Snippets UI: PASS (' + (fixture.readonly || 'recent/expired/draft') + ', native WordPress CodeMirror, password visibility, aligned buttons, desktop/mobile layout).');
     } finally {
         await browser.close();
     }

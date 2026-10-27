@@ -66,6 +66,17 @@ class Marrison_Addon_Browser_Cache_Admin {
 			return;
 		}
 
+		$cleanup = $this->server->cleanup_htaccess_backups();
+		if ( is_wp_error( $cleanup ) ) {
+			$this->server->update_state(
+				array(
+					'status'  => 'error',
+					'message' => $cleanup->get_error_message(),
+				)
+			);
+			return;
+		}
+
 		$this->sync_server_configuration( false );
 	}
 

@@ -44,7 +44,7 @@ final class Marrison_Addon_PHP_Snippets_Admin {
 	}
 
 	public function handle_request() {
-		if ( ! $this->is_page() ) {
+		if ( ! $this->is_page() && ! Marrison_Addon_PHP_Snippets_Store::can_manage() ) {
 			return;
 		}
 		if ( ! Marrison_Addon_PHP_Snippets_Store::can_manage() ) {
@@ -55,6 +55,11 @@ final class Marrison_Addon_PHP_Snippets_Admin {
 			$this->notice = $installed;
 			return;
 		}
+		$restored = $this->store->restore_legacy_snippets();
+		if ( is_wp_error( $restored ) ) {
+			$this->notice = $restored;
+		}
+		if ( ! $this->is_page() ) { return; }
 		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
 			return;
 		}
@@ -84,9 +89,12 @@ final class Marrison_Addon_PHP_Snippets_Admin {
         if (in_array($operation, array('save', 'activate', 'sign_reactivate', 'duplicate', 'delete'), true) && !Marrison_Addon_PHP_Snippets_Security::can_edit()) {
             return new WP_Error('file_edit_disabled', __('Modifiche PHP disabilitate dalle costanti WordPress. La disattivazione resta disponibile.', 'marrison-addon'));
         }
+        if ('save' === $operation) {
+            // Preserve submitted code when validation or storage reports an error.
+            $this->draft = [ 'id' => $id, 'name' => sanitize_text_field( $this->posted( 'name' ) ), 'code' => Marrison_Addon_PHP_Snippets_Store::normalize_code( $this->posted( 'code' ) ), 'scope' => $this->posted( 'scope' ), 'revision' => $this->posted( 'revision' ) ];
+        }
         if (in_array($operation, array('save', 'activate', 'sign_reactivate', 'duplicate'), true)) {
             if (!Marrison_Addon_PHP_Snippets_Security::rate_allowed()) { return new WP_Error('rate', __('Troppe modifiche: attendi un minuto.', 'marrison-addon')); }
-            if (!Marrison_Addon_PHP_Snippets_Security::recent_authentication($this->posted('reauth_password'))) { return new WP_Error('reauth', __('Autenticazione recente richiesta. Inserisci la password nel campo dell’operazione oppure accedi nuovamente a WordPress.', 'marrison-addon')); }
         }
         if ($operation === 'log_retention') {
             update_option('marrison_addon_php_snippets_log_retention', max(7, min(365, (int) $this->posted('log_retention'))), false);
@@ -103,7 +111,6 @@ final class Marrison_Addon_PHP_Snippets_Admin {
 			return new WP_Error( 'runtime', __( 'Esecuzione PHP in memoria non disponibile su questo server: attivazione bloccata.', 'marrison-addon' ) );
 		}
 		if ( 'save' === $operation ) {
-			$this->draft = [ 'id' => $id, 'name' => sanitize_text_field( $this->posted( 'name' ) ), 'code' => Marrison_Addon_PHP_Snippets_Store::normalize_code( $this->posted( 'code' ) ), 'scope' => $this->posted( 'scope' ), 'revision' => $revision ];
 			$warnings = Marrison_Addon_PHP_Snippets_Security::warnings($this->draft['code']);
 			if ($warnings) { set_transient('marrison_snippets_warnings_' . get_current_user_id(), $warnings, 300); }
 			// Code is deliberately not passed through KSES or text sanitizers.
@@ -119,16 +126,14 @@ final class Marrison_Addon_PHP_Snippets_Admin {
 
 	private function action_form( $operation, $label, $row = null ) {
 		$id = $row ? $row['id'] : 0;
+		$disabled = ! Marrison_Addon_PHP_Snippets_Security::can_edit() && in_array( $operation, [ 'activate', 'sign_reactivate', 'duplicate', 'delete' ], true );
 		?>
 		<form method="post" action="<?php echo esc_url( $this->url() ); ?>" class="marrison-snippet-action">
 			<?php wp_nonce_field( 'marrison_php_snippets_' . $operation . '_' . $id ); ?>
 			<input type="hidden" name="operation" value="<?php echo esc_attr( $operation ); ?>">
 			<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>">
 			<input type="hidden" name="revision" value="<?php echo esc_attr( $row ? $row['revision'] : '' ); ?>">
-            <?php if (in_array($operation, array('activate', 'sign_reactivate', 'duplicate'), true)): ?><label>Password per confermare <input type="password" name="reauth_password" autocomplete="current-password" value=""></label><?php endif; ?>
-            <?php if (!Marrison_Addon_PHP_Snippets_Security::can_edit() && in_array($operation, array('activate', 'sign_reactivate', 'duplicate', 'delete'), true)): ?><fieldset disabled><?php endif; ?>
-			<button class="button button-secondary" type="submit"><?php echo esc_html( $label ); ?></button>
-            <?php if (!Marrison_Addon_PHP_Snippets_Security::can_edit() && in_array($operation, array('activate', 'sign_reactivate', 'duplicate', 'delete'), true)): ?></fieldset><?php endif; ?>
+			<button class="button button-secondary" type="submit" <?php if ( $disabled ) { echo 'disabled'; } ?>><?php echo esc_html( $label ); ?></button>
 		</form>
 		<?php
 	}
@@ -141,6 +146,7 @@ final class Marrison_Addon_PHP_Snippets_Admin {
 		$editing = isset( $_GET['edit'] ) && is_scalar( $_GET['edit'] ) ? absint( $_GET['edit'] ) : 0;
 		$entry = $this->draft ?: ( $editing && $this->store->ready() ? $this->store->get( $editing ) : null );
 		$entry = $entry ?: [ 'id' => 0, 'name' => '', 'code' => '', 'scope' => 'everywhere', 'revision' => '' ];
+		$can_edit = Marrison_Addon_PHP_Snippets_Security::can_edit();
 		?>
 		<div class="wrap marrison-admin-page marrison-php-snippets">
 			<h1>PHP Snippets</h1>
@@ -158,6 +164,11 @@ final class Marrison_Addon_PHP_Snippets_Admin {
 				<div class="notice notice-error"><p><?php esc_html_e( 'Esecuzione PHP in memoria non disponibile su questo server: gli snippet non vengono eseguiti.', 'marrison-addon' ); ?></p></div>
 			<?php endif; ?>
 			<?php if ( ! $this->store->ready() ) { echo '</div>'; return; } ?>
+			<?php if ( ! $can_edit ) : ?>
+				<div class="notice notice-warning"><p><?php
+					esc_html_e( 'PHP Snippets è in sola lettura perché la configurazione WordPress imposta DISALLOW_FILE_MODS a true. Puoi consultare il codice e disattivare gli snippet.', 'marrison-addon' );
+				?></p></div>
+			<?php endif; ?>
 			<div class="marrison-module-card">
 				<h2><?php esc_html_e( 'Snippet registrati', 'marrison-addon' ); ?></h2>
 				<div class="marrison-snippets-table"><table class="widefat striped">
@@ -168,14 +179,15 @@ final class Marrison_Addon_PHP_Snippets_Admin {
 						<tr>
 							<td><a href="<?php echo esc_url( $this->url( [ 'edit' => $row['id'] ] ) ); ?>"><?php echo esc_html( $row['name'] ); ?></a>
 							<?php if ( $row['last_error'] ) : ?><details><summary><?php esc_html_e( 'Errore: snippet sospeso', 'marrison-addon' ); ?></summary><pre><?php echo esc_html( $row['last_error'] ); ?></pre></details><?php endif; ?></td>
-                            <td><?php echo esc_html(!Marrison_Addon_PHP_Snippets_Security::verify($row) ? __('Da firmare: non eseguibile', 'marrison-addon') : ($row['active'] ? __('Attivo', 'marrison-addon') : __('Disattivato', 'marrison-addon'))); ?></td>
+                            <td><?php echo esc_html($row['active'] ? __('Attivo', 'marrison-addon') : __('Disattivato', 'marrison-addon')); ?></td>
 							<td><?php echo esc_html( $scopes[ $row['scope'] ] ?? $row['scope'] ); ?></td>
 							<td class="marrison-snippet-actions">
-								<a class="button" href="<?php echo esc_url( $this->url( [ 'edit' => $row['id'] ] ) ); ?>"><?php esc_html_e( 'Modifica', 'marrison-addon' ); ?></a>
+								<div class="marrison-snippet-action-list">
+								<a class="button" href="<?php echo esc_url( $this->url( [ 'edit' => $row['id'] ] ) ); ?>"><?php echo esc_html( $can_edit ? __( 'Modifica', 'marrison-addon' ) : __( 'Visualizza', 'marrison-addon' ) ); ?></a>
 								<?php $this->action_form( $row['active'] ? 'deactivate' : 'activate', $row['active'] ? __( 'Disattiva', 'marrison-addon' ) : __( 'Attiva', 'marrison-addon' ), $row ); ?>
 								<?php $this->action_form( 'duplicate', __( 'Duplica', 'marrison-addon' ), $row ); ?>
 								<?php $this->action_form( 'delete', __( 'Elimina', 'marrison-addon' ), $row ); ?>
-                                <?php if (!Marrison_Addon_PHP_Snippets_Security::verify($row)) { $this->action_form('sign_reactivate', __('Firma e riattiva', 'marrison-addon'), $row); } ?>
+								</div>
 							</td>
 						</tr>
 					<?php endforeach; ?>
@@ -187,23 +199,22 @@ final class Marrison_Addon_PHP_Snippets_Admin {
 			<div class="marrison-module-card">
 				<h2><?php echo esc_html( $entry['id'] ? __( 'Modifica snippet', 'marrison-addon' ) : __( 'Nuovo snippet', 'marrison-addon' ) ); ?></h2>
 				<form method="post" action="<?php echo esc_url( $this->url( $entry['id'] ? [ 'edit' => $entry['id'] ] : [] ) ); ?>">
-                    <?php if (!Marrison_Addon_PHP_Snippets_Security::can_edit()): ?><p>Modifica disabilitata da DISALLOW_FILE_EDIT o DISALLOW_FILE_MODS.</p><fieldset disabled><?php endif; ?>
+                    <?php if ( ! $can_edit ): ?><fieldset disabled><?php endif; ?>
 					<?php wp_nonce_field( 'marrison_php_snippets_save_' . $entry['id'] ); ?>
 					<input type="hidden" name="operation" value="save">
 					<input type="hidden" name="id" value="<?php echo esc_attr( $entry['id'] ); ?>">
 					<input type="hidden" name="revision" value="<?php echo esc_attr( $entry['revision'] ); ?>">
-					<p><label for="marrison-snippet-name"><?php esc_html_e( 'Nome', 'marrison-addon' ); ?></label><br><input class="regular-text" id="marrison-snippet-name" name="name" maxlength="190" required value="<?php echo esc_attr( $entry['name'] ); ?>"></p>
+					<p><label for="marrison-snippet-name"><?php esc_html_e( 'Nome', 'marrison-addon' ); ?></label><br><input type="text" class="regular-text" id="marrison-snippet-name" name="name" maxlength="190" required value="<?php echo esc_attr( $entry['name'] ); ?>"></p>
 					<p><label for="marrison-snippet-scope"><?php esc_html_e( 'Ambito di esecuzione', 'marrison-addon' ); ?></label><br><select id="marrison-snippet-scope" name="scope">
 					<?php foreach ( $scopes as $scope => $label ) : ?><option value="<?php echo esc_attr( $scope ); ?>" <?php selected( $entry['scope'], $scope ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
 					</select></p>
 					<p><label for="marrison-php-snippet-code"><?php esc_html_e( 'Codice PHP (senza tag di apertura)', 'marrison-addon' ); ?></label></p>
 					<textarea id="marrison-php-snippet-code" name="code" rows="16" class="large-text code" spellcheck="false"><?php echo esc_textarea( $entry['code'] ); ?></textarea>
-                    <p><label>Password per confermare se la sessione non è recente <input type="password" name="reauth_password" autocomplete="current-password" value=""></label></p>
                     <p>Massimo 256 KiB. L’analisi segnala funzioni rischiose ma non è una garanzia di sicurezza.</p>
                     <p id="marrison-snippet-risk-warning" role="status" aria-live="polite"></p>
                     <?php $warnings = Marrison_Addon_PHP_Snippets_Security::warnings($entry['code']); if ($warnings): ?><p role="alert"><?php echo esc_html('Avviso non bloccante: ' . implode(', ', $warnings)); ?></p><?php endif; ?>
 					<?php submit_button( __( 'Salva disattivato', 'marrison-addon' ) ); ?>
-                    <?php if (!Marrison_Addon_PHP_Snippets_Security::can_edit()): ?></fieldset><?php endif; ?>
+                    <?php if ( ! $can_edit ): ?></fieldset><?php endif; ?>
 				</form>
 			</div>
 			<div class="marrison-module-card">
@@ -215,13 +226,13 @@ final class Marrison_Addon_PHP_Snippets_Admin {
                 <p>In alternativa crea il file vuoto <code>wp-content/uploads/marrison-snippets-off</code>. Rimuovilo per ripristinare l’esecuzione degli snippet validamente firmati.</p>
 				<p><?php esc_html_e( 'La validazione controlla la sintassi, non la correttezza del codice. Un errore fatale può interrompere la richiesta corrente: lo snippet identificato viene sospeso per le richieste successive. Arresti del processo, exit e alcuni errori in shutdown o in dipendenze non sono recuperabili automaticamente. PHP personalizzato ha gli stessi privilegi del plugin e non è una sandbox.', 'marrison-addon' ); ?></p>
 				<p><?php esc_html_e( 'Frontend comprende le richieste non amministrative, inclusi REST e cron; backend comprende wp-admin e admin-ajax. Login e pagine di recupero sono esclusi in ogni ambito.', 'marrison-addon' ); ?></p>
+			</div>
             <div class="marrison-module-card"><h2>Registro modifiche</h2>
             <form method="post" action="<?php echo esc_url($this->url()); ?>"><?php wp_nonce_field('marrison_php_snippets_log_retention_0'); ?><input type="hidden" name="operation" value="log_retention"><input type="hidden" name="id" value="0"><label>Retention (giorni) <input type="number" name="log_retention" min="7" max="365" value="<?php echo esc_attr(get_option('marrison_addon_php_snippets_log_retention', 90)); ?>"></label><button type="submit" class="button">Salva retention</button></form>
             <p>Massimo 2.000 eventi; vengono mostrati gli ultimi 100. Nessun codice completo è salvato nel registro.</p>
             <div class="marrison-snippets-table"><table class="widefat"><thead><tr><th>Data UTC</th><th>Utente</th><th>Snippet</th><th>Azione</th><th>Esito</th><th>Hash codice</th></tr></thead><tbody>
             <?php foreach (array_reverse(array_slice(Marrison_Addon_PHP_Snippets_Security::audit_log(), -100)) as $event): ?><tr><?php foreach (array(gmdate('Y-m-d H:i:s', $event['time']), $event['user_id'], $event['snippet_id'], $event['action'], $event['outcome'], $event['code_hash']) as $cell): ?><td><?php echo esc_html($cell); ?></td><?php endforeach; ?></tr><?php endforeach; ?>
             </tbody></table></div></div>
-        </div>
 		</div>
 		<?php
 	}

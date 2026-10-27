@@ -19,7 +19,7 @@ final class Marrison_Addon_Cookie_Scan_Sampler {
             $this->forced[$this->route(get_permalink($blog))] = array('key' => 'posts_index', 'label' => 'Indice articoli', 'kind' => 'archive');
         }
         if (function_exists('get_post_types')) {
-            foreach (get_post_types(array('public' => true, 'publicly_queryable' => true), 'objects') as $type => $object) {
+            foreach ($this->public_types() as $type => $object) {
                 if (in_array($type, array('attachment', 'elementor_library'), true)) { continue; }
                 $url = function_exists('get_post_type_archive_link') ? get_post_type_archive_link($type) : false;
                 if ($url) { $this->archives[$this->route($url)] = array('key' => 'archive:' . $type, 'label' => 'Archivio ' . $object->label, 'kind' => 'archive', 'template' => $this->locate(array('archive-' . $type . '.php', 'archive.php', 'index.php'))); }
@@ -31,6 +31,15 @@ final class Marrison_Addon_Cookie_Scan_Sampler {
                 if (trim($rule) !== '') { $this->rules[] = trim($rule); }
             }
         }
+    }
+
+    private function public_types() {
+        $types = get_post_types(array('public' => true), 'objects');
+        foreach ($types as $type => $object) {
+            // Core pages are viewable even though publicly_queryable is false.
+            if (function_exists('is_post_type_viewable') && !is_post_type_viewable($object)) { unset($types[$type]); }
+        }
+        return $types;
     }
 
     private function route($url) {
@@ -60,7 +69,7 @@ final class Marrison_Addon_Cookie_Scan_Sampler {
             if ($blog) { $urls[] = get_permalink($blog); }
         }
         if (function_exists('get_post_types') && function_exists('get_posts')) {
-            foreach (get_post_types(array('public' => true, 'publicly_queryable' => true), 'objects') as $type => $object) {
+            foreach ($this->public_types() as $type => $object) {
                 if (in_array($type, array('attachment', 'elementor_library'), true)) { continue; }
                 $posts = get_posts(array('post_type' => $type, 'post_status' => 'publish', 'has_password' => false, 'numberposts' => 1, 'orderby' => 'ID', 'order' => 'DESC', 'fields' => 'ids'));
                 foreach ($posts as $id) { $urls[] = get_permalink($id); }
@@ -70,7 +79,7 @@ final class Marrison_Addon_Cookie_Scan_Sampler {
         }
         if (function_exists('get_terms') && function_exists('get_term_link')) {
             foreach ($this->taxonomies as $taxonomy => $object) {
-                $terms = get_terms(array('taxonomy' => $taxonomy, 'hide_empty' => true, 'number' => 1, 'orderby' => 'count', 'order' => 'DESC'));
+                $terms = get_terms(array('taxonomy' => $taxonomy, 'hide_empty' => true, 'number' => 10001, 'orderby' => 'count', 'order' => 'DESC'));
                 if (is_wp_error($terms)) { continue; }
                 foreach ($terms as $term) { $url = get_term_link($term); if (!is_wp_error($url)) { $urls[] = $url; } }
             }

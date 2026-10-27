@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.88
+Stable tag: 1.3.91
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -41,7 +41,7 @@ Included modules:
 * Cookie Manager: banner, preferences, representative scans, signed consent receipts and policy shortcodes.
 * Video Thumbnail: YouTube imports and optional FFmpeg cover generation for local videos.
 * Local Google Fonts: observed-font inventory and local WOFF2 copies.
-* Browser Cache: static-asset HTTP header rules and public diagnostics.
+* Browser Cache: static-asset HTTP header rules and public diagnostics. Keeps one automatic .htaccess backup; older module backups are pruned after rule changes and when opening AM Addon, preserving other files and reporting cleanup failures.
 * Horizontal Scroll (Beta): horizontal Elementor container sections.
 * Liquid Background: optional procedural WebGL container backgrounds.
 * Inline CSS: WordPress-native inlining of small queued local styles.
@@ -61,7 +61,7 @@ Minimum requirements: WordPress 6.0 and PHP 7.4. Current compatibility targets c
 
 If Cookie Manager is enabled, the post-update notice clears after a current-version static scan completes and saves its results. Optional iframe checks are required only when explicitly enabled. Old, cancelled, failed or incomplete work does not confirm a completed scan.
 
-Cookie observations never store values. The local scanner finds services in published content/configuration; their catalog cookies are declared, not observed. Optional iframe checks cannot see third-party cookies. Verify login, checkout and conditional interactions manually. Policy shortcodes do not create pages automatically.
+Cookie observations never store values. The local scanner finds services in published content/configuration; their catalog cookies are declared, not observed. Optional manual iframe checks cover every discovered group before and after consent by default: 0 means all groups and no total time cutoff. Sample/time limits are optional; per-page timeouts remain active. Iframe checks cannot see third-party cookies. Verify login, checkout and conditional interactions manually. Policy shortcodes do not create pages automatically.
 
 = External services =
 
@@ -103,6 +103,19 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.91 =
+* Browser Cache: conserva un solo backup automatico di .htaccess, aggiornato prima di ogni modifica delle regole; elimina i precedenti backup del modulo dopo la scrittura riuscita.
+* Ripulisce anche i backup accumulati dalle versioni precedenti alla successiva apertura di AM Addon, conservando il più recente. Preserva gli altri file e segnala gli errori di pulizia.
+
+= 1.3.90 =
+* PHP Snippets: gestione e attivazione funzionano con DISALLOW_FILE_EDIT=true e login WordPress valido, senza password aggiuntive o firma manuale.
+* Recupero una tantum dei vecchi snippet sospesi per firma mancante durante il primo accesso amministrativo autorizzato. Conserva disattivazioni manuali, errori PHP e controlli di integrità successivi; rispetta DISALLOW_FILE_MODS e safe mode.
+* Campo Nome con lo stile nativo WordPress e pulsanti allineati.
+
+= 1.3.89 =
+* PHP Snippets: pulsanti allineati e una sola conferma password quando necessaria; nessun campo password con autenticazione recente o configurazione in sola lettura.
+* Conserva la bozza se la conferma scade durante la scrittura e indica le costanti WordPress effettivamente attive. I blocchi DISALLOW_FILE_EDIT/DISALLOW_FILE_MODS restano rispettati.
 
 = 1.3.88 =
 * Aggiunto Business Info / Info Azienda: archivio condiviso di dati aziendali, contatti, sedi, campi personalizzati, identità privacy e orari, con shortcode e integrazioni Elementor e JetEngine.

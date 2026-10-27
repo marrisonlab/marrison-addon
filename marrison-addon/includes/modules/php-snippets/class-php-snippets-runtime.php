@@ -136,7 +136,7 @@ final class Marrison_Addon_PHP_Snippets_Runtime {
 		register_shutdown_function( [ $this, 'shutdown' ] );
 		foreach ( $rows as $row ) {
             if (!Marrison_Addon_PHP_Snippets_Security::verify($row)) {
-                $this->store->quarantine($row['id'], $row['revision'], 'Firma assente o non valida: codice non eseguito. Verifica lo snippet e usa Firma e riattiva con riautenticazione.');
+                $this->store->quarantine($row['id'], $row['revision'], Marrison_Addon_PHP_Snippets_Store::INTEGRITY_SUSPENSION);
                 continue;
             }
 			if ( ! in_array( $row['scope'], [ 'everywhere', 'frontend', 'backend' ], true ) ) {

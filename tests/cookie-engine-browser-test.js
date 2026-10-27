@@ -37,6 +37,8 @@ async function serve(request, response) {
         const action = data.get('action').replace('marrison_addon_cookie_engine_', '');
         let output = {};
         if (action === 'start') {
+            assert.equal(data.get('browser'), '1');
+            assert.equal(data.get('limit'), '0'); assert.equal(data.get('max_seconds'), '0');
             job = { id: 'job-' + ++run, status: 'http', http_done: 0, http_failed: 0, browser_done: 0, browser_total: 4, browser_failed: 0, cookie_count: 0, queued: 2, limit: 50, coverage: 'Fixture coverage', issues: [], sampling: { strategy: 'templates', candidates: 200, equivalents: 198, selected: 2, unselected: 0, groups: [{label:'Articoli',template:'single.php',url:origin+'/site/one/',represented_urls:100},{label:'Annunci',template:'single-annunci.php',url:origin+'/site/two/',represented_urls:100}] } };
         } else if (action === 'step') { job.status = 'browser'; job.http_done = 2; job.queued = 0; }
         else if (action === 'browser') {
@@ -49,14 +51,14 @@ async function serve(request, response) {
             if (job.browser_done === 4) job.status = job.browser_failed ? 'partial' : 'completed';
         } else if (action === 'cancel') { job.status = 'cancelled'; }
         else if (action === 'inventory') { output = { cookies: [] }; }
-        else assert.equal(action, 'state');
+        else assert(['state', 'resume'].includes(action));
         response.setHeader('Content-Type', 'application/json');
         response.end(JSON.stringify({ success: true, data: { runtime, ...output, job: summary() } })); return;
     }
     if (url.pathname === '/admin') {
         fixtureMode = url.searchParams.get('mode') || 'cookies';
         response.setHeader('Set-Cookie', ['wordpress_logged_in_fixture=ADMIN_SECRET; Path=/', 'marrison_cookie_consent=accept_all; Path=/']);
-        html(response, `<body><button id="start" onclick="MarrisonCookieScanner.start()">Start</button><div id="marrison-scan-engine"><div id="marrison-engine-runtime"></div><div id="marrison-engine-summary"></div><div id="marrison-engine-current"></div><div id="marrison-engine-coverage"></div><p id="marrison-engine-sampling"></p><p id="marrison-engine-services"></p><ul id="marrison-engine-samples"></ul><pre id="marrison-engine-details"></pre><progress id="marrison-engine-progress"></progress></div><span id="marrison-scan-status"></span><button id="marrison-scan-cancel" hidden>Stop</button><button id="marrison-scan-resume" hidden>Resume</button><script>window.marrisonCookieScanner=${JSON.stringify({ ajaxUrl: origin + '/ajax', nonce: 'fixture', protocol: '2', revision, origin })};</script><script src="/jquery.js"></script><script src="/scanner.js"></script></body>`); return;
+        html(response, `<body><button id="start" onclick="MarrisonCookieScanner.start(false, true)">Start</button><div id="marrison-scan-engine"><div id="marrison-engine-runtime"></div><div id="marrison-engine-summary"></div><div id="marrison-engine-current"></div><div id="marrison-engine-coverage"></div><p id="marrison-engine-sampling"></p><p id="marrison-engine-services"></p><ul id="marrison-engine-samples"></ul><pre id="marrison-engine-details"></pre><progress id="marrison-engine-progress"></progress></div><span id="marrison-scan-status"></span><button id="marrison-scan-cancel" hidden>Stop</button><button id="marrison-scan-resume" hidden>Resume</button><script>window.marrisonCookieScanner=${JSON.stringify({ ajaxUrl: origin + '/ajax', nonce: 'fixture', protocol: '2', revision, origin })};</script><script src="/jquery.js"></script><script src="/scanner.js"></script></body>`); return;
     }
     if (url.pathname.startsWith('/site/')) {
         frameRequests.push({ cookie: request.headers.cookie || '', phase: url.searchParams.get('phase'), run });
@@ -103,7 +105,7 @@ async function intercept(context) {
         await page.waitForFunction(() => !!window.MarrisonCookieScanner);
         for (let scan = 1; scan <= 2; scan++) {
             await page.locator('#start').click();
-            await page.waitForFunction(() => document.getElementById('marrison-scan-status').textContent.startsWith('Scansione completata:'), { timeout: 30000 });
+            await page.waitForFunction(() => document.getElementById('marrison-scan-status').textContent.includes('Scansione completata:'), null, { timeout: 30000 });
             assert.equal(job.status, 'completed');
             const current = reports.filter(report => report.run === scan);
             assert.equal(current.length, 4);

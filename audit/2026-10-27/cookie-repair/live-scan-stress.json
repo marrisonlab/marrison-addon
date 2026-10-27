@@ -1,0 +1,1122 @@
+{
+  "runtime": {
+    "protocol": 2,
+    "revision": "20261027.1",
+    "plugin_version": "1.3.91",
+    "scanner_file": "/home/u162889711/domains/lightskyblue-ape-529924.hostingersite.com/public_html/wp-content/plugins/marrison-addon/includes/modules/cookie-manager/includes/class-cookie-scanner.php",
+    "scanner_hash": "9124577211a62762e89ff4f53f06f846d5a4b61a4dda73649f329c28f4ec5ae5",
+    "engine_hash": "8a7b2e80bcc0cb5c2785bce14fa2543e7436c597ba56045d3f10e50cba551dc6",
+    "compatible": true
+  },
+  "report": {
+    "id": "e24fee592d5a465ec1efaa47980ecd2f",
+    "revision": "20261027.1",
+    "plugin_version": "1.3.91",
+    "status": "completed",
+    "created": 1793105301,
+    "updated": 1793105331,
+    "expires": 1793191701,
+    "mode": "local",
+    "remote_requests": [],
+    "storage": [],
+    "storage_supported": true,
+    "worker": {
+      "state": "queued",
+      "lease_until": 0,
+      "dispatch_at": 0,
+      "error": "",
+      "initiator": 1
+    },
+    "limit": 0,
+    "limit_reached": false,
+    "queue": [],
+    "seen": {
+      "https://lightskyblue-ape-529924.hostingersite.com/": true,
+      "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/": true,
+      "https://lightskyblue-ape-529924.hostingersite.com/hello-world/": true,
+      "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/": true,
+      "https://lightskyblue-ape-529924.hostingersite.com/negozio/": true,
+      "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/": true,
+      "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/": true
+    },
+    "pages": [
+      "https://lightskyblue-ape-529924.hostingersite.com/",
+      "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+      "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+      "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+      "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+      "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+      "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/"
+    ],
+    "http_done": 19,
+    "http_failed": 0,
+    "browser_cursor": 14,
+    "browser_failed": 0,
+    "cookies": {
+      "f1b742e8bf387a3fe5a17a4abba6331440929e78e76f1ab9da44e01b9a53bb77": {
+        "cookie_name": "woocommerce_recently_viewed",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": null,
+        "cookie_expiration_status": "session",
+        "secure": true,
+        "http_only": false,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "before",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "browser"
+          }
+        ],
+        "observation_count": 6,
+        "resources": []
+      },
+      "4df147bd05e8cfd8a9d2ddc7885c96573b9b9e5a54a4f19820ff28ca6b5647cb": {
+        "cookie_name": "marrison_cookie_state",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": "2027-04-29 12:48:50",
+        "cookie_expiration_status": "persistent",
+        "secure": true,
+        "http_only": true,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "http_browser"
+          }
+        ],
+        "observation_count": 7,
+        "resources": []
+      },
+      "12457a9d1fdd3fc4e8cb215c1f2573f1f751ac2ca08d13f7fde0cd779d26b70d": {
+        "cookie_name": "marrison_cookie_consent",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": "2027-04-29 12:48:50",
+        "cookie_expiration_status": "persistent",
+        "secure": true,
+        "http_only": false,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "browser"
+          }
+        ],
+        "observation_count": 14,
+        "resources": []
+      },
+      "728e26f0ba597a1237b0047cf4c32d14e0f1190e7d322689c01fdb2d7f22aaba": {
+        "cookie_name": "marrison_cookie_categories",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": "2027-04-29 12:48:50",
+        "cookie_expiration_status": "persistent",
+        "secure": true,
+        "http_only": false,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "http_browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "browser"
+          }
+        ],
+        "observation_count": 14,
+        "resources": []
+      },
+      "bf864b5d9e00aa2f346417294d49402fb8af8c04c5dd8ec3a73782b33b92a72b": {
+        "cookie_name": "sbjs_migrations",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": null,
+        "cookie_expiration_status": "session",
+        "secure": false,
+        "http_only": false,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "browser"
+          }
+        ],
+        "observation_count": 7,
+        "resources": []
+      },
+      "9fb560bc0cbde9db76d45febd9c39f8fa80f8341815445ab500024977af47c36": {
+        "cookie_name": "sbjs_current_add",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": null,
+        "cookie_expiration_status": "session",
+        "secure": false,
+        "http_only": false,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "browser"
+          }
+        ],
+        "observation_count": 7,
+        "resources": []
+      },
+      "00390571d790b010bebd78fc1fedba2edbbbc3619d46740aa36bb27a5bda63d4": {
+        "cookie_name": "sbjs_first_add",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": null,
+        "cookie_expiration_status": "session",
+        "secure": false,
+        "http_only": false,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "browser"
+          }
+        ],
+        "observation_count": 7,
+        "resources": []
+      },
+      "5140ef05b86fa902d80404fa194fd90601ccc0e28cff6fd2f7eaf362ba402a96": {
+        "cookie_name": "sbjs_current",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": null,
+        "cookie_expiration_status": "session",
+        "secure": false,
+        "http_only": false,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "browser"
+          }
+        ],
+        "observation_count": 7,
+        "resources": []
+      },
+      "42a7a245224e78ad772e2e6a6f193337457e3e598f165da77891a694ac447629": {
+        "cookie_name": "sbjs_first",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": null,
+        "cookie_expiration_status": "session",
+        "secure": false,
+        "http_only": false,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "browser"
+          }
+        ],
+        "observation_count": 7,
+        "resources": []
+      },
+      "57ead76c16fd676ca5eea6fbe23c26130621689351ff79fd60462135c10c5b86": {
+        "cookie_name": "sbjs_udata",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": null,
+        "cookie_expiration_status": "session",
+        "secure": false,
+        "http_only": false,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "browser"
+          }
+        ],
+        "observation_count": 7,
+        "resources": []
+      },
+      "dd135d54b5a41d0390e5d6f58b8662e791c079a0506bfb6dfcff2fb4dbc2515d": {
+        "cookie_name": "sbjs_session",
+        "cookie_domain": "lightskyblue-ape-529924.hostingersite.com",
+        "cookie_path": "/",
+        "cookie_expiration": "2026-10-27 13:18:50",
+        "cookie_expiration_status": "persistent",
+        "secure": false,
+        "http_only": false,
+        "same_site": "lax",
+        "scope_known": true,
+        "observations": [
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+            "phase": "after",
+            "method": "browser"
+          },
+          {
+            "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+            "phase": "after",
+            "method": "browser"
+          }
+        ],
+        "observation_count": 7,
+        "resources": []
+      }
+    },
+    "services": {
+      "ajax.googleapis.com": {
+        "host": "ajax.googleapis.com",
+        "kinds": [
+          "static"
+        ],
+        "pages": [],
+        "cookies_verified": false,
+        "profiles": []
+      },
+      "lightskyblue-ape-529924.hostingersite.com": {
+        "host": "lightskyblue-ape-529924.hostingersite.com",
+        "kinds": [
+          "static"
+        ],
+        "pages": [],
+        "cookies_verified": false,
+        "profiles": {
+          "woocommerce": {
+            "id": "woocommerce",
+            "name": "WooCommerce",
+            "category": "necessary",
+            "patterns": [
+              {
+                "host": "",
+                "path": "/wp-content/plugins/woocommerce/"
+              }
+            ],
+            "cookies": [
+              {
+                "name": "woocommerce_cart_hash",
+                "domain": "Dominio del sito",
+                "duration": "Sessione",
+                "purpose": "Rileva le modifiche ai dati del carrello.",
+                "evidence": "provider_documentation",
+                "observed": false
+              },
+              {
+                "name": "woocommerce_items_in_cart",
+                "domain": "Dominio del sito",
+                "duration": "Sessione",
+                "purpose": "Rileva le modifiche al contenuto del carrello.",
+                "evidence": "provider_documentation",
+                "observed": false
+              },
+              {
+                "name": "wp_woocommerce_session_*",
+                "domain": "Dominio del sito",
+                "duration": "2 giorni",
+                "purpose": "Associa la sessione ai dati del carrello nel database.",
+                "evidence": "provider_documentation",
+                "observed": false
+              },
+              {
+                "name": "woocommerce_recently_viewed",
+                "domain": "Dominio del sito",
+                "duration": "Sessione",
+                "purpose": "Supporta il widget dei prodotti visualizzati di recente.",
+                "evidence": "provider_documentation",
+                "observed": false
+              }
+            ],
+            "provider": {
+              "name": "Automattic / WooCommerce",
+              "privacy_url": "https://automattic.com/privacy/"
+            },
+            "source_url": "https://woocommerce.com/document/woocommerce-cookies/",
+            "verified": true,
+            "notes": "Cookie tecnici dichiarati; non tutti vengono necessariamente installati su ogni pagina.",
+            "last_reviewed": "2026-10-24"
+          }
+        }
+      },
+      "stats.wp.com": {
+        "host": "stats.wp.com",
+        "kinds": [
+          "static"
+        ],
+        "pages": [],
+        "cookies_verified": false,
+        "profiles": []
+      },
+      "fonts.googleapis.com": {
+        "host": "fonts.googleapis.com",
+        "kinds": [
+          "static",
+          "style"
+        ],
+        "pages": [
+          "https://lightskyblue-ape-529924.hostingersite.com/",
+          "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+          "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+          "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+          "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+          "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+          "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/"
+        ],
+        "cookies_verified": false,
+        "profiles": []
+      },
+      "plugin:woocommerce": {
+        "host": "lightskyblue-ape-529924.hostingersite.com",
+        "kinds": [
+          "configuration"
+        ],
+        "pages": [],
+        "cookies_verified": false,
+        "profiles": {
+          "woocommerce": {
+            "id": "woocommerce",
+            "name": "WooCommerce",
+            "category": "necessary",
+            "patterns": [
+              {
+                "host": "",
+                "path": "/wp-content/plugins/woocommerce/"
+              }
+            ],
+            "cookies": [
+              {
+                "name": "woocommerce_cart_hash",
+                "domain": "Dominio del sito",
+                "duration": "Sessione",
+                "purpose": "Rileva le modifiche ai dati del carrello.",
+                "observed": false,
+                "evidence": "provider_documentation"
+              },
+              {
+                "name": "woocommerce_items_in_cart",
+                "domain": "Dominio del sito",
+                "duration": "Sessione",
+                "purpose": "Rileva le modifiche al contenuto del carrello.",
+                "observed": false,
+                "evidence": "provider_documentation"
+              },
+              {
+                "name": "wp_woocommerce_session_*",
+                "domain": "Dominio del sito",
+                "duration": "2 giorni",
+                "purpose": "Associa la sessione ai dati del carrello nel database.",
+                "observed": false,
+                "evidence": "provider_documentation"
+              },
+              {
+                "name": "woocommerce_recently_viewed",
+                "domain": "Dominio del sito",
+                "duration": "Sessione",
+                "purpose": "Supporta il widget dei prodotti visualizzati di recente.",
+                "observed": false,
+                "evidence": "provider_documentation"
+              }
+            ],
+            "provider": {
+              "name": "Automattic / WooCommerce",
+              "privacy_url": "https://automattic.com/privacy/"
+            },
+            "source_url": "https://woocommerce.com/document/woocommerce-cookies/",
+            "verified": true,
+            "notes": "Cookie tecnici dichiarati; non tutti vengono necessariamente installati su ogni pagina.",
+            "last_reviewed": "2026-10-24"
+          }
+        }
+      },
+      "www.w3.org": {
+        "host": "www.w3.org",
+        "kinds": [
+          "static"
+        ],
+        "pages": [],
+        "cookies_verified": false,
+        "profiles": []
+      },
+      "www.youtube-nocookie.com": {
+        "host": "www.youtube-nocookie.com",
+        "kinds": [
+          "static"
+        ],
+        "pages": [],
+        "cookies_verified": false,
+        "profiles": {
+          "youtube": {
+            "id": "youtube",
+            "name": "YouTube",
+            "category": "marketing",
+            "patterns": [
+              {
+                "host": "youtube.com",
+                "subdomains": true,
+                "path": "/embed/"
+              },
+              {
+                "host": "youtube-nocookie.com",
+                "subdomains": true,
+                "path": "/embed/"
+              },
+              {
+                "host": "youtube.com",
+                "subdomains": true,
+                "path": "/iframe_api"
+              },
+              {
+                "host": "youtube.com",
+                "subdomains": true,
+                "path": "/s/player/"
+              }
+            ],
+            "cookies": [
+              {
+                "name": "YSC",
+                "domain": ".youtube.com",
+                "duration": "Sessione",
+                "purpose": "Gestisce le interazioni con il lettore durante la sessione.",
+                "evidence": "provider_documentation",
+                "observed": false
+              },
+              {
+                "name": "PREF",
+                "domain": ".youtube.com",
+                "duration": "8 mesi dall'ultimo utilizzo",
+                "purpose": "Memorizza le preferenze del lettore.",
+                "evidence": "provider_documentation",
+                "observed": false
+              }
+            ],
+            "provider": {
+              "name": "Google LLC",
+              "privacy_url": "https://policies.google.com/privacy"
+            },
+            "source_url": "https://policies.google.com/technologies/cookies",
+            "verified": true,
+            "notes": "Anche gli embed youtube-nocookie.com sono riconosciuti come servizio. I cookie elencati riguardano YouTube e non provano che il dominio nocookie li abbia installati. Dipendono dalla riproduzione e dalle scelte dell'utente.",
+            "last_reviewed": "2026-10-24"
+          }
+        }
+      },
+      "maps.googleapis.com": {
+        "host": "maps.googleapis.com",
+        "kinds": [
+          "static"
+        ],
+        "pages": [],
+        "cookies_verified": false,
+        "profiles": {
+          "google-maps": {
+            "id": "google-maps",
+            "name": "Google Maps",
+            "category": "marketing",
+            "patterns": [
+              {
+                "host": "maps.google.com",
+                "path": "/maps"
+              },
+              {
+                "host": "google.com",
+                "subdomains": true,
+                "path": "/maps/embed"
+              },
+              {
+                "host": "maps.googleapis.com",
+                "path": "/maps/api/"
+              },
+              {
+                "host": "maps.google.com",
+                "path": "/maps/api/"
+              }
+            ],
+            "cookies": [
+              {
+                "name": "NID",
+                "domain": ".google.com",
+                "duration": "6 mesi",
+                "purpose": "Preferenze dei servizi Google; l'uso effettivo dipende dall'integrazione e dalle scelte dell'utente.",
+                "evidence": "provider_documentation",
+                "observed": false
+              }
+            ],
+            "provider": {
+              "name": "Google LLC",
+              "privacy_url": "https://policies.google.com/privacy"
+            },
+            "source_url": "https://policies.google.com/technologies/cookies",
+            "verified": false,
+            "notes": "Nome e durata sono documentati da Google; l'installazione specifica da parte di Maps embed/API va verificata. La sola richiesta API non dimostra la presenza di NID.",
+            "last_reviewed": "2026-10-24"
+          }
+        }
+      },
+      "fonts.gstatic.com": {
+        "host": "fonts.gstatic.com",
+        "kinds": [
+          "font"
+        ],
+        "pages": [
+          "https://lightskyblue-ape-529924.hostingersite.com/",
+          "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+          "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+          "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+          "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+          "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+          "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/"
+        ],
+        "cookies_verified": false
+      },
+      "secure.gravatar.com": {
+        "host": "secure.gravatar.com",
+        "kinds": [
+          "img"
+        ],
+        "pages": [
+          "https://lightskyblue-ape-529924.hostingersite.com/hello-world/"
+        ],
+        "cookies_verified": false
+      },
+      "s.w.org": {
+        "host": "s.w.org",
+        "kinds": [
+          "img"
+        ],
+        "pages": [
+          "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/"
+        ],
+        "cookies_verified": false
+      }
+    },
+    "issues": [],
+    "issues_total": 0,
+    "sampling": {
+      "strategy": "templates",
+      "candidates": 7,
+      "equivalents": 0,
+      "excluded": 0,
+      "groups": {
+        "4ea140588150773ce3aace786aeef7f4049ce100fa649c94fbbddb960f1da942": {
+          "kind": "home",
+          "label": "Home",
+          "url": "https://lightskyblue-ape-529924.hostingersite.com/",
+          "represented_urls": 1,
+          "examples": [
+            "https://lightskyblue-ape-529924.hostingersite.com/"
+          ],
+          "status": "queued"
+        },
+        "d83d3594f666d2f6bd6a513617799e9df8eeda185dad00e18d98461acf28c911": {
+          "label": "Cookie Policy",
+          "kind": "policy",
+          "url": "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/",
+          "represented_urls": 1,
+          "examples": [
+            "https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/"
+          ],
+          "status": "queued"
+        },
+        "1da6878f563d9ffb2a490775de86aec70333978c099cb27df601ee82bdd537c9": {
+          "kind": "single",
+          "label": "Singolo post",
+          "post_type": "post",
+          "template": "index.php",
+          "features": [],
+          "features_total": 0,
+          "url": "https://lightskyblue-ape-529924.hostingersite.com/hello-world/",
+          "represented_urls": 1,
+          "examples": [
+            "https://lightskyblue-ape-529924.hostingersite.com/hello-world/"
+          ],
+          "status": "queued"
+        },
+        "299b06cb43465177cb4bf23c4cdf243c7a5696a74e40281976828d69512107c0": {
+          "kind": "single",
+          "label": "Singolo product",
+          "post_type": "product",
+          "template": "index.php",
+          "features": [],
+          "features_total": 0,
+          "url": "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/",
+          "represented_urls": 1,
+          "examples": [
+            "https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/"
+          ],
+          "status": "queued"
+        },
+        "31ccd312daff79d91b65469c245e0ca88bbc5f1bb369e231212d29f4b5b57d76": {
+          "label": "Archivio Prodotti",
+          "kind": "archive",
+          "template": "index.php",
+          "url": "https://lightskyblue-ape-529924.hostingersite.com/negozio/",
+          "represented_urls": 1,
+          "examples": [
+            "https://lightskyblue-ape-529924.hostingersite.com/negozio/"
+          ],
+          "status": "queued"
+        },
+        "8d30ad01087099babe95fb918df23c9814b32e37437ba19bd75f5682232a6970": {
+          "kind": "taxonomy",
+          "label": "Archivio Categorie",
+          "template": "index.php",
+          "features": [],
+          "features_total": 0,
+          "url": "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/",
+          "represented_urls": 1,
+          "examples": [
+            "https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/"
+          ],
+          "status": "queued"
+        },
+        "14c21eb48324c9fc163732141406f63c822658cd50ab564d7833642b87a1f22c": {
+          "kind": "taxonomy",
+          "label": "Archivio Categorie prodotto",
+          "template": "index.php",
+          "features": [],
+          "features_total": 0,
+          "url": "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/",
+          "represented_urls": 1,
+          "examples": [
+            "https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/"
+          ],
+          "status": "queued"
+        }
+      },
+      "unselected": []
+    },
+    "additional_urls": [],
+    "static_scan": {
+      "page": 2,
+      "posts": 19,
+      "done": true,
+      "options_done": true,
+      "skipped": 0,
+      "option_cursor": 11,
+      "offset": 0
+    },
+    "local_iframe": true,
+    "local_max_seconds": 0,
+    "local_started": 1793105304,
+    "response_pages": {
+      "before https://lightskyblue-ape-529924.hostingersite.com/": true,
+      "before https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/": true,
+      "before https://lightskyblue-ape-529924.hostingersite.com/hello-world/": true,
+      "before https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/": true,
+      "before https://lightskyblue-ape-529924.hostingersite.com/negozio/": true,
+      "before https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/": true,
+      "before https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/": true,
+      "after https://lightskyblue-ape-529924.hostingersite.com/": true,
+      "after https://lightskyblue-ape-529924.hostingersite.com/cookie-policy/": true,
+      "after https://lightskyblue-ape-529924.hostingersite.com/hello-world/": true,
+      "after https://lightskyblue-ape-529924.hostingersite.com/prodotto/hat/": true,
+      "after https://lightskyblue-ape-529924.hostingersite.com/negozio/": true,
+      "after https://lightskyblue-ape-529924.hostingersite.com/category/uncategorized/": true,
+      "after https://lightskyblue-ape-529924.hostingersite.com/categoria-prodotto/clothing/shirts/": true
+    }
+  }
+}
