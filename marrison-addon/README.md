@@ -11,7 +11,7 @@
 *   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
 *   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
-*   **Stable tag:** 1.3.91
+*   **Stable tag:** 1.3.93
 *   **License:** GPL-3.0-or-later
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -20,6 +20,8 @@
 **Marrison Addon** is a modular plugin designed to enhance your WordPress site and Elementor workflow. It provides a suite of essential tools that can be enabled or disabled individually to keep your site lightweight.
 
 **Included Modules:**
+
+**Login Designer (indipendente):** personalizza la pagina di login con il Customizer nativo, anteprima live riservata e pulsante Pubblica. Include quattro layout responsive, sei preset, sfondi con opacità, dimensioni e padding input, glow colorato e controllo del selettore lingua. CSS applicato soltanto al login e alla sua anteprima; nessun JavaScript del modulo sul login reale. Spegnendo il modulo o disattivando Marrison Addon vengono eliminate le sue impostazioni; alla riattivazione riparte dai predefiniti. [Guida e limiti di verifica](docs/login-designer.md).
 
 **Query Fallback (JetEngine + Elementor):** adds a backup Posts Query directly after the Listing Grid Custom Query controls. Choose Only when empty or Fill missing items, with ordered duplicate-free results and preserved dynamic context. This first version is for single-page grids: public AJAX, Load More, Lazy Load and requests with applied filters have explicit safety gates. An installed JetSmartFilters plugin does not block unfiltered listings. See [configuration, compatibility and test procedure](docs/query-fallback.md).
 
@@ -216,13 +218,28 @@ The minimum requirements remain WordPress 6.0 and PHP 7.4. Current compatibility
 
 GitHub uses this Markdown documentation and the repository-root overview. The installable plugin also includes a standard **readme.txt** for WordPress, with the same version, minimum requirements and current changelog. WordPress reads installation requirements from the main PHP header; `Requires PHP` is the minimum, not the newest supported release.
 
-Updates use the latest published stable GitHub Release from `marrisonlab/marrison-addon`. Commit and push the updated plugin code before creating a lowercase `vX.Y.Z` tag and publishing its Release as Latest. The PHP header/constant and readme stable tags must match `X.Y.Z`. A tag alone does not publish a Release. The updater downloads the source archive at that tag, not an attached ZIP; its version check is cached for six hours. After updating, open **AM Addon > Cookie Manager > Scanner Cookie** when the rescan notice appears. The GitHub updater runs in admin/WP-Cron while the plugin is active.
+Updates use the latest published stable GitHub Release from `marrisonlab/marrison-addon`. Commit and push the updated plugin code before creating a lowercase `vX.Y.Z` tag and publishing its Release as Latest. The PHP header/constant and readme stable tags must match `X.Y.Z`. A tag alone does not publish a Release. The updater downloads the source archive at that tag, not an attached ZIP; its version check is cached for six hours. Plugin updates do not require a new Cookie Manager scan; existing scan results are preserved. The GitHub updater runs in admin/WP-Cron while the plugin is active.
 
 ## Cookie Manager service catalog
 
 Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, source/review badges, service category overrides in Behavior, custom domain/path rules and default blocking for unclassified external resources. Payment classification must be confirmed by the privacy adviser. Catalog cookies are declarations, never observations; PayPal/Klarna lists remain empty where integration-specific data are unconfirmed. No scanner provider is replaced in this phase. See [configuration, limitations and tests](docs/cookie-service-catalog.md).
 
 ## Changelog
+
+### 1.3.93
+
+* Login Designer: corretta la registrazione dei controlli nelle richieste AJAX di salvataggio automatico e pubblicazione del Customizer, evitando gli avvisi di impostazione inesistente o non riconosciuta.
+* Login Designer: il logo del login punta alla home del sito quando non è configurata una destinazione personalizzata; aggiornata l’etichetta del controllo.
+* Mantenuti isolamento dagli altri Customizer, controlli di autorizzazione e sanitizzazione; aggiunti test sulle richieste AJAX e sulle destinazioni del logo.
+
+### 1.3.92
+
+* Login Designer: nuovo modulo indipendente con Customizer nativo, anteprima live riservata, pubblicazione esplicita, quattro layout responsive e sei preset.
+* Controlli per logo, sfondi con opacità, form, input, pulsante, tipografia e CSS avanzato; aggiunti font-size e padding input, ombra/glow colorato con espansione e opzione per nascondere il selettore lingua.
+* Colori input applicati anche alla compilazione automatica del browser; focus discreto e controlli dell’area grafica visibili soltanto nel layout Due colonne.
+* Asset limitati a login e relativo editor; nessun JavaScript del modulo sul login reale. Impostazioni escluse dall’autoload e nessun caricamento operativo del modulo quando spento.
+* Spegnendo Login Designer o disattivando Marrison Addon vengono eliminate tutte le impostazioni di Login Designer: alla riattivazione si riparte dai predefiniti. Le impostazioni degli altri moduli restano invariate.
+* Corretta la disattivazione del plugin senza Elementor; aggiornamento della versione degli asset per evitare cache obsolete nei pacchetti locali.
 
 ### 1.3.91
 

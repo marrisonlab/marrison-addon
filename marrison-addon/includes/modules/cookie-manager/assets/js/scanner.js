@@ -46,7 +46,6 @@
             $('#marrison-engine-progress').prop('hidden', !active);
             $('#marrison-engine-summary').toggleClass('marrison-scan-complete', !!job && !stale && job.status === 'completed').toggleClass('marrison-scan-incomplete', !!job && !stale && ['partial', 'failed', 'cancelled'].indexOf(job.status) >= 0);
             if (job && !active && !this.running) { this.status(this.resultText(job), this.resultFailed(job)); }
-            if (job && job.rescan_required === false) { $('[data-marrison-cookie-rescan-notice]').remove(); }
             $('#marrison-scan-cancel').prop('hidden', !job || stale || ['http', 'browser'].indexOf(job.status) < 0);
             $('#marrison-scan-resume').prop('hidden', !job || stale || this.running || !job.static_pending && ['http', 'browser'].indexOf(job.status) < 0);
             $('#marrison-scan-cookies, #marrison-scan-browser, #wizard_scan_button, #wizard_scan_browser_button').prop('disabled', this.running || this.changingMode);

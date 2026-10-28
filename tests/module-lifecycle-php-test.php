@@ -77,7 +77,7 @@ function check( $value, $message ) { if ( ! $value ) { throw new \RuntimeExcepti
 $plugin = dirname( __DIR__ ) . '/marrison-addon/marrison-addon.php';
 require $plugin;
 new \Marrison_Addon();
-check( count( \Marrison_Addon::get_module_definitions( false ) ) === 27, 'Registry changed unexpectedly.' );
+check( count( \Marrison_Addon::get_module_definitions( false ) ) === 28, 'Registry changed unexpectedly.' );
 check( ! array_filter( get_included_files(), function( $path ) { return strpos( str_replace( '\\', '/', $path ), '/includes/modules/' ) !== false; } ), 'OFF included module PHP.' );
 foreach ( \Marrison_Addon::get_module_definitions( false ) as $definition ) {
     check( ! class_exists( $definition['class'], false ), 'OFF loaded a module class.' );
@@ -148,7 +148,7 @@ try {
     do_action( 'deactivate_' . plugin_basename( $plugin ), false );
     check( ! $cron && ! $actions && file_get_contents( $directory . '/.htaccess' ) === "# Preserve WordPress\n", 'Plugin deactivation left effects behind.' );
     check( $options['marrison_addon_modules'] === $saved && $options['fixture_preserved'] === 'keep', 'Deactivation changed saved settings.' );
-    echo "PASS module lifecycle: 27 OFF, single/bulk/direct writes, CSS invalidation, cron with args, server cleanup/errors, snippet capabilities and plugin deactivation.\n";
+    echo "PASS module lifecycle: 28 OFF, single/bulk/direct writes, CSS invalidation, cron with args, server cleanup/errors, snippet capabilities and plugin deactivation.\n";
 } finally {
     if ( is_file( $directory . '/.htaccess' ) ) { unlink( $directory . '/.htaccess' ); }
     rmdir( $directory );

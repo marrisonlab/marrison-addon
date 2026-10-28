@@ -615,7 +615,7 @@ class Marrison_Addon_Cookie_Scan_Engine {
             }));
         }
 
-        return array('revision' => $job['revision'] ?? '', 'mode' => $job['mode'] ?? 'local', 'remote_requests' => count($job['remote_requests'] ?? array()), 'stale' => $stale, 'rescan_required' => (bool) get_option('marrison_cookie_rescan_required_version'), 'id' => $job['id'], 'status' => $job['status'], 'created' => $job['created'], 'updated' => $job['updated'], 'limit' => $job['limit'],
+        return array('revision' => $job['revision'] ?? '', 'mode' => $job['mode'] ?? 'local', 'remote_requests' => count($job['remote_requests'] ?? array()), 'stale' => $stale, 'id' => $job['id'], 'status' => $job['status'], 'created' => $job['created'], 'updated' => $job['updated'], 'limit' => $job['limit'],
             'limit_reached' => $browser_enabled && $job['limit_reached'], 'queued' => count($job['queue']), 'http_done' => $job['http_done'], 'http_failed' => $job['http_failed'],
             'static_posts' => $stale ? null : (int) ($job['static_scan']['posts'] ?? 0), 'local_iframe' => $browser_enabled,
             'browser_done' => $browser_enabled ? $job['browser_cursor'] : 0, 'browser_total' => $browser_enabled ? count($job['pages']) * 2 : 0, 'browser_failed' => $job['browser_failed'],

@@ -3,18 +3,18 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.91
+**Version:** 1.3.93
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
 
 ## Description
 
-Marrison Addon provides 27 independently enabled modules for page layouts, media, frontend behavior and administration. Disabled modules load no operational module classes, hooks, CSS or JavaScript. The core registry and plugin bootstrap remain available.
+Marrison Addon provides 28 independently enabled modules for page layouts, media, frontend behavior and administration. Disabled modules load no operational module classes, hooks, CSS or JavaScript. The core registry and plugin bootstrap remain available.
 
 Query Fallback adds a backup Posts Query to the native JetEngine Listing Grid, with empty-only and fill modes. Module cards always show required active plugins and keep unavailable modules off and locked. See [Query Fallback configuration and limitations](marrison-addon/docs/query-fallback.md).
 
-Modules include Wrapped Link, Content Ticker, Steps, Product Discount, Heading Animations, Recently Viewed Products, Listing Grid Title, Listing Columns, Dynamic SVG, Read More, Anchor Offset, Preloader, Custom Cursor, Image Sizes, Fast Logout, Calendar Sync, Cookie Manager, Video Thumbnail, Local Google Fonts, Browser Cache, Horizontal Scroll (Beta), Liquid Background, Inline CSS, Dynamic Background Image Size and PHP Snippets.
+Modules include Wrapped Link, Content Ticker, Steps, Product Discount, Heading Animations, Recently Viewed Products, Listing Grid Title, Listing Columns, Dynamic SVG, Read More, Anchor Offset, Preloader, Custom Cursor, Image Sizes, Fast Logout, Calendar Sync, Cookie Manager, Video Thumbnail, Local Google Fonts, Browser Cache, Horizontal Scroll (Beta), Liquid Background, Inline CSS, Dynamic Background Image Size, Login Designer and PHP Snippets.
 
 Elementor, WooCommerce and JetEngine are required only for their related modules. Cookie Manager provides representative HTTP/browser scans, signed consent choices and policy shortcodes. Manual browser scans cover every discovered group before and after consent by default; sample and total-time limits are optional. PHP Snippets requires both WordPress `manage_options` and `unfiltered_html` capabilities.
 
@@ -27,12 +27,14 @@ Cookie consent checks keep technical diagnostics out of the visitor banner; fail
 
 Cookie Manager 1.3.79 adds a local declarative service catalog, editable service categories and default blocking for unclassified external resources. Catalog declarations remain separate from observed cookies. See [configuration and limits](marrison-addon/docs/cookie-service-catalog.md). Scanning uses the local static service inventory. Each new run replaces the previous cookie inventory; consent receipts and settings remain unchanged.
 
+Login Designer aggiunge un editor nativo Customizer con anteprima riservata, quattro layout responsive e sei preset. Le modifiche si applicano al login soltanto dopo Pubblica. Spegnendo il modulo o disattivando Marrison Addon, le impostazioni di Login Designer vengono eliminate. [Architettura, uso e verifiche](marrison-addon/docs/login-designer.md).
+
 ## Installation
 
 1. Download [marrison-addon.zip](marrison-addon.zip), or obtain the code for the desired [published release](https://github.com/marrisonlab/marrison-addon/releases).
 2. In WordPress, open **Plugins > Add New > Upload Plugin** and upload the installable ZIP. A source checkout contains the plugin in the `marrison-addon/` subdirectory.
 3. Activate Marrison Addon and open **AM Addon** to enable the desired modules.
-4. Open each module's compact settings icon where available. After an update, follow the Cookie Manager rescan notice if that module is enabled.
+4. Open each module's compact settings icon where available. Plugin updates do not require a new Cookie Manager scan; existing scan results are preserved.
 
 ## GitHub releases and updates
 
@@ -53,6 +55,21 @@ Current stable versions checked on 20 October 2026: [WordPress 7.1.3](https://wo
 Optional server features are reported by their modules: FFmpeg is needed for local video cover extraction; browser cache rules depend on the web server. These features are not prerequisites for unrelated modules.
 
 ## Changelog
+
+### 1.3.93
+
+* Login Designer: corretta la registrazione dei controlli nelle richieste AJAX di salvataggio automatico e pubblicazione del Customizer, evitando gli avvisi di impostazione inesistente o non riconosciuta.
+* Login Designer: il logo del login punta alla home del sito quando non è configurata una destinazione personalizzata; aggiornata l’etichetta del controllo.
+* Mantenuti isolamento dagli altri Customizer, controlli di autorizzazione e sanitizzazione; aggiunti test sulle richieste AJAX e sulle destinazioni del logo.
+
+### 1.3.92
+
+* Login Designer: nuovo modulo indipendente con Customizer nativo, anteprima live riservata, pubblicazione esplicita, quattro layout responsive e sei preset.
+* Controlli per logo, sfondi con opacità, form, input, pulsante, tipografia e CSS avanzato; aggiunti font-size e padding input, ombra/glow colorato con espansione e opzione per nascondere il selettore lingua.
+* Colori input applicati anche alla compilazione automatica del browser; focus discreto e controlli dell’area grafica visibili soltanto nel layout Due colonne.
+* Asset limitati a login e relativo editor; nessun JavaScript del modulo sul login reale. Impostazioni escluse dall’autoload e nessun caricamento operativo del modulo quando spento.
+* Spegnendo Login Designer o disattivando Marrison Addon vengono eliminate tutte le impostazioni di Login Designer: alla riattivazione si riparte dai predefiniti. Le impostazioni degli altri moduli restano invariate.
+* Corretta la disattivazione del plugin senza Elementor; aggiornamento della versione degli asset per evitare cache obsolete nei pacchetti locali.
 
 ### 1.3.91
 

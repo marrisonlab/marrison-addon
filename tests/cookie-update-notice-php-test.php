@@ -43,39 +43,35 @@ try {
     $hooks->invoke( $module );
     $install->invoke( $module );
     verify_notice( get_option( 'marrison_cookie_module_version' ) === '2.0.0' && ! get_option( 'marrison_cookie_rescan_required_version' ), 'Fresh installation must use the wizard without a false update notice.' );
-    update_option( 'marrison_cookie_module_version', '1.9.0' );
-    $install->invoke( $module );
-    verify_notice( get_option( 'marrison_cookie_rescan_required_version' ) === '2.0.0', 'An update must request a fresh scan.' );
-    $install->invoke( $module );
-    verify_notice( get_option( 'marrison_cookie_rescan_required_version' ) === '2.0.0', 'Reload cleared the outstanding scan request.' );
-    ob_start(); do_action( 'admin_notices' ); $notice = ob_get_clean();
-    verify_notice( strpos( $notice, 'notice notice-info' ) !== false && strpos( $notice, 'nuova scansione' ) !== false && strpos( $notice, 'page=marrison-cookie&amp;tab=scanner' ) !== false, 'Notice/link missing or incorrectly escaped.' );
-    $english = true;
-    ob_start(); do_action( 'admin_notices' ); $notice = ob_get_clean();
-    verify_notice( strpos( $notice, 'a new cookie scan is required' ) !== false, 'English notice missing.' );
-    foreach ( array( 'enabled', 'can_manage' ) as $guard ) {
-        $GLOBALS[ $guard ] = false;
-        ob_start(); do_action( 'admin_notices' ); $notice = ob_get_clean();
-        verify_notice( $notice === '', 'Notice leaked when ' . $guard . ' is false.' );
-        $GLOBALS[ $guard ] = true;
+    verify_notice( has_action( 'admin_notices' ) === false, 'Update notice is still registered.' );
+    verify_notice( has_action( 'marrison_addon/cookie_scan_finished' ) === false, 'Scan completion still acknowledges plugin updates.' );
+    $preserved = array(
+        'marrison_cookie_last_scan' => 1793098800,
+        'marrison_cookie_scan_report' => array( 'status' => 'completed', 'cookie_count' => 3 ),
+        'marrison_cookie_banner_title' => 'My banner',
+        'marrison_cookie_auto_scan' => true,
+        'marrison_cookie_auto_scan_opt_in' => true,
+    );
+    foreach ( $preserved as $key => $value ) { update_option( $key, $value ); }
+    foreach ( array( '1.9.0', '2.0.0', '3.0.0' ) as $installed_version ) {
+        update_option( 'marrison_cookie_module_version', $installed_version );
+        $install->invoke( $module );
+        verify_notice( ! get_option( 'marrison_cookie_rescan_required_version' ), 'Version change requested a scan: ' . $installed_version );
+        verify_notice( get_option( 'marrison_cookie_module_version' ) === '2.0.0', 'Installation metadata was not maintained.' );
+        // Also retire notices already saved by an older release, even at the same version.
+        update_option( 'marrison_cookie_rescan_required_version', '1.9.0' );
+        foreach ( array( false, true ) as $language ) {
+            $english = $language;
+            ob_start(); do_action( 'admin_notices' ); $notice = ob_get_clean();
+            verify_notice( $notice === '', 'A saved update request still displays a notice.' );
+        }
+        $install->invoke( $module );
+        verify_notice( ! get_option( 'marrison_cookie_rescan_required_version' ), 'Legacy request was not removed without rescanning.' );
+        foreach ( $preserved as $key => $value ) {
+            verify_notice( get_option( $key ) === $value, 'Plugin update changed existing cookie data: ' . $key );
+        }
     }
-    $finished = array( 'plugin_version' => '2.0.0', 'status' => 'completed', 'pages' => array( '/' ), 'http_done' => 1, 'browser_cursor' => 2, 'browser_failed' => 0 );
-    foreach ( array( array( 'plugin_version' => '1.9.0' ), array( 'plugin_version' => '' ), array( 'status' => 'http' ), array( 'status' => 'browser' ), array( 'status' => 'cancelled' ), array( 'status' => 'failed' ), array( 'pages' => array() ), array( 'http_done' => 0 ), array( 'browser_cursor' => 1 ), array( 'browser_failed' => 1 ) ) as $incomplete ) {
-        do_action( 'marrison_addon/cookie_scan_finished', array_replace( $finished, $incomplete ) );
-        verify_notice( get_option( 'marrison_cookie_rescan_required_version' ) === '2.0.0', 'Old/failed/incomplete scan cleared the notice: ' . json_encode( $incomplete ) );
-    }
-    do_action( 'marrison_addon/cookie_scan_finished', $finished );
-    verify_notice( ! get_option( 'marrison_cookie_rescan_required_version' ), 'A newly completed scan did not clear the notice.' );
-    update_option('marrison_cookie_rescan_required_version', '2.0.0');
-    do_action('marrison_addon/cookie_scan_finished', array('plugin_version' => '2.0.0', 'status' => 'completed', 'static_scan' => array('done' => true), 'local_iframe' => false));
-    verify_notice(!get_option('marrison_cookie_rescan_required_version'), 'A completed static scan required an optional iframe before clearing the notice');
-    update_option( 'marrison_cookie_rescan_required_version', '2.0.0' );
-    do_action( 'marrison_addon/cookie_scan_finished', array_replace( $finished, array( 'status' => 'partial', 'http_failed' => 1 ) ) );
-    verify_notice( ! get_option( 'marrison_cookie_rescan_required_version' ), 'A finished scan with an HTTP 404 must retain its partial result without leaving a false not-scanned notice.' );
-    update_option( 'marrison_cookie_module_version', '3.0.0' );
-    $install->invoke( $module );
-    verify_notice( ! get_option( 'marrison_cookie_rescan_required_version' ), 'A downgrade generated an update notice.' );
-    echo "PASS cookie update notice: upgrade/fresh install, persistence, active/capability guards, IT/EN, scanner link, old/incomplete/failed scans and completed/partial acknowledgment.\n";
+    echo "PASS cookie updates: fresh install, upgrades, same-version reload, downgrade, legacy request cleanup, no IT/EN notices, preserved scan results and settings.\n";
 } finally {
     unlink( $temporary . '/wp-admin/includes/upgrade.php' );
     rmdir( $temporary . '/wp-admin/includes' ); rmdir( $temporary . '/wp-admin' ); rmdir( $temporary );

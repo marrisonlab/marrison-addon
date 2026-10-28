@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.91
+Stable tag: 1.3.93
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -20,6 +20,7 @@ Consent verification does not add technical diagnostics or retry buttons to the 
 
 Included modules:
 
+* Login Designer: native Customizer with a protected live preview, four responsive layouts, six presets, alpha backgrounds, input typography/spacing, colored glow and language selector toggle. Changes apply after Publish. No module JavaScript on the real login and no operational module payload while disabled. Disabling this module or Marrison Addon deletes Login Designer settings; enabling it again starts from defaults.
 * Business Info: shared company/contact/location/custom directory, privacy identities and opening hours. The controller name is always editable and reuses selected contacts. Cookie Manager can use manual identity fields or read current Info Azienda values, and remains configurable with Business Info disabled. Native Elementor tags/Business Hours widget, JetEngine Dynamic Field sources and universal shortcodes. Browser opening status uses uncached requests; external full-page caches require their own invalidation for ordinary text/policies.
 * Wrapped Link: clickable Elementor containers and widgets.
 * Content Ticker: configurable scrolling text with shared styles.
@@ -57,9 +58,9 @@ Elementor, WooCommerce and JetEngine are needed only by their respective integra
 
 Minimum requirements: WordPress 6.0 and PHP 7.4. Current compatibility targets checked on 20 October 2026: WordPress 7.1.3 and PHP 8.5.11. The standard Tested up to field uses the WordPress 7.1 series. Optional extensions and FFmpeg capabilities are checked by the corresponding module.
 
-= Cookie scans after updates =
+= Cookie scans =
 
-If Cookie Manager is enabled, the post-update notice clears after a current-version static scan completes and saves its results. Optional iframe checks are required only when explicitly enabled. Old, cancelled, failed or incomplete work does not confirm a completed scan.
+Plugin updates do not require a new Cookie Manager scan and do not display a rescan notice. Existing scan results, settings and consent receipts are preserved. Manual scans and explicitly configured automatic scans remain available.
 
 Cookie observations never store values. The local scanner finds services in published content/configuration; their catalog cookies are declared, not observed. Optional manual iframe checks cover every discovered group before and after consent by default: 0 means all groups and no total time cutoff. Sample/time limits are optional; per-page timeouts remain active. Iframe checks cannot see third-party cookies. Verify login, checkout and conditional interactions manually. Policy shortcodes do not create pages automatically.
 
@@ -80,7 +81,6 @@ Cookie scans request public same-site pages; browser passes can load the third-p
 2. Activate Marrison Addon.
 3. Open AM Addon and enable the required modules.
 4. Open each module's settings icon and configure its options. Cookie Manager offers a setup wizard.
-5. After an update, follow the rescan notice when Cookie Manager is enabled.
 
 == Frequently Asked Questions ==
 
@@ -103,6 +103,21 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.93 =
+
+* Login Designer: corretta la registrazione dei controlli nelle richieste AJAX di salvataggio automatico e pubblicazione del Customizer, evitando gli avvisi di impostazione inesistente o non riconosciuta.
+* Login Designer: il logo del login punta alla home del sito quando non è configurata una destinazione personalizzata; aggiornata l’etichetta del controllo.
+* Mantenuti isolamento dagli altri Customizer, controlli di autorizzazione e sanitizzazione; aggiunti test sulle richieste AJAX e sulle destinazioni del logo.
+
+= 1.3.92 =
+
+* Login Designer: nuovo modulo indipendente con Customizer nativo, anteprima live riservata, pubblicazione esplicita, quattro layout responsive e sei preset.
+* Controlli per logo, sfondi con opacità, form, input, pulsante, tipografia e CSS avanzato; aggiunti font-size e padding input, ombra/glow colorato con espansione e opzione per nascondere il selettore lingua.
+* Colori input applicati anche alla compilazione automatica del browser; focus discreto e controlli dell’area grafica visibili soltanto nel layout Due colonne.
+* Asset limitati a login e relativo editor; nessun JavaScript del modulo sul login reale. Impostazioni escluse dall’autoload e nessun caricamento operativo del modulo quando spento.
+* Spegnendo Login Designer o disattivando Marrison Addon vengono eliminate tutte le impostazioni di Login Designer: alla riattivazione si riparte dai predefiniti. Le impostazioni degli altri moduli restano invariate.
+* Corretta la disattivazione del plugin senza Elementor; aggiornamento della versione degli asset per evitare cache obsolete nei pacchetti locali.
 
 = 1.3.91 =
 * Browser Cache: conserva un solo backup automatico di .htaccess, aggiornato prima di ogni modifica delle regole; elimina i precedenti backup del modulo dopo la scrittura riuscita.

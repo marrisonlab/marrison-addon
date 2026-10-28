@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Marrison Addon
  * Plugin URI:  https://github.com/marrisonlab/marrison-addon
- * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Listing Columns, Query Fallback, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Dynamic Background Image Size, Local Google Fonts, Inline CSS, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Business Info, Cookie Manager, PHP Snippets, and Video Thumbnail.
- * Version: 1.3.91
+ * Description: A comprehensive addon for Elementor and WordPress sites. Includes Wrapped Link, Read More, Horizontal Scroll, Liquid Background, Steps, Product Discount, Listing Grid Title, Listing Columns, Query Fallback, Dynamic SVG, Recently Viewed Products, Content Ticker, Header Animations, Anchor Offset, Custom Image Sizes, Dynamic Background Image Size, Local Google Fonts, Inline CSS, Browser Cache, Custom Cursor, Preloader, Fast Logout, Calendar Sync, Business Info, Cookie Manager, Login Designer, PHP Snippets, and Video Thumbnail.
+ * Version: 1.3.93
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Angelo Marra
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Marrison_Addon {
 
-	const VERSION = '1.3.91';
+	const VERSION = '1.3.93';
 
 	private $elementor_modules_initialized = false;
 	private $header_animations_initialized = false;
@@ -336,6 +336,17 @@ final class Marrison_Addon {
 				'class' => 'Marrison_Addon_Inline_CSS',
 				'file' => 'includes/modules/class-marrison-addon-inline-css.php',
 			],
+			'login_designer' => [
+				'icon' => 'dashicons-lock',
+				'title' => self::module_text( 'Login Designer', $translate ),
+				'desc' => self::module_text( 'Personalizza il login WordPress con anteprima live, layout responsive e preset nel Customizer.', $translate ),
+				'reload' => true,
+				'requires_elementor' => false,
+				'boot' => 'independent',
+				'class' => 'Marrison_Addon_Login_Designer',
+				'file' => 'includes/modules/class-marrison-addon-login-designer.php',
+				'settings_page' => 'marrison_addon_login_designer',
+			],
 			'browser_cache' => [
 				'icon' => 'dashicons-performance',
 				'title' => self::module_text( 'Browser Cache', $translate ),
@@ -548,7 +559,13 @@ final class Marrison_Addon {
 	/** No module file is loaded here during ordinary requests; cleanup is transitional. */
 	public static function cleanup_module_effects( $module_id ) {
 		$hooks = [];
-		if ( 'cookie_manager' === $module_id ) {
+		if ( 'login_designer' === $module_id ) {
+			// Transition-only cleanup; never load the disabled module just to remove its data.
+			delete_option( 'marrison_addon_login_designer' );
+			if ( null !== get_option( 'marrison_addon_login_designer', null ) ) {
+				return new WP_Error( 'login_designer_cleanup', __( 'Impossibile eliminare le impostazioni di Login Designer. Riprova.', 'marrison-addon' ) );
+			}
+		} elseif ( 'cookie_manager' === $module_id ) {
 			$hooks = [ 'marrison_cookie_daily_scan', 'marrison_addon_cookie_engine_tick', 'marrison_cookie_consent_cleanup' ];
 		} elseif ( 'product_discount' === $module_id ) {
 			$hooks = [ 'marrison_product_discount_backfill_batch', 'marrison_product_discount_scheduled_sync', 'marrison_product_discount_scheduled_sync_batch', 'marrison_product_discount_queued_sync_batch' ];
@@ -605,13 +622,13 @@ final class Marrison_Addon {
 	}
 
 	private static function cleanup_deactivated_plugin() {
-		foreach ( [ 'cookie_manager', 'product_discount', 'browser_cache' ] as $id ) {
+		foreach ( [ 'cookie_manager', 'product_discount', 'browser_cache', 'login_designer' ] as $id ) {
 			$result = self::cleanup_module_effects( $id );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
 		}
-		if ( isset( \Elementor\Plugin::$instance->files_manager ) ) {
+		if ( class_exists( '\\Elementor\\Plugin', false ) && isset( \Elementor\Plugin::$instance->files_manager ) ) {
 			\Elementor\Plugin::$instance->files_manager->clear_cache();
 		}
 		return true;

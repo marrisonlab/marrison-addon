@@ -47,6 +47,16 @@ try {
     $summary_method = new ReflectionMethod($engine, 'summary');
     $require_method = new ReflectionMethod($engine, 'require_job');
     if (PHP_VERSION_ID < 80100) { $summary_method->setAccessible(true); $require_method->setAccessible(true); }
+    $older_plugin_job = $saved_job;
+    $older_plugin_job['plugin_version'] = '1.0.0';
+    $summary = $summary_method->invoke($engine, $older_plugin_job);
+    check_static(!$summary['stale'] && $summary['status'] === 'completed' && !array_key_exists('rescan_required', $summary), 'Plugin version change invalidated the saved report or requested a rescan');
+    $older_plugin_job['status'] = 'http';
+    file_put_contents($path, "<?php exit; ?>\n" . json_encode($older_plugin_job));
+    $_POST['job'] = $older_plugin_job['id'];
+    check_static($require_method->invoke($engine)['plugin_version'] === '1.0.0', 'Plugin update prevented resuming a compatible scan');
+    unset($_POST['job']);
+    file_put_contents($path, "<?php exit; ?>\n" . json_encode($saved_job));
     foreach (array('remote-old', 'remote-current', 'local-old', 'local-no-cursor') as $scenario) {
         $legacy = $saved_job;
         if (strpos($scenario, 'remote') === 0) { $legacy['mode'] = 'commander'; }
