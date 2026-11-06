@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.93
+Stable tag: 1.3.95
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -24,7 +24,7 @@ Included modules:
 * Business Info: shared company/contact/location/custom directory, privacy identities and opening hours. The controller name is always editable and reuses selected contacts. Cookie Manager can use manual identity fields or read current Info Azienda values, and remains configurable with Business Info disabled. Native Elementor tags/Business Hours widget, JetEngine Dynamic Field sources and universal shortcodes. Browser opening status uses uncached requests; external full-page caches require their own invalidation for ordinary text/policies.
 * Wrapped Link: clickable Elementor containers and widgets.
 * Content Ticker: configurable scrolling text with shared styles.
-* Steps: responsive Elementor step layouts.
+* Steps: responsive Elementor step layouts with per-device connector positioning (vertical with side-by-side steps, horizontal with stacked steps).
 * Product Discount: WooCommerce percentage output and bounded background recalculation.
 * Heading Animations: additional native Elementor heading entrance animations.
 * Recently Viewed Products: visitor-specific WooCommerce IDs for JetEngine queries.
@@ -103,6 +103,15 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.95 =
+
+* Steps: separati Dimensione contenitore e Dimensione numero/icona, entrambi responsive. Misure dirette in pixel per numeri, icone font e SVG, indipendenti dal contenitore; il nuovo controllo prevale su Tipografia quando impostato.
+
+= 1.3.94 =
+
+* Steps: aggiunto Posizione frecce in Stile > Linee e frecce, con spostamenti positivi/negativi separati per dispositivo. Regolazione verticale con step affiancati e orizzontale con step impilati.
+* Steps: Dimensione ridimensiona anche numero e icona in proporzione, inclusi SVG e icone font. Le dimensioni esplicite in Tipografia mantengono la precedenza.
 
 = 1.3.93 =
 

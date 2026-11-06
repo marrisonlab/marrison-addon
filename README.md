@@ -3,7 +3,7 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.93
+**Version:** 1.3.95
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -55,6 +55,15 @@ Current stable versions checked on 20 October 2026: [WordPress 7.1.3](https://wo
 Optional server features are reported by their modules: FFmpeg is needed for local video cover extraction; browser cache rules depend on the web server. These features are not prerequisites for unrelated modules.
 
 ## Changelog
+
+### 1.3.95
+
+* Steps: separati Dimensione contenitore e Dimensione numero/icona, entrambi responsive. La dimensione del contenuto è diretta in pixel, inclusi SVG e icone font, e prevale sulla dimensione in Tipografia quando impostata.
+
+### 1.3.94
+
+* Steps: aggiunto il controllo responsive Posizione frecce in Stile > Linee e frecce. Sposta linee e frecce verticalmente con step affiancati e orizzontalmente con step impilati, con valori positivi e negativi separati per dispositivo.
+* Steps: Dimensione ridimensiona anche numero e icona in proporzione al contenitore, inclusi SVG e icone font. Le dimensioni esplicite in Tipografia mantengono la precedenza.
 
 ### 1.3.93
 

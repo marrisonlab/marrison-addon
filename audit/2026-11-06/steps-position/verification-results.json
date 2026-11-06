@@ -1,0 +1,8 @@
+{
+  "browser": "Chrome headless",
+  "checks": 189,
+  "offsets": "PASS: all connector types, positive/negative offsets, desktop/tablet/mobile, both orientations, unchanged step geometry and widget isolation",
+  "marker_scaling": "PASS: 64/92/128px, numbers, font icons and SVGs, all three viewports",
+  "typography_override": "PASS: explicit font size preserved",
+  "integration_limit": "Local real-widget fixture with Elementor/WordPress stubs; no live Elementor editor or site installation"
+}

@@ -325,6 +325,36 @@ class Marrison_Steps_Widget extends Widget_Base {
 		);
 
 		$this->add_responsive_control(
+			'connector_offset',
+			array(
+				'label'          => esc_html__( 'Posizione frecce', 'marrison-steps' ),
+				'description'    => esc_html__( 'Spostamento verticale con step affiancati, orizzontale con step impilati. Valori positivi: basso/destra; negativi: alto/sinistra.', 'marrison-steps' ),
+				'type'           => Controls_Manager::SLIDER,
+				'size_units'     => array( 'px' ),
+				'range'          => array(
+					'px' => array(
+						'min' => -300,
+						'max' => 300,
+					),
+				),
+				'default'        => array(
+					'size' => 0,
+					'unit' => 'px',
+				),
+				'mobile_default' => array(
+					'size' => 0,
+					'unit' => 'px',
+				),
+				'condition'      => array(
+					'connector_type!' => 'none',
+				),
+				'selectors'      => array(
+					'{{WRAPPER}} .marrison-steps' => '--marrison-steps-connector-offset: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
 			'arrow_size',
 			array(
 				'label'      => esc_html__( 'Dimensione freccia', 'marrison-steps' ),
@@ -493,7 +523,7 @@ class Marrison_Steps_Widget extends Widget_Base {
 		$this->add_responsive_control(
 			'marker_size',
 			array(
-				'label'      => esc_html__( 'Dimensione', 'marrison-steps' ),
+				'label'      => esc_html__( 'Dimensione contenitore', 'marrison-steps' ),
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => array( 'px' ),
 				'range'      => array(
@@ -509,6 +539,26 @@ class Marrison_Steps_Widget extends Widget_Base {
 				'selectors'  => array(
 					'{{WRAPPER}} .marrison-steps' => '--marrison-steps-marker-size: {{SIZE}}{{UNIT}};',
 					'{{WRAPPER}} .marrison-step-marker' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'marker_content_size',
+			array(
+				'label'       => esc_html__( 'Dimensione numero/icona', 'marrison-steps' ),
+				'description' => esc_html__( 'Dimensione effettiva, indipendente dal contenitore. Se impostata, ha la precedenza sulla dimensione in Tipografia.', 'marrison-steps' ),
+				'type'        => Controls_Manager::SLIDER,
+				'size_units'  => array( 'px' ),
+				'range'       => array(
+					'px' => array(
+						'min' => 6,
+						'max' => 240,
+					),
+				),
+				'selectors'   => array(
+					'{{WRAPPER}} .marrison-step-marker.marrison-step-number, {{WRAPPER}} .marrison-step-marker.marrison-step-icon' => 'font-size: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .marrison-step-icon i, {{WRAPPER}} .marrison-step-icon svg' => 'font-size: {{SIZE}}{{UNIT}}; width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);

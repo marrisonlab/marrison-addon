@@ -11,7 +11,7 @@
 *   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
 *   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
-*   **Stable tag:** 1.3.93
+*   **Stable tag:** 1.3.95
 *   **License:** GPL-3.0-or-later
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -43,6 +43,8 @@ The module dashboard always lists required active plugins. Missing dependencies 
     *   Adds the Marrison Steps widget for 2 to 8 responsive steps.
     *   Supports numbers, images, native Elementor icons/SVGs, titles, text, and customizable connectors.
     *   Includes per-device horizontal/vertical orientation controls.
+    *   Stile > Linee e frecce > Posizione frecce adjusts connectors vertically in horizontal layouts and horizontally in vertical layouts, with separate device values and positive/negative offsets.
+    *   Separate responsive controls set the container size and the actual number/icon size in pixels, including SVGs and font icons. Explicit number/icon size takes precedence over typography size.
 
 4.  **Product Discount (WooCommerce + Elementor):**
     *   Adds an Elementor widget that displays the current product discount percentage.
@@ -225,6 +227,15 @@ Updates use the latest published stable GitHub Release from `marrisonlab/marriso
 Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, source/review badges, service category overrides in Behavior, custom domain/path rules and default blocking for unclassified external resources. Payment classification must be confirmed by the privacy adviser. Catalog cookies are declarations, never observations; PayPal/Klarna lists remain empty where integration-specific data are unconfirmed. No scanner provider is replaced in this phase. See [configuration, limitations and tests](docs/cookie-service-catalog.md).
 
 ## Changelog
+
+### 1.3.95
+
+* Steps: separati Dimensione contenitore e Dimensione numero/icona, entrambi responsive. La dimensione del contenuto è diretta in pixel, inclusi SVG e icone font, e prevale sulla dimensione in Tipografia quando impostata.
+
+### 1.3.94
+
+* Steps: aggiunto il controllo responsive Posizione frecce in Stile > Linee e frecce. Sposta linee e frecce verticalmente con step affiancati e orizzontalmente con step impilati, con valori positivi e negativi separati per dispositivo.
+* Steps: Dimensione ridimensiona anche numero e icona in proporzione al contenitore, inclusi SVG e icone font. Le dimensioni esplicite in Tipografia mantengono la precedenza.
 
 ### 1.3.93
 

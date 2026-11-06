@@ -5,6 +5,7 @@
 	--marrison-steps-connector-width: 2px;
 	--marrison-steps-connector-style: solid;
 	--marrison-steps-connector-color: #111827;
+	--marrison-steps-connector-offset: 0px;
 	--marrison-steps-arrow-size: 12px;
 }
 
@@ -52,6 +53,7 @@
 .marrison-step-icon i,
 .marrison-step-icon svg {
 	display: block;
+	flex-shrink: 0;
 	width: 1em;
 	height: 1em;
 }
@@ -135,6 +137,8 @@
 }
 
 .marrison-steps-layout-horizontal .marrison-step-connector {
+	top: var(--marrison-steps-connector-offset);
+	left: 0;
 	align-self: start;
 	height: var(--marrison-steps-marker-size);
 	min-height: var(--marrison-steps-marker-size);
@@ -155,6 +159,8 @@
 }
 
 .marrison-steps-layout-vertical .marrison-step-connector {
+	top: 0;
+	left: var(--marrison-steps-connector-offset);
 	--marrison-steps-arrow-rotation: 135deg;
 	align-self: auto;
 	flex-basis: var(--marrison-steps-connector-vertical-length);
@@ -199,6 +205,8 @@
 	}
 
 	.marrison-steps-layout-tablet-horizontal .marrison-step-connector {
+		top: var(--marrison-steps-connector-offset);
+		left: 0;
 		--marrison-steps-arrow-rotation: 45deg;
 		align-self: start;
 		width: var(--marrison-steps-connector-horizontal-length);
@@ -248,6 +256,8 @@
 	}
 
 	.marrison-steps-layout-tablet-vertical .marrison-step-connector {
+		top: 0;
+		left: var(--marrison-steps-connector-offset);
 		--marrison-steps-arrow-rotation: 135deg;
 		align-self: auto;
 		flex-basis: var(--marrison-steps-connector-vertical-length);
@@ -293,6 +303,8 @@
 	}
 
 	.marrison-steps-layout-mobile-horizontal .marrison-step-connector {
+		top: var(--marrison-steps-connector-offset);
+		left: 0;
 		--marrison-steps-arrow-rotation: 45deg;
 		align-self: start;
 		width: var(--marrison-steps-connector-horizontal-length);
@@ -342,6 +354,8 @@
 	}
 
 	.marrison-steps-layout-mobile-vertical .marrison-step-connector {
+		top: 0;
+		left: var(--marrison-steps-connector-offset);
 		--marrison-steps-arrow-rotation: 135deg;
 		align-self: auto;
 		flex-basis: var(--marrison-steps-connector-vertical-length);

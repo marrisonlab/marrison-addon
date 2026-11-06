@@ -1,0 +1,11 @@
+{
+  "version": "1.3.95",
+  "browser": "Chrome headless",
+  "checks": 9,
+  "control_registration": "PASS: independent adjacent responsive controls",
+  "exact_sizes": "PASS: SVG/font icons/numbers at 100px, container 120px, title 22px; tablet 70/96px; mobile 48/72px",
+  "independence": "PASS: container resizing preserves content size; content resizing preserves container size",
+  "typography": "PASS: explicit new size overrides saved typography; unset new size preserves saved typography and original defaults",
+  "arrow_offset": "PASS: desktop vertical and mobile horizontal movement preserved",
+  "scope": "Local widget render with WordPress/Elementor stubs; no live editor/site validation"
+}
