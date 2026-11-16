@@ -3,6 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/class-marrison-addon-image-path-index.php';
+
 class Marrison_Addon_Image_Sizes {
 
 	const WEBP_FULL_METADATA_KEY = 'marrison_webp_full';
@@ -19,6 +21,10 @@ class Marrison_Addon_Image_Sizes {
 
 	private $webp_enabled_sizes = null;
 	private $url_replacement_cache = [];
+	private $attachment_id_cache = [];
+	private $known_attachment_paths = [];
+	private $primed_attachment_ids = [];
+	private $image_path_index;
 	private $lcp_preloaded_urls = [];
 	private $lcp_hero_container_stack = [];
 	private $lcp_document_elements = [];
@@ -30,6 +36,14 @@ class Marrison_Addon_Image_Sizes {
 	private $conflicting_size_slugs = [];
 
 	public function __construct() {
+		$this->get_image_path_index()->register_hooks();
+		foreach ( [ 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ] as $hook ) {
+			add_action( $hook, [ $this, 'attachment_metadata_changed' ], 10, 3 );
+		}
+		add_action( 'deleted_post', [ $this, 'attachment_deleted' ], 10, 2 );
+		add_action( 'marrison_addon/image_sizes/path_index_built', [ $this, 'invalidate_background_resolve_cache' ] );
+		add_filter( 'wp_get_attachment_url', [ $this, 'remember_attachment_url' ], 99, 2 );
+		add_filter( 'marrison_addon/image_sizes/attachment_id', [ $this, 'filter_attachment_id' ], 10, 2 );
 		// Hooks for functionality
 		add_action( 'after_setup_theme', [ $this, 'register_image_sizes' ] );
 		add_filter( 'image_size_names_choose', [ $this, 'add_to_media_selector' ] );
@@ -414,6 +428,9 @@ class Marrison_Addon_Image_Sizes {
 		if ( ! is_string( $url ) || '' === $url ) {
 			return '';
 		}
+		if ( empty( $this->get_webp_enabled_sizes() ) ) {
+			return $url;
+		}
 
 		$replacement = $this->get_webp_replacement_for_url( $url, $attachment_id, null, true, $preferred_format );
 		if ( $replacement ) {
@@ -665,7 +682,7 @@ class Marrison_Addon_Image_Sizes {
 				}
 				continue;
 			}
-			// Cached items remain available; bound expensive metadata LIKE fallbacks on public requests.
+			// Bound the number of uncached items handled by the public request.
 			if ( $uncached_items >= self::BACKGROUND_MAX_UNCACHED_ITEMS ) {
 				continue;
 			}
@@ -708,19 +725,11 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	private function normalize_background_resolve_url( $url ) {
-		$url = preg_replace( '/[?#].*$/', '', html_entity_decode( $url, ENT_QUOTES ) );
-		if ( ! is_string( $url ) || ! $this->is_uploads_url( $url ) ) {
+		$path = $this->get_upload_relative_path( $url );
+		if ( ! preg_match( '/\.(?:jpe?g|png|gif|webp|avif)$/i', $path ) ) {
 			return '';
 		}
-		$uploads = wp_get_upload_dir();
-		$base = wp_parse_url( $uploads['baseurl'] );
-		$parts = wp_parse_url( $url );
-		$base_path = isset( $base['path'] ) ? trailingslashit( $base['path'] ) : '/';
-		$path = isset( $parts['path'] ) ? $parts['path'] : '';
-		if ( ! is_array( $parts ) || isset( $parts['user'] ) || isset( $parts['pass'] ) || ( ! empty( $parts['host'] ) && ( empty( $base['host'] ) || 0 !== strcasecmp( $parts['host'], $base['host'] ) ) ) || 0 !== strpos( $path, $base_path ) || preg_match( '#(?:^|/)\.{1,2}(?:/|$)#', rawurldecode( $path ) ) || ! preg_match( '/\.(?:jpe?g|png|gif|webp|avif)$/i', $path ) ) {
-			return '';
-		}
-		return rtrim( $uploads['baseurl'], '/' ) . '/' . substr( $path, strlen( $base_path ) );
+		return trailingslashit( wp_get_upload_dir()['baseurl'] ) . implode( '/', array_map( 'rawurlencode', explode( '/', $path ) ) );
 	}
 
 	private function get_background_resolve_cache_key( $url, $width, $height, $fit, $format ) {
@@ -732,9 +741,12 @@ class Marrison_Addon_Image_Sizes {
 		return $version . '|' . (string) get_option( self::BACKGROUND_CACHE_REVISION_OPTION, '0' );
 	}
 
-	private function invalidate_background_resolve_cache() {
+	public function invalidate_background_resolve_cache() {
 		update_option( self::BACKGROUND_CACHE_REVISION_OPTION, wp_generate_uuid4(), false );
 		$this->url_replacement_cache = [];
+		$this->attachment_id_cache = [];
+		$this->known_attachment_paths = [];
+		$this->primed_attachment_ids = [];
 	}
 
 	private function get_background_resolve_cache( $cache_key ) {
@@ -1477,6 +1489,7 @@ class Marrison_Addon_Image_Sizes {
 		if ( empty( $metadata ) || ! is_array( $metadata ) ) {
 			return $downsize;
 		}
+		$this->remember_attachment_paths( $id, $metadata );
 
 		if ( 'full' === $size ) {
 			$source = $this->get_full_replacement_preferred_source( $metadata );
@@ -1527,6 +1540,7 @@ class Marrison_Addon_Image_Sizes {
 		if ( empty( $sources ) || ! is_array( $sources ) || ! $this->should_serve_webp_on_frontend() ) {
 			return $sources;
 		}
+		$this->remember_attachment_paths( $attachment_id, $image_meta );
 
 		foreach ( $sources as $width => $source ) {
 			if ( empty( $source['url'] ) ) {
@@ -1609,21 +1623,20 @@ class Marrison_Addon_Image_Sizes {
 			return $html;
 		}
 
-		$base_path = wp_parse_url( $uploads['baseurl'], PHP_URL_PATH );
-		if ( false === strpos( $html, $uploads['baseurl'] ) && ( ! $base_path || false === strpos( $html, $base_path ) ) ) {
+		$base_url = rtrim( $uploads['baseurl'], '/' );
+		$base_path = wp_parse_url( $base_url, PHP_URL_PATH );
+		$base_host_path = preg_replace( '~^https?:~i', '', $base_url );
+		if ( false === strpos( $html, $base_host_path ) && ( ! $base_path || false === strpos( $html, $base_path ) ) ) {
 			return $html;
 		}
 
-		$patterns = [
-			preg_quote( $uploads['baseurl'], '~' ),
-			preg_quote( preg_replace( '~^https?:~i', '', $uploads['baseurl'] ), '~' ),
-		];
+		$patterns = [ '(?:https?:)?' . preg_quote( $base_host_path, '~' ) ];
 
 		if ( $base_path ) {
 			$patterns[] = preg_quote( $base_path, '~' );
 		}
 
-		$pattern = '~(?P<url>(?:' . implode( '|', array_unique( array_filter( $patterns ) ) ) . ')[^\\s\\\'"<>)]*\\.(?:jpe?g|png|gif|webp|avif)(?:\\?[^\\s\\\'"<>)]*)?)~i';
+		$pattern = '~(?:(?<![^\\s\\\'"(=,])|(?<=&quot;)|(?<=&#39;))(?P<url>(?:' . implode( '|', $patterns ) . ')/[^\\s\\\'"<>)]*\\.(?:jpe?g|png|gif|webp|avif)(?:[?#][^\\s\\\'"<>)]*)?)~i';
 		// Preserve srcset geometry and already resolved head preloads during the general rewrite.
 		$html = preg_replace_callback(
 			'~\bsrcset\s*=\s*(["\'])(.*?)\1~is',
@@ -2120,17 +2133,16 @@ class Marrison_Addon_Image_Sizes {
 			return $value;
 		}
 
-		$base_url = preg_quote( $uploads['baseurl'], '~' );
-		$base_url_escaped = preg_quote( str_replace( '/', '\\/', $uploads['baseurl'] ), '~' );
-		$base_path = wp_parse_url( $uploads['baseurl'], PHP_URL_PATH );
-		$patterns = [ $base_url, $base_url_escaped ];
+		$base_url = rtrim( $uploads['baseurl'], '/' );
+		$base_path = wp_parse_url( $base_url, PHP_URL_PATH );
+		$patterns = [ preg_quote( $base_url, '~' ), preg_quote( str_replace( '/', '\\/', $base_url ), '~' ) ];
 
 		if ( $base_path ) {
 			$patterns[] = preg_quote( $base_path, '~' );
 			$patterns[] = preg_quote( str_replace( '/', '\\/', $base_path ), '~' );
 		}
 
-		$pattern = '~(?P<url>(?:' . implode( '|', array_unique( array_filter( $patterns ) ) ) . ')[^\\s\\\'"<>)]*\\.(?:jpe?g|png|webp|avif)(?:\\?[^\\s\\\'"<>)]*)?)~i';
+		$pattern = '~(?<![^\\s\\\'"(=,])(?P<url>(?:' . implode( '|', array_unique( array_filter( $patterns ) ) ) . ')(?:/|\\\\/)[^\\s\\\'"<>)]*\\.(?:jpe?g|png|webp|avif)(?:[?#][^\\s\\\'"<>)]*)?)~i';
 
 		return preg_replace_callback(
 			$pattern,
@@ -2211,8 +2223,8 @@ class Marrison_Addon_Image_Sizes {
 		}
 
 		$query = '';
-		$query_pos = strpos( $url, '?' );
-		if ( false !== $query_pos ) {
+		$query_pos = strcspn( $url, '?#' );
+		if ( $query_pos < strlen( $url ) ) {
 			$query = substr( $url, $query_pos );
 			$url = substr( $url, 0, $query_pos );
 		}
@@ -2236,13 +2248,15 @@ class Marrison_Addon_Image_Sizes {
 			$this->url_replacement_cache[ $cache_key ] = false;
 			return false;
 		}
+		$this->remember_attachment_paths( $attachment_id, $metadata );
 
-		$path = wp_parse_url( $clean_url, PHP_URL_PATH );
+		$path = rawurldecode( (string) wp_parse_url( $clean_url, PHP_URL_PATH ) );
 		$basename = $path ? basename( $path ) : basename( $clean_url );
 		$source = false;
 
 		if (
 			( ! empty( $metadata['file'] ) && $this->metadata_file_matches_basename( $metadata['file'], $basename ) )
+			|| ( ! empty( $metadata['original_image'] ) && $this->metadata_file_matches_basename( $metadata['original_image'], $basename ) )
 			|| ( ! empty( $metadata[ self::WEBP_FULL_METADATA_KEY ]['file'] ) && $this->metadata_file_matches_basename( $metadata[ self::WEBP_FULL_METADATA_KEY ]['file'], $basename ) )
 			|| ( ! empty( $metadata[ self::AVIF_FULL_METADATA_KEY ]['file'] ) && $this->metadata_file_matches_basename( $metadata[ self::AVIF_FULL_METADATA_KEY ]['file'], $basename ) )
 		) {
@@ -2340,141 +2354,102 @@ class Marrison_Addon_Image_Sizes {
 	}
 
 	private function is_uploads_url( $url ) {
+		return '' !== $this->get_upload_relative_path( $url );
+	}
+
+	private function get_upload_relative_path( $url ) {
 		$uploads = wp_get_upload_dir();
 		if ( empty( $uploads['baseurl'] ) || ! is_string( $url ) ) {
-			return false;
+			return '';
+		}
+		$base = wp_parse_url( $uploads['baseurl'] );
+		$parts = wp_parse_url( html_entity_decode( $url, ENT_QUOTES ) );
+		if ( empty( $parts['path'] ) || isset( $parts['user'] ) || isset( $parts['pass'] )
+			|| ( isset( $parts['scheme'] ) && ! in_array( strtolower( $parts['scheme'] ), [ 'http', 'https' ], true ) )
+			|| ( isset( $parts['host'] ) && ( 0 !== strcasecmp( $parts['host'], $base['host'] ?? '' ) || ( $parts['port'] ?? null ) !== ( $base['port'] ?? null ) ) )
+		) {
+			return '';
 		}
 
-		$clean_url = html_entity_decode( $url, ENT_QUOTES );
-		$base_url = $uploads['baseurl'];
-		$base_path = wp_parse_url( $base_url, PHP_URL_PATH );
-
-		if ( 0 === strpos( $clean_url, $base_url ) ) {
-			return true;
+		$base_path = trailingslashit( rawurldecode( $base['path'] ?? '' ) );
+		$path = rawurldecode( $parts['path'] );
+		if ( 0 !== strpos( $path, $base_path ) ) {
+			return '';
 		}
+		$relative = substr( $path, strlen( $base_path ) );
+		return Marrison_Addon_Image_Path_Index::valid_relative_path( $relative ) ? $relative : '';
+	}
 
-		$protocol_relative_base = preg_replace( '~^https?:~i', '', $base_url );
-		if ( $protocol_relative_base && 0 === strpos( $clean_url, $protocol_relative_base ) ) {
-			return true;
+	private function get_image_path_index() {
+		if ( null === $this->image_path_index ) {
+			$this->image_path_index = new Marrison_Addon_Image_Path_Index();
 		}
+		return $this->image_path_index;
+	}
 
-		return $base_path && 0 === strpos( $clean_url, $base_path );
+	public function attachment_metadata_changed( $meta_id, $id, $key ) {
+		if ( ! in_array( $key, [ '_wp_attached_file', '_wp_attachment_metadata' ], true ) ) {
+			return;
+		}
+		$this->get_image_path_index()->refresh_attachment( $id );
+		$this->invalidate_background_resolve_cache();
+	}
+
+	public function attachment_deleted( $id, $post ) {
+		if ( 'attachment' === $post->post_type ) {
+			$this->get_image_path_index()->refresh_attachment( $id, true );
+			$this->invalidate_background_resolve_cache();
+		}
+	}
+
+	public function remember_attachment_url( $url, $id ) {
+		$path = $this->get_upload_relative_path( $url );
+		if ( '' !== $path ) {
+			$this->known_attachment_paths[ $path ] = [ (int) $id, 2 ];
+		}
+		return $url;
+	}
+
+	private function remember_attachment_paths( $id, $metadata ) {
+		if ( ! $id || isset( $this->primed_attachment_ids[ $id ] ) ) {
+			return;
+		}
+		$this->primed_attachment_ids[ $id ] = true;
+		foreach ( $this->get_image_path_index()->attachment_paths( $id, $metadata ) as $path => $priority ) {
+			if ( $priority > ( $this->known_attachment_paths[ $path ][1] ?? 0 ) ) {
+				$this->known_attachment_paths[ $path ] = [ (int) $id, $priority ];
+			}
+		}
+	}
+
+	public function filter_attachment_id( $id, $url ) {
+		return null === $id ? $this->resolve_attachment_id_from_upload_url( $url ) : $id;
 	}
 
 	private function resolve_attachment_id_from_upload_url( $url ) {
-		$uploads = wp_get_upload_dir();
-		if ( empty( $uploads['baseurl'] ) ) {
-			return 0;
+		$url = preg_replace( '/[?#].*$/', '', html_entity_decode( $url, ENT_QUOTES ) );
+		$path = $this->get_upload_relative_path( $url );
+		if ( isset( $this->known_attachment_paths[ $path ] ) ) {
+			return $this->known_attachment_paths[ $path ][0];
 		}
 
-		$absolute_url = $url;
-		if ( 0 === strpos( $url, '//' ) ) {
-			$scheme = is_ssl() ? 'https:' : 'http:';
-			$absolute_url = $scheme . $url;
-		} elseif ( 0 === strpos( $url, '/' ) ) {
-			$base_parts = wp_parse_url( $uploads['baseurl'] );
-			if ( ! empty( $base_parts['scheme'] ) && ! empty( $base_parts['host'] ) ) {
-				$absolute_url = $base_parts['scheme'] . '://' . $base_parts['host'] . $url;
+		$cache_key = '' !== $path ? $path : $url;
+		if ( ! isset( $this->attachment_id_cache[ $cache_key ] ) ) {
+			// Preserve the native extension points used by media offload/CDN plugins.
+			$lookup_url = $url;
+			if ( 0 === strpos( $url, '//' ) ) {
+				$lookup_url = ( is_ssl() ? 'https:' : 'http:' ) . $url;
+			} elseif ( '' !== $path && '/' === $url[0] ) {
+				$lookup_url = trailingslashit( wp_get_upload_dir()['baseurl'] ) . implode( '/', array_map( 'rawurlencode', explode( '/', $path ) ) );
 			}
-		}
-
-		$attachment_id = attachment_url_to_postid( $absolute_url );
-		if ( $attachment_id ) {
-			return (int) $attachment_id;
-		}
-
-		$path = wp_parse_url( $absolute_url, PHP_URL_PATH );
-		$basename = $path ? basename( $path ) : basename( $absolute_url );
-		if ( '' === $basename ) {
-			return 0;
-		}
-
-		$attachment_ids = $this->query_attachment_ids_by_metadata_value( $basename );
-		if ( empty( $attachment_ids ) && in_array( strtolower( pathinfo( $basename, PATHINFO_EXTENSION ) ), [ 'webp', 'avif' ], true ) ) {
-			$attachment_ids = $this->query_attachment_ids_by_metadata_value( pathinfo( $basename, PATHINFO_FILENAME ) );
-		}
-
-		if ( empty( $attachment_ids ) ) {
-			return 0;
-		}
-
-		foreach ( $attachment_ids as $maybe_attachment_id ) {
-			$metadata = wp_get_attachment_metadata( $maybe_attachment_id );
-			if ( empty( $metadata ) || ! is_array( $metadata ) ) {
-				continue;
+			$id = apply_filters( 'pre_attachment_url_to_postid', null, $lookup_url );
+			if ( null === $id ) {
+				$id = '' !== $path ? $this->get_image_path_index()->find_attachment( $path ) : 0;
+				$id = apply_filters( 'attachment_url_to_postid', $id ?: null, $lookup_url ) ?: $id;
 			}
-
-			if ( $this->metadata_contains_image_basename( $metadata, $basename ) ) {
-				return (int) $maybe_attachment_id;
-			}
+			$this->attachment_id_cache[ $cache_key ] = (int) $id;
 		}
-
-		return 0;
-	}
-
-	private function query_attachment_ids_by_metadata_value( $value ) {
-		if ( ! is_string( $value ) || '' === $value ) {
-			return [];
-		}
-
-		$query = new WP_Query( [
-			'post_type' => 'attachment',
-			'post_status' => 'inherit',
-			'post_mime_type' => 'image',
-			'posts_per_page' => 20,
-			'fields' => 'ids',
-			'no_found_rows' => true,
-			'suppress_filters' => true,
-			'meta_query' => [
-				[
-					'key' => '_wp_attachment_metadata',
-					'value' => $value,
-					'compare' => 'LIKE',
-				],
-			],
-		] );
-
-		return ! empty( $query->posts ) ? array_map( 'intval', $query->posts ) : [];
-	}
-
-	private function metadata_contains_image_basename( $metadata, $basename ) {
-		if ( empty( $metadata ) || ! is_array( $metadata ) || '' === $basename ) {
-			return false;
-		}
-
-		if ( ! empty( $metadata['file'] ) && $this->metadata_file_matches_basename( $metadata['file'], $basename ) ) {
-			return true;
-		}
-
-		if ( ! empty( $metadata[ self::WEBP_FULL_METADATA_KEY ]['file'] ) && $this->metadata_file_matches_basename( $metadata[ self::WEBP_FULL_METADATA_KEY ]['file'], $basename ) ) {
-			return true;
-		}
-
-		if ( ! empty( $metadata[ self::AVIF_FULL_METADATA_KEY ]['file'] ) && $this->metadata_file_matches_basename( $metadata[ self::AVIF_FULL_METADATA_KEY ]['file'], $basename ) ) {
-			return true;
-		}
-
-		if ( empty( $metadata['sizes'] ) || ! is_array( $metadata['sizes'] ) ) {
-			return false;
-		}
-
-		foreach ( $metadata['sizes'] as $size_data ) {
-			if ( ! empty( $size_data['file'] ) && $this->metadata_file_matches_basename( $size_data['file'], $basename ) ) {
-				return true;
-			}
-
-			if ( empty( $size_data['sources'] ) || ! is_array( $size_data['sources'] ) ) {
-				continue;
-			}
-
-			foreach ( $size_data['sources'] as $source_data ) {
-				if ( ! empty( $source_data['file'] ) && $this->metadata_file_matches_basename( $source_data['file'], $basename ) ) {
-					return true;
-				}
-			}
-		}
-
-		return false;
+		return $this->attachment_id_cache[ $cache_key ];
 	}
 
 	private function metadata_file_matches_basename( $metadata_file, $requested_basename ) {

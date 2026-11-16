@@ -85,7 +85,12 @@ $elementor_layouts = [];
 $elementor_layout_reads = [];
 $elementor_document_reads = [];
 function get_option( $key, $default = [] ) { return isset( $GLOBALS['options'][ $key ] ) ? $GLOBALS['options'][ $key ] : $default; }
-function apply_filters( $tag, $value, ...$args ) { return $value; }
+function apply_filters( $tag, $value, ...$args ) {
+	if ( 'pre_attachment_url_to_postid' === $tag ) {
+		return 0 === strpos( $args[0], $GLOBALS['base'] . 'hero' ) ? 2855 : 0;
+	}
+	return $value;
+}
 function update_option( $key, $value, $autoload = null ) { $GLOBALS['options'][ $key ] = $value; return true; }
 function wp_generate_uuid4() { return uniqid( 'revision-', true ); }
 function wp_get_registered_image_subsizes() { return []; }
@@ -94,7 +99,7 @@ function wp_update_attachment_metadata( $id, $data ) { $GLOBALS['saved_metadata'
 function wp_generate_attachment_metadata( $id, $file ) { return $GLOBALS['metadata']; }
 function wp_get_upload_dir() { return [ 'basedir' => $GLOBALS['root'], 'baseurl' => 'https://fixture.example/wp-content/uploads' ]; }
 function get_attached_file( $id ) { return $GLOBALS['root'] . '/2026/09/hero.png'; }
-function attachment_url_to_postid( $url ) { return false !== strpos( $url, '/hero' ) ? 2855 : 0; }
+function get_post_meta( $id, $key, $single ) { return $GLOBALS['metadata']['file'] ?? ''; }
 function wp_parse_url( $url, $component = -1 ) { return parse_url( $url, $component ); }
 function trailingslashit( $value ) { return rtrim( $value, '/\\' ) . '/'; }
 function sanitize_key( $value ) { return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( $value ) ); }
@@ -151,6 +156,9 @@ try {
 	}
 	$input = [ 'id' => 2855, 'url' => $base . 'hero.png', 'size' => 'full' ];
 	$_SERVER['HTTP_ACCEPT'] = 'image/avif,image/webp';
+	$external = '<img src="https://external.example/wp-content/uploads/2026/09/hero.png">';
+	check( $module->rewrite_frontend_webp_urls( $external ) === $external, 'The HTML buffer must never treat an external URL suffix as a local uploads URL.' );
+	check( invoke( 'get_webp_replacement_for_url', [ $base . 'hero.png?v=2#local', 2855, null, true, 'webp' ] ) === $base . 'hero-1440x550.webp?v=2#local', 'Rewriting must retain query arguments and fragments.' );
 	$css = $module->filter_elementor_css_property_value( $input, 'URL', [], [ 'type' => 'media' ] );
 	check( elementor_css_url( $css ) === $base . 'hero-1440x550.webp', 'Admin CSS must use the generated WebP despite Elementor resolving media IDs.' );
 	check( $input['id'] === 2855, 'Stored settings must keep their media ID.' );

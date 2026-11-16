@@ -13,7 +13,7 @@ if ( ! $wp_root || ! $db_name || ! preg_match( '/_test$/D', $db_name ) ) {
 $install = in_array( '--install', $argv, true );
 $formats_enabled = ! in_array( '--formats-off', $argv, true );
 $workspace = dirname( __DIR__ );
-$scratch = $workspace . '/.tmp-dynamic-background-db';
+$scratch = getenv( 'MARRISON_TEST_SCRATCH' ) ?: $workspace . '/.tmp-dynamic-background-db';
 @mkdir( $scratch . '/uploads', 0777, true );
 @mkdir( $scratch . '/themes/fixture', 0777, true );
 file_put_contents( $scratch . '/themes/fixture/style.css', "/* Theme Name: CSS fixture */\n" );
@@ -33,6 +33,7 @@ define( 'WP_SITEURL', 'https://fixture.example' );
 define( 'WP_HOME', 'https://fixture.example' );
 define( 'WP_INSTALLING', $install );
 define( 'DISABLE_WP_CRON', true );
+define( 'SAVEQUERIES', true );
 define( 'WP_DEBUG', true );
 define( 'AUTH_KEY', 'disposable-css-integration-fixture' );
 define( 'SECURE_AUTH_KEY', AUTH_KEY );
@@ -87,6 +88,9 @@ class Fixture_Background_Tag extends \Elementor\Core\DynamicTags\Data_Tag {
 }
 jet_engine()->dynamic_tags->init_module();
 \Elementor\Plugin::$instance->dynamic_tags->register( new Fixture_Background_Tag() );
+if ( $formats_enabled ) {
+	do_action( Marrison_Addon_Image_Path_Index::CRON_HOOK );
+}
 $GLOBALS['wpdb']->query( 'START TRANSACTION' );
 register_shutdown_function( function () { $GLOBALS['wpdb']->query( 'ROLLBACK' ); } );
 $uploads = wp_get_upload_dir();
@@ -158,6 +162,26 @@ verify( false === strpos( $static_css, 'hero-' ), 'Context-dependent image URLs 
 if ( $formats_enabled ) {
 	$format_module = $GLOBALS['wp_filter']['marrison_addon/image_sizes/selected_background_url']->callbacks[10];
 	$format_module = reset( $format_module )['function'][0];
+	// Use a fresh module instance so native image lookups cannot prime the reverse lookup.
+	$unprimed = ( new ReflectionClass( Marrison_Addon_Image_Sizes::class ) )->newInstanceWithoutConstructor();
+	$attachment_query_start = count( $GLOBALS['wpdb']->queries );
+	verify( $id === $unprimed->filter_attachment_id( null, $base . 'hero-300x188.jpg?v=1' ), 'A thumbnail URL must resolve through its indexed full path.' );
+	$attachment_query_end = count( $GLOBALS['wpdb']->queries );
+	verify( $id === $unprimed->filter_attachment_id( null, $base . 'hero-300x188.jpg?v=2#image' ) && $attachment_query_end === count( $GLOBALS['wpdb']->queries ), 'A different query and fragment must reuse the attachment ID in the same request.' );
+	verify( 0 === $unprimed->filter_attachment_id( null, 'https://external.example/uploads/hero-300x188.jpg' ), 'An external URL with a matching path must remain external.' );
+	$cdn = static function ( $uploads ) {
+		$uploads['baseurl'] = 'https://cdn.fixture.example/media';
+		return $uploads;
+	};
+	add_filter( 'upload_dir', $cdn, 20 );
+	$cdn_module = ( new ReflectionClass( Marrison_Addon_Image_Sizes::class ) )->newInstanceWithoutConstructor();
+	verify( $id === $cdn_module->filter_attachment_id( null, 'https://cdn.fixture.example/media/hero-300x188.webp' ), 'The uploads base can be served from a configured CDN.' );
+	remove_filter( 'upload_dir', $cdn, 20 );
+	foreach ( array_slice( $GLOBALS['wpdb']->queries, $attachment_query_start ) as $query ) {
+		if ( preg_match( "/(?:_wp_attachment_metadata.*\\bLIKE\\b|meta_key = '_wp_attached_file' AND meta_value)/i", $query[0] ) ) {
+			throw new RuntimeException( 'The reverse lookup must avoid both large postmeta scans.' );
+		}
+	}
 	list( $css ) = render_fixture_css( container_settings( 'nonexistent' ), [ 'id' => $id, 'url' => $base . 'hero.jpg' ] );
 	$rewritten = $format_module->rewrite_frontend_webp_urls( '<html><head></head><body><style>' . $css . '</style></body></html>' );
 	verify( false !== strpos( $rewritten, $base . 'hero.jpg' ), 'Final HTML rewriting must preserve original fallback dimensions.' );

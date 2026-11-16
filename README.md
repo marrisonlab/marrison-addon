@@ -3,7 +3,7 @@
 Modular tools for WordPress, Elementor, WooCommerce and JetEngine.
 
 **Author:** [Angelo Marra](https://marrisonlab.com)  
-**Version:** 1.3.95
+**Version:** 1.3.96
 **WordPress:** 6.0 or later; tested with 7.1.3  
 **PHP:** 7.4 or later; current compatibility target 8.5.11  
 **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -55,6 +55,11 @@ Current stable versions checked on 20 October 2026: [WordPress 7.1.3](https://wo
 Optional server features are reported by their modules: FFmpeg is needed for local video cover extraction; browser cache rules depend on the web server. These features are not prerequisites for unrelated modules.
 
 ## Changelog
+
+### 1.3.96
+
+- Improves Image Sizes performance on large media libraries. Reuses attachment IDs and resolves URL-only images through an index of full upload paths, removing wildcard searches in attachment metadata during frontend rendering.
+- WordPress cron builds the index in resumable batches. Existing images are served as supplied when a URL cannot yet be resolved. No manual migration or thumbnail regeneration is required.
 
 ### 1.3.95
 

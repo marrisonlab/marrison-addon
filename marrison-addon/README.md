@@ -11,7 +11,7 @@
 *   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
 *   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
-*   **Stable tag:** 1.3.95
+*   **Stable tag:** 1.3.96
 *   **License:** GPL-3.0-or-later
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -227,6 +227,11 @@ Updates use the latest published stable GitHub Release from `marrisonlab/marriso
 Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, source/review badges, service category overrides in Behavior, custom domain/path rules and default blocking for unclassified external resources. Payment classification must be confirmed by the privacy adviser. Catalog cookies are declarations, never observations; PayPal/Klarna lists remain empty where integration-specific data are unconfirmed. No scanner provider is replaced in this phase. See [configuration, limitations and tests](docs/cookie-service-catalog.md).
 
 ## Changelog
+
+### 1.3.96
+
+- Improves Image Sizes performance on large media libraries. Reuses attachment IDs and resolves URL-only images through an index of full upload paths, removing wildcard searches in attachment metadata during frontend rendering.
+- WordPress cron builds the index in resumable batches. Existing images are served as supplied when a URL cannot yet be resolved. No manual migration or thumbnail regeneration is required.
 
 ### 1.3.95
 

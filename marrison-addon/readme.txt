@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.95
+Stable tag: 1.3.96
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -103,6 +103,11 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.96 =
+
+* Improves Image Sizes performance on large media libraries. Reuses attachment IDs and resolves URL-only images through an index of full upload paths, removing wildcard searches in attachment metadata during frontend rendering.
+* WordPress cron builds the index in resumable batches. Existing images are served as supplied when a URL cannot yet be resolved. No manual migration or thumbnail regeneration is required.
 
 = 1.3.95 =
 

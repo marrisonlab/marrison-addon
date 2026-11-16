@@ -24,7 +24,13 @@ function wp_cache_get( $key, $group ) { return $GLOBALS['cache'][ $group ][ $key
 function wp_cache_set( $key, $value, $group, $ttl ) { $GLOBALS['cache'][ $group ][ $key ] = $value; }
 function get_transient( $key ) { return $GLOBALS['transients'][ $key ] ?? false; }
 function set_transient( $key, $value, $ttl ) { $GLOBALS['transients'][ $key ] = $value; }
-function attachment_url_to_postid( $url ) { $GLOBALS['lookups'][] = $url; return 12; }
+function apply_filters( $tag, $value, ...$args ) {
+    if ( 'pre_attachment_url_to_postid' === $tag ) {
+        $GLOBALS['lookups'][] = $args[0];
+        return 12;
+    }
+    return $value;
+}
 function wp_get_attachment_metadata( $id ) { return false; }
 class Image_Settings_Response extends Exception { public $data; public function __construct( $data ) { $this->data = $data; } }
 function wp_send_json_success( $data ) { throw new Image_Settings_Response( $data ); }
@@ -71,12 +77,19 @@ for ( $i = 0; $i < 50; $i++ ) { $_POST['items'][] = array( 'key' => 'a' . $i, 'u
 try { $module->ajax_resolve_background_webp(); } catch ( Image_Settings_Response $response ) {}
 check( count( $lookups ) === 10, 'A public request must perform no more than ten uncached attachment resolutions.' );
 $transients = $cache = array();
+$module = ( new ReflectionClass( 'Marrison_Addon_Image_Sizes' ) )->newInstanceWithoutConstructor();
 $_POST['items'] = array( array( 'key' => 'a', 'url' => $base . '0.jpg', 'width' => 400, 'height' => 200 ) );
 try { $module->ajax_resolve_background_webp(); } catch ( Image_Settings_Response $response ) {}
 $lookups = array();
+$cache = array();
+$module = ( new ReflectionClass( 'Marrison_Addon_Image_Sizes' ) )->newInstanceWithoutConstructor();
 $_POST = array( 'items' => array( array( 'key' => 'a', 'url' => $base . '0.jpg?cachebuster=2', 'width' => 399, 'height' => 199 ), array( 'key' => 'bad', 'url' => $base . 'huge.jpg', 'width' => 999999 ) ) );
 try { $module->ajax_resolve_background_webp(); } catch ( Image_Settings_Response $response ) {}
-check( empty( $lookups ), 'Negative cache must survive cache busters and same dimension bucket; oversized targets must not query metadata.' );
+check( empty( $lookups ), 'Negative cache must survive without a persistent object cache, across cache busters and matching dimension buckets.' );
+$cache = $transients = array();
+$module = ( new ReflectionClass( 'Marrison_Addon_Image_Sizes' ) )->newInstanceWithoutConstructor();
+try { $module->ajax_resolve_background_webp(); } catch ( Image_Settings_Response $response ) {}
+check( count( $lookups ) === 1, 'A transient miss should resolve only the valid item again; oversized targets must never query metadata.' );
 for ( $i = 0; $i < 2000; $i++ ) { invoke( 'set_background_resolve_cache', array( md5( 'url-' . $i ), array() ) ); }
 check( count( $transients ) <= 256 && count( $cache[ Marrison_Addon_Image_Sizes::BACKGROUND_RESOLVE_CACHE_GROUP ] ) <= 256, 'Arbitrary resolver keys must never grow the fixed 256-slot persistent cache.' );
 echo "Image Sizes settings/slug collisions/proportions/public resolver bounds: PASS\n";

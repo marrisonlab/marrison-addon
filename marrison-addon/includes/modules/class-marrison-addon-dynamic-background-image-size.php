@@ -82,10 +82,13 @@ class Marrison_Addon_Dynamic_Background_Image_Size {
 		$url = isset( $image['url'] ) && is_string( $image['url'] ) ? $image['url'] : '';
 		if ( ! $id && $url ) {
 			$clean_url = preg_replace( '/[?#].*$/', '', html_entity_decode( $url, ENT_QUOTES ) );
-			if ( ! array_key_exists( $clean_url, $this->attachment_ids ) ) {
-				$this->attachment_ids[ $clean_url ] = attachment_url_to_postid( $clean_url );
+			$id = apply_filters( 'marrison_addon/image_sizes/attachment_id', null, $clean_url );
+			if ( null === $id ) {
+				if ( ! array_key_exists( $clean_url, $this->attachment_ids ) ) {
+					$this->attachment_ids[ $clean_url ] = attachment_url_to_postid( $clean_url );
+				}
+				$id = $this->attachment_ids[ $clean_url ];
 			}
-			$id = $this->attachment_ids[ $clean_url ];
 		}
 
 		if ( $id && wp_attachment_is_image( $id ) ) {
