@@ -2,8 +2,13 @@
     'use strict';
 
     var letterAnimations = ['marrisonLettersRise', 'marrisonLettersFocus', 'marrisonLettersElastic'];
-    var customAnimations = ['marrisonLiftSoft', 'marrisonDropSoft', 'marrisonSlideReveal', 'marrisonCurtainRight', 'marrisonFocusIn', 'marrisonZoomSettle', 'marrisonTiltRise', 'marrisonSkewSweep', 'marrisonDriftLeft', 'marrisonElasticPop'].concat(letterAnimations);
+    var splitAnimations = letterAnimations.concat(['marrisonLinesRise']);
+    var customAnimations = ['marrisonLiftSoft', 'marrisonDropSoft', 'marrisonSlideReveal', 'marrisonCurtainRight', 'marrisonFocusIn', 'marrisonZoomSettle', 'marrisonTiltRise', 'marrisonSkewSweep', 'marrisonDriftLeft', 'marrisonElasticPop'].concat(splitAnimations);
     var headingStates = new WeakMap();
+    var lineContainers = new WeakSet();
+    var lineResizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(function(entries) {
+        entries.forEach(function(entry) { updateLineIndexes(entry.target); });
+    }) : null;
 
     function selectResponsiveAnimation(element) {
         var raw = element.getAttribute('data-marrison-heading-animations');
@@ -70,9 +75,9 @@
     }
 
     function findAnimationClass(element) {
-        for (var i = 0; i < letterAnimations.length; i++) {
-            if (element.classList.contains(letterAnimations[i])) {
-                return letterAnimations[i];
+        for (var i = 0; i < splitAnimations.length; i++) {
+            if (element.classList.contains(splitAnimations[i])) {
+                return splitAnimations[i];
             }
         }
 
@@ -146,36 +151,108 @@
         container.dataset.marrisonLettersReady = '1';
     }
 
+    function unwrap(container, selector) {
+        var wrappers = container.querySelectorAll(selector);
+        for (var i = wrappers.length - 1; i >= 0; i--) {
+            var fragment = document.createDocumentFragment();
+            while (wrappers[i].firstChild) {
+                fragment.appendChild(wrappers[i].firstChild);
+            }
+            wrappers[i].parentNode.replaceChild(fragment, wrappers[i]);
+        }
+        container.normalize();
+    }
+
+    function updateLineIndexes(container) {
+        var words = container.querySelectorAll('.marrison-heading-line-mask');
+        var line = -1;
+        var lineTop = 0;
+        var lineBottom = 0;
+        // Read the untransformed masks, so an in-progress reveal cannot change grouping.
+        var rects = Array.prototype.map.call(words, function(word) { return word.getBoundingClientRect(); });
+        rects.forEach(function(rect, index) {
+            var middle = (rect.top + rect.bottom) / 2;
+            if (line < 0 || middle >= lineBottom - 1 || middle <= lineTop + 1) {
+                line++;
+                lineTop = rect.top;
+                lineBottom = rect.bottom;
+            }
+            words[index].style.setProperty('--marrison-line-index', line);
+        });
+    }
+
+    function splitIntoLines(container) {
+        // Keep links, emphasis, explicit breaks and whitespace in their original DOM.
+        // Word masks on the same visual line move together; wrapping stays responsive.
+        function visit(parent) {
+            Array.prototype.slice.call(parent.childNodes).forEach(function(node) {
+                if (node.nodeType === 1) {
+                    if (!/^(SCRIPT|STYLE|SVG)$/.test(node.tagName) && !node.classList.contains('marrison-heading-line-mask')) {
+                        visit(node);
+                    }
+                    return;
+                }
+                if (node.nodeType !== 3 || !(node.nodeValue || '').trim()) {
+                    return;
+                }
+                var fragment = document.createDocumentFragment();
+                node.nodeValue.split(/(\s+)/).forEach(function(token) {
+                    if (!token) {
+                        return;
+                    }
+                    if (/^\s+$/.test(token)) {
+                        fragment.appendChild(document.createTextNode(token));
+                        return;
+                    }
+                    var mask = document.createElement('span');
+                    mask.className = 'marrison-heading-line-mask';
+                    var text = document.createElement('span');
+                    text.className = 'marrison-heading-line-text';
+                    text.textContent = token;
+                    mask.appendChild(text);
+                    fragment.appendChild(mask);
+                });
+                parent.replaceChild(fragment, node);
+            });
+        }
+        visit(container);
+        container.dataset.marrisonLinesReady = '1';
+        updateLineIndexes(container);
+        if (lineResizeObserver && !lineContainers.has(container)) {
+            lineContainers.add(container);
+            // A linked heading's inline anchor has no observable content box.
+            lineResizeObserver.observe(container.closest('.elementor-heading-title') || container);
+        }
+    }
+
     function processHeading(element) {
         var animation = selectResponsiveAnimation(element);
         var container = getTextContainer(element);
-
-        if (!animation || letterAnimations.indexOf(animation) === -1) {
-            if (container && container.dataset.marrisonLettersReady === '1') {
-                var wrappers = container.querySelectorAll('.marrison-heading-word, .marrison-heading-letter');
-                for (var i = wrappers.length - 1; i >= 0; i--) {
-                    var fragment = document.createDocumentFragment();
-                    while (wrappers[i].firstChild) {
-                        fragment.appendChild(wrappers[i].firstChild);
-                    }
-                    wrappers[i].parentNode.replaceChild(fragment, wrappers[i]);
-                }
-                container.normalize();
-                delete container.dataset.marrisonLettersReady;
-            }
-            return;
-        }
-
         if (!container) {
             return;
         }
-
-        splitIntoLetters(container);
+        if (animation !== 'marrisonLinesRise' && container.dataset.marrisonLinesReady === '1') {
+            if (lineResizeObserver) {
+                lineResizeObserver.unobserve(container.closest('.elementor-heading-title') || container);
+                lineContainers.delete(container);
+            }
+            unwrap(container, '.marrison-heading-line-mask, .marrison-heading-line-text');
+            delete container.dataset.marrisonLinesReady;
+        }
+        if (letterAnimations.indexOf(animation) === -1 && container.dataset.marrisonLettersReady === '1') {
+            unwrap(container, '.marrison-heading-word, .marrison-heading-letter');
+            delete container.dataset.marrisonLettersReady;
+        }
+        if (animation === 'marrisonLinesRise') {
+            splitIntoLines(container);
+        } else if (letterAnimations.indexOf(animation) !== -1) {
+            splitIntoLetters(container);
+        }
     }
 
     function scan(root) {
         var scope = root && root.querySelectorAll ? root : document;
-        var selector = letterAnimations.map(function(animation) {
+        var selector = splitAnimations.map(function(animation) {
             return '.' + animation;
         }).join(',');
         var items = scope.querySelectorAll(selector + ', [data-marrison-letter-animation], [data-marrison-heading-animations]');
@@ -196,6 +273,12 @@
                 if (mutation.type === 'attributes' && mutation.target.matches('[data-marrison-heading-animations]')) {
                     processHeading(mutation.target);
                 }
+                if (mutation.type === 'childList' && mutation.target.closest) {
+                    var heading = mutation.target.closest('[data-marrison-heading-animations]');
+                    if (heading) {
+                        processHeading(heading);
+                    }
+                }
 
                 for (var j = 0; j < mutation.addedNodes.length; j++) {
                     var node = mutation.addedNodes[j];
@@ -204,7 +287,7 @@
                         continue;
                     }
 
-                    if (node.matches && (node.matches('[data-marrison-letter-animation], [data-marrison-heading-animations]') || letterAnimations.some(function(animation) { return node.classList.contains(animation); }))) {
+                    if (node.matches && (node.matches('[data-marrison-letter-animation], [data-marrison-heading-animations]') || splitAnimations.some(function(animation) { return node.classList.contains(animation); }))) {
                         processHeading(node);
                     }
 
@@ -231,6 +314,12 @@
 
     window.addEventListener('resize', function() { scan(document); });
     window.addEventListener('load', function() { scan(document); });
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function() { scan(document); });
+        if (document.fonts.addEventListener) {
+            document.fonts.addEventListener('loadingdone', function() { scan(document); });
+        }
+    }
     if (window.jQuery) {
         window.jQuery(window).on('elementor/frontend/init', function() { scan(document); });
     }

@@ -6,6 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Marrison_Addon_Wrapped_Link {
 
 	public function __construct() {
+		add_action( 'elementor/frontend/after_enqueue_scripts', [ $this, 'maybe_enqueue_scripts' ] );
 		add_action( 'elementor/element/container/section_layout/after_section_end', [ $this, 'register_controls' ] );
 		add_action( 'elementor/frontend/container/before_render', [ $this, 'before_render' ] );
 		add_action( 'elementor/element/common/_section_style/after_section_end', [ $this, 'register_controls' ] );
@@ -57,6 +58,15 @@ class Marrison_Addon_Wrapped_Link {
 				}
 			}
 		}
+	}
+
+	public function maybe_enqueue_scripts() {
+		if ( ! Marrison_Addon_Context::is_public_frontend_request() ) {
+			return;
+		}
+
+		// Cached Elementor elements skip before_render, but their links still need the click handler.
+		$this->enqueue_scripts();
 	}
 
 	public function enqueue_scripts() {

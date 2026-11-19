@@ -3,7 +3,7 @@ Tags: elementor, woocommerce, cookies, images, performance
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.96
+Stable tag: 1.3.98
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -103,6 +103,14 @@ Every dependent module lists the plugins that must be present and active. Missin
 [GitHub documentation and full changelog](https://github.com/marrisonlab/marrison-addon/blob/main/marrison-addon/README.md).
 
 == Changelog ==
+
+= 1.3.98 =
+
+* Header Animations: adds Lines Rise, a masked slide-up per visual line with staggered timing, responsive wrapping, preserved inline markup and reduced-motion support.
+
+= 1.3.97 =
+
+* Wrapped Link: loads the click handler with Elementor's frontend scripts so cached containers and widgets remain clickable even when their render hooks are skipped. Editor interactions remain unchanged.
 
 = 1.3.96 =
 

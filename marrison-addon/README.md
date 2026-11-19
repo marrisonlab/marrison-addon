@@ -11,7 +11,7 @@
 *   **Tested up to:** 7.1.3
 *   **Requires PHP:** 7.4
 *   **PHP compatibility:** 8.5 (current stable patch: 8.5.11)
-*   **Stable tag:** 1.3.96
+*   **Stable tag:** 1.3.98
 *   **License:** GPL-3.0-or-later
 *   **License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -52,8 +52,9 @@ The module dashboard always lists required active plugins. Missing dependencies 
     *   Includes typography, color, background, alignment, border, radius, padding, and shadow controls.
 
 5.  **Header Animations (Elementor):**
-    *   Adds 10 custom entrance animations to Elementor's Heading widget only.
+    *   Adds custom entrance animations to Elementor's Heading widget only, including letter effects and **Lines Rise**: each visual line rises from behind its own vertical mask, with a stagger between lines.
     *   Uses Elementor's native entrance animation control and timing options.
+    *   Lines Rise follows automatic wrapping, explicit line breaks, container resizing and font loading; inline formatting and links are preserved. Select **Advanced > Motion Effects > Entrance Animation > Marrison > Lines Rise**, or use the Marrison Animation fallback control.
 
 6.  **Recently Viewed Products (WooCommerce + JetEngine):**
     *   Adds the "Visualizzati di recente (prodotti)" macro to JetEngine macro UIs.
@@ -227,6 +228,14 @@ Updates use the latest published stable GitHub Release from `marrisonlab/marriso
 Version 1.3.79 (Phase 1) adds a validated local catalog for ten providers, source/review badges, service category overrides in Behavior, custom domain/path rules and default blocking for unclassified external resources. Payment classification must be confirmed by the privacy adviser. Catalog cookies are declarations, never observations; PayPal/Klarna lists remain empty where integration-specific data are unconfirmed. No scanner provider is replaced in this phase. See [configuration, limitations and tests](docs/cookie-service-catalog.md).
 
 ## Changelog
+
+### 1.3.98
+
+- Header Animations: adds Lines Rise, a masked slide-up per visual line with staggered timing, responsive wrapping, preserved inline markup and reduced-motion support.
+
+### 1.3.97
+
+- Wrapped Link: loads the click handler with Elementor's frontend scripts so cached containers and widgets remain clickable even when their render hooks are skipped. Editor interactions remain unchanged.
 
 ### 1.3.96
 

@@ -195,6 +195,7 @@ class Marrison_Addon_Header_Animations {
 			'marrisonLiftSoft'      => esc_html__( 'Lift Soft', 'marrison-addon' ),
 			'marrisonDropSoft'      => esc_html__( 'Drop Soft', 'marrison-addon' ),
 			'marrisonSlideReveal'   => esc_html__( 'Slide Reveal', 'marrison-addon' ),
+			'marrisonLinesRise'     => esc_html__( 'Lines Rise', 'marrison-addon' ),
 			'marrisonCurtainRight'  => esc_html__( 'Curtain Right', 'marrison-addon' ),
 			'marrisonFocusIn'       => esc_html__( 'Focus In', 'marrison-addon' ),
 			'marrisonZoomSettle'    => esc_html__( 'Zoom Settle', 'marrison-addon' ),
